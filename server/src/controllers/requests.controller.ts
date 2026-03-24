@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { prisma } from '../config/database';
 import { RequestsService } from '../services/requests.service';
+import { emitToTrip } from '../socket/tracking.gateway';
 
 const svc = new RequestsService(prisma);
 
@@ -27,6 +28,13 @@ export async function getRequestsByTrip(req: Request, res: Response) {
 export async function respondToRequest(req: Request, res: Response) {
   const { action } = respondSchema.parse(req.body);
   const request = await svc.respond(String(req.params.id), req.user!.id, action);
+
+  // Notificar en tiempo real al pasajero si está en la sala del viaje
+  emitToTrip((request as any).tripId ?? (request as any).trip?.id, 'request:update', {
+    requestId: request.id,
+    status: request.status,
+  });
+
   res.json({ request });
 }
 

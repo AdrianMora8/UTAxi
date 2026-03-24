@@ -847,4 +847,113 @@ Content-Type: application/json
 ```
 → `403` "Tu cuenta está suspendida"
 
-## FASE 9 — GPS en Tiempo Real *(próximamente)*
+## FASE 9 — GPS en Tiempo Real (Socket.io)
+
+> Postman tiene soporte básico de WebSocket pero Socket.io usa un protocolo propio.
+> La forma más fácil de probar es desde la **consola del navegador**.
+
+---
+
+### Opción A — Probar desde consola del navegador
+
+Abre `http://localhost:4000` en el navegador (o cualquier página), luego abre DevTools (F12) → **Console** y pega:
+
+```javascript
+// 1. Conectar con tu token
+const socket = io('http://localhost:4000', {
+  auth: { token: 'eyJ...' }  // ← pega tu accessToken aquí
+});
+
+socket.on('connect', () => console.log('✅ Conectado:', socket.id));
+socket.on('connect_error', (err) => console.error('❌ Error:', err.message));
+socket.on('error', (data) => console.error('Error del servidor:', data));
+```
+
+Necesitas cargar Socket.io primero — en otra pestaña del navegador abre:
+```
+http://localhost:4000/socket.io/socket.io.js
+```
+Y pégalo en la consola, o añade en el HTML:
+```html
+<script src="http://localhost:4000/socket.io/socket.io.js"></script>
+```
+
+---
+
+### Opción B — Script Node.js de prueba (recomendado)
+
+Crea un archivo temporal `test-socket.mjs` en cualquier carpeta:
+
+```javascript
+import { io } from 'socket.io-client';
+
+const TOKEN = 'eyJ...'; // ← tu accessToken
+const TRIP_ID = 'cl...'; // ← id de un viaje IN_PROGRESS
+
+const socket = io('http://localhost:4000', {
+  auth: { token: TOKEN }
+});
+
+socket.on('connect', () => {
+  console.log('✅ Conectado:', socket.id);
+
+  // Unirse a la sala del viaje
+  socket.emit('join:trip', { tripId: TRIP_ID });
+});
+
+socket.on('joined:trip', (data) => {
+  console.log('✅ Unido a viaje:', data);
+
+  // Conductor emite ubicación (solo si eres el conductor del viaje)
+  socket.emit('location:update', {
+    tripId: TRIP_ID,
+    lat: -1.2543,
+    lng: -78.6234
+  });
+});
+
+socket.on('location:update', (data) => {
+  console.log('📍 Ubicación recibida:', data);
+});
+
+socket.on('request:update', (data) => {
+  console.log('📬 Solicitud actualizada:', data);
+});
+
+socket.on('error', (data) => console.error('❌ Error:', data.message));
+```
+
+Ejecutar:
+```bash
+npm install socket.io-client  # en la carpeta del archivo
+node test-socket.mjs
+```
+
+---
+
+### Flujo completo de prueba
+
+1. Viaje debe estar en estado `IN_PROGRESS` (`PATCH /api/trips/:id/status`)
+2. **Conductor** (cuenta A) se conecta y hace `join:trip`
+3. **Pasajero** (cuenta B, solicitud ACCEPTED) se conecta y hace `join:trip`
+4. **Conductor** emite `location:update` con lat/lng
+5. **Pasajero** recibe el evento `location:update` en tiempo real
+
+---
+
+### Eventos disponibles
+
+**Cliente → Servidor:**
+| Evento | Payload | Descripción |
+|--------|---------|-------------|
+| `join:trip` | `{ tripId }` | Unirse a sala del viaje |
+| `leave:trip` | `{ tripId }` | Salir de sala |
+| `location:update` | `{ tripId, lat, lng }` | Solo el conductor |
+
+**Servidor → Cliente:**
+| Evento | Payload | Descripción |
+|--------|---------|-------------|
+| `joined:trip` | `{ tripId }` | Confirmación de unión |
+| `location:update` | `{ lat, lng, timestamp, driverId }` | GPS del conductor |
+| `request:update` | `{ requestId, status }` | Al aceptar/rechazar solicitud |
+| `error` | `{ message }` | Error de validación |

@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  WARNED
+  SUSPENDED
+}
+
+enum TripStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  CONFIRMED
+  FAILED
+  REFUNDED
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  RESOLVED
+}
+
+enum ReportReason {
+  INAPPROPRIATE_BEHAVIOR
+  NO_SHOW
+  FRAUD
+  UNSAFE_DRIVING
+  HARASSMENT
+  OTHER
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id                String     @id @default(cuid())
+  email             String     @unique
+  passwordHash      String
+  fullName          String
+  career            String?
+  phone             String?
+  photoUrl          String?
+  neighborhood      String?
+  role              Role       @default(STUDENT)
+  status            UserStatus @default(ACTIVE)
+  emailVerified     Boolean    @default(false)
+  emailVerifyToken  String?
+  emailVerifyExpiry DateTime?
+  refreshToken      String?
+  reputationScore   Float      @default(5.0)
+  totalTrips        Int        @default(0)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  tripsAsDriver  Trip[]         @relation("DriverTrips")
+  vehicle        Vehicle?
+  tripRequests   TripRequest[]  @relation("PassengerRequests")
+  ratingsGiven   Rating[]       @relation("RaterUser")
+  ratingsReceived Rating[]      @relation("RatedUser")
+  reportsFiled   Report[]       @relation("ReporterUser")
+  reportsReceived Report[]      @relation("ReportedUser")
+  reportReviews  ReportReview[]
+  payments       Payment[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model Vehicle {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand       String
+  model       String
+  year        Int
+  plateNumber String
+  color       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("vehicles")
+}
+
+model Trip {
+  id              String     @id @default(cuid())
+  driverId        String
+  driver          User       @relation("DriverTrips", fields: [driverId], references: [id])
+  originZone      String
+  destinationZone String
+  departureTime   DateTime
+  totalSeats      Int
+  availableSeats  Int
+  pricePerSeat    Decimal    @db.Decimal(8, 2)
+  notes           String?
+  rules           String?
+  status          TripStatus @default(SCHEDULED)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  requests TripRequest[]
+  payments Payment[]
+
+  @@index([destinationZone, departureTime, availableSeats, status])
+  @@index([driverId])
+  @@map("trips")
+}
+
+model TripRequest {
+  id          String        @id @default(cuid())
+  tripId      String
+  trip        Trip          @relation(fields: [tripId], references: [id])
+  passengerId String
+  passenger   User          @relation("PassengerRequests", fields: [passengerId], references: [id])
+  status      RequestStatus @default(PENDING)
+  message     String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  payment Payment?
+  rating  Rating?
+
+  @@unique([tripId, passengerId])
+  @@index([tripId, status])
+  @@index([passengerId])
+  @@map("trip_requests")
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  tripRequestId   String        @unique
+  tripRequest     TripRequest   @relation(fields: [tripRequestId], references: [id])
+  tripId          String
+  trip            Trip          @relation(fields: [tripId], references: [id])
+  payerId         String
+  payer           User          @relation(fields: [payerId], references: [id])
+  amount          Decimal       @db.Decimal(8, 2)
+  stripePaymentId String?       @unique
+  status          PaymentStatus @default(PENDING)
+  confirmedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([stripePaymentId])
+  @@map("payments")
+}
+
+model Rating {
+  id            String      @id @default(cuid())
+  tripRequestId String      @unique
+  tripRequest   TripRequest @relation(fields: [tripRequestId], references: [id])
+  raterId       String
+  rater         User        @relation("RaterUser", fields: [raterId], references: [id])
+  ratedId       String
+  rated         User        @relation("RatedUser", fields: [ratedId], references: [id])
+  score         Int
+  comment       String?
+  raterRole     String
+  createdAt     DateTime    @default(now())
+
+  @@index([ratedId])
+  @@map("ratings")
+}
+
+model Report {
+  id           String       @id @default(cuid())
+  reporterId   String
+  reporter     User         @relation("ReporterUser", fields: [reporterId], references: [id])
+  reportedId   String
+  reported     User         @relation("ReportedUser", fields: [reportedId], references: [id])
+  reason       ReportReason
+  description  String
+  evidenceUrls String[]
+  status       ReportStatus @default(OPEN)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  reviews ReportReview[]
+
+  @@index([reportedId, status])
+  @@map("reports")
+}
+
+model ReportReview {
+  id        String   @id @default(cuid())
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id])
+  adminId   String
+  admin     User     @relation(fields: [adminId], references: [id])
+  action    String
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@map("report_reviews")
+}
+
+model SafetyAcknowledgment {
+  id             String   @id @default(cuid())
+  userId         String
+  tripId         String
+  acknowledgedAt DateTime @default(now())
+
+  @@unique([userId, tripId])
+  @@map("safety_acknowledgments")
+}

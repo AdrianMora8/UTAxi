@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import { env } from './config/env';
 import { prisma } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
@@ -11,6 +12,9 @@ import { usersRouter } from './routes/users.routes';
 import { tripsRouter } from './routes/trips.routes';
 import { requestsRouter } from './routes/requests.routes';
 import { paymentsRouter } from './routes/payments.routes';
+import { ratingsRouter } from './routes/ratings.routes';
+import { reportsRouter } from './routes/reports.routes';
+import { adminRouter } from './routes/admin.routes';
 
 export function createApp() {
   const app = express();
@@ -43,6 +47,12 @@ export function createApp() {
   app.use('/api/trips', tripsRouter);
   app.use('/api/requests', requestsRouter);
   app.use('/api/payments', paymentsRouter);
+  app.use('/api/ratings', ratingsRouter);
+  app.use('/api/reports', reportsRouter);
+  app.use('/api/admin', adminRouter);
+
+  // ─── Archivos estáticos (evidencias de reportes) ──────────────────────────
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // ─── 404 ──────────────────────────────────────────────────────────────────
   app.use((_req, res) => {

@@ -628,8 +628,223 @@ Cuando integres el frontend, usa esta tarjeta para simular pagos exitosos:
 | CVC | Cualquier 3 dígitos (ej. `123`) |
 | ZIP | Cualquier (ej. `12345`) |
 
-## FASE 7 — Calificaciones *(próximamente)*
+## FASE 7 — Calificaciones
 
-## FASE 8 — Reportes + Admin *(próximamente)*
+> **Prerequisito**: el viaje debe estar en estado `COMPLETED`.
+> Usa el endpoint `PATCH /api/trips/:id/status` con `{ "status": "COMPLETED" }` (conductor).
+
+---
+
+### 1. Calificar como pasajero → al conductor
+```
+POST {{baseUrl}}/api/ratings
+Authorization: Bearer {{accessToken_B}}
+Content-Type: application/json
+
+{
+  "tripRequestId": "<request_id_aceptado>",
+  "score": 5,
+  "comment": "Conductor muy puntual y amable"
+}
+```
+**Respuesta esperada `201`:**
+```json
+{
+  "rating": {
+    "id": "...",
+    "score": 5,
+    "comment": "Conductor muy puntual y amable",
+    "raterRole": "PASSENGER",
+    "createdAt": "..."
+  }
+}
+```
+
+---
+
+### 2. Calificar como conductor → al pasajero
+```
+POST {{baseUrl}}/api/ratings
+Authorization: Bearer {{accessToken_A}}
+Content-Type: application/json
+
+{
+  "tripRequestId": "<mismo_request_id>",
+  "score": 4,
+  "comment": "Pasajero puntual"
+}
+```
+**Respuesta esperada `201`**
+
+---
+
+### 3. Ver calificaciones de un usuario
+```
+GET {{baseUrl}}/api/ratings/user/<user_id>?page=1&limit=10
+Authorization: Bearer {{accessToken}}
+```
+**Respuesta esperada `200`:**
+```json
+{
+  "ratings": [
+    {
+      "score": 5,
+      "comment": "Conductor muy puntual",
+      "raterRole": "PASSENGER",
+      "rater": { "fullName": "..." },
+      "createdAt": "..."
+    }
+  ],
+  "total": 1,
+  "reputationScore": 5,
+  "totalRatings": 1
+}
+```
+
+---
+
+### Errores que puedes probar
+- Viaje no `COMPLETED` → `400` "Solo se puede calificar cuando el viaje está COMPLETED"
+- Calificar dos veces → `409` "Ya calificaste este viaje"
+- Usuario que no participó en el viaje → `403` "No participaste en este viaje"
+- Solicitud con status `PENDING` o `REJECTED` → `400`
+
+## FASE 8 — Reportes + Admin
+
+---
+
+### Preparar cuenta admin
+Primero necesitas promover un usuario a ADMIN. Conéctate a pgAdmin y ejecuta:
+```sql
+UPDATE users SET role = 'ADMIN' WHERE email = 'tu_usuario@uta.edu.ec';
+```
+Luego haz login con esa cuenta y guarda el token en `{{accessToken_admin}}`.
+
+---
+
+### 1. Crear un reporte (cualquier estudiante)
+Usa `multipart/form-data` (no JSON) para poder adjuntar archivos.
+```
+POST {{baseUrl}}/api/reports
+Authorization: Bearer {{accessToken_B}}
+Content-Type: multipart/form-data
+
+reportedId:   <id_del_usuario_a_reportar>
+reason:       INAPPROPRIATE_BEHAVIOR
+description:  El conductor no respetó las reglas mínimas de seguridad durante el viaje.
+evidence:     (archivo opcional: imagen o PDF, máx 5MB, hasta 3 archivos)
+```
+**Respuesta esperada `201`:**
+```json
+{
+  "report": {
+    "id": "...",
+    "reason": "INAPPROPRIATE_BEHAVIOR",
+    "status": "OPEN",
+    "evidenceUrls": ["/uploads/1234567-archivo.jpg"],
+    "reported": { "fullName": "..." }
+  }
+}
+```
+
+Valores válidos para `reason`:
+- `INAPPROPRIATE_BEHAVIOR`
+- `NO_SHOW`
+- `FRAUD`
+- `UNSAFE_DRIVING`
+- `HARASSMENT`
+- `OTHER`
+
+Errores que puedes probar:
+- Reportarse a sí mismo → `400`
+- Usuario reportado no existe → `404`
+
+---
+
+### 2. Ver mis reportes enviados
+```
+GET {{baseUrl}}/api/reports/my
+Authorization: Bearer {{accessToken_B}}
+```
+**Respuesta esperada `200`:** lista de reportes con estado y revisiones.
+
+---
+
+### 3. Admin — listar todos los reportes
+```
+GET {{baseUrl}}/api/admin/reports?status=OPEN&page=1&limit=10
+Authorization: Bearer {{accessToken_admin}}
+```
+→ Sin cuenta ADMIN → `403` "Acceso restringido a administradores"
+
+---
+
+### 4. Admin — ver detalle de un reporte
+```
+GET {{baseUrl}}/api/admin/reports/<report_id>
+Authorization: Bearer {{accessToken_admin}}
+```
+**Respuesta esperada `200`:** reporte completo con info de reporter, reported y revisiones previas.
+
+---
+
+### 5. Admin — aplicar acción sobre un reporte
+```
+PATCH {{baseUrl}}/api/admin/reports/<report_id>
+Authorization: Bearer {{accessToken_admin}}
+Content-Type: application/json
+
+{
+  "action": "WARNED",
+  "notes": "Primera advertencia por comportamiento inapropiado"
+}
+```
+Valores válidos para `action`:
+- `WARNED` → usuario pasa a status `WARNED`
+- `SUSPENDED` → usuario pasa a status `SUSPENDED`
+- `DISMISSED` → reporte cerrado sin acción
+
+**Respuesta esperada `200`:**
+```json
+{
+  "report": { "status": "RESOLVED" },
+  "affectedUser": { "fullName": "...", "status": "WARNED" }
+}
+```
+
+---
+
+### 6. Admin — listar usuarios
+```
+GET {{baseUrl}}/api/admin/users?status=WARNED&search=Juan&page=1
+Authorization: Bearer {{accessToken_admin}}
+```
+Filtros disponibles: `status` (ACTIVE/WARNED/SUSPENDED), `search` (nombre o email).
+
+---
+
+### 7. Admin — cambiar estado de un usuario directamente
+```
+PATCH {{baseUrl}}/api/admin/users/<user_id>/status
+Authorization: Bearer {{accessToken_admin}}
+Content-Type: application/json
+
+{ "status": "SUSPENDED" }
+```
+**Respuesta esperada `200`:** usuario con nuevo status.
+
+---
+
+### 8. Verificar que usuario suspendido no puede hacer login
+```
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario_suspendido@uta.edu.ec",
+  "password": "Password123!"
+}
+```
+→ `403` "Tu cuenta está suspendida"
 
 ## FASE 9 — GPS en Tiempo Real *(próximamente)*

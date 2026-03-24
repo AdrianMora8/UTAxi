@@ -538,7 +538,95 @@ Authorization: Bearer {{accessToken_B}}
 ```
 > Si la solicitud estaba ACCEPTED, el cupo se devuelve automáticamente al viaje.
 
-## FASE 6 — Pagos con Stripe *(próximamente)*
+## FASE 6 — Pagos con Stripe
+
+> **Prerequisito**: necesitas una cuenta Stripe gratuita en [stripe.com](https://stripe.com).
+> En el dashboard → Developers → API Keys → copia `sk_test_...` y `pk_test_...`.
+> Luego pon la secret key en `server/.env`:
+> ```
+> STRIPE_SECRET_KEY="sk_test_TU_KEY_AQUI"
+> ```
+
+---
+
+### 1. Crear PaymentIntent (pasajero con solicitud ACCEPTED)
+```
+POST {{baseUrl}}/api/payments/create-intent
+Authorization: Bearer {{accessToken_B}}
+Content-Type: application/json
+
+{
+  "tripRequestId": "<request_id_aceptado>"
+}
+```
+**Respuesta esperada `201`:**
+```json
+{
+  "clientSecret": "pi_xxx_secret_xxx",
+  "paymentId": "...",
+  "amount": 0.50
+}
+```
+> El `clientSecret` es lo que el frontend usaría con Stripe Elements.
+> Guarda el `paymentId` y el `tripRequestId`.
+
+Errores que puedes probar:
+- Solicitud con status PENDING → `400` "Solo se puede pagar una solicitud aceptada"
+- Otro usuario intentando pagar → `403`
+- Pagar dos veces un pago ya confirmado → `409`
+
+---
+
+### 2. Simular webhook de Stripe (pago exitoso)
+
+Instala la Stripe CLI: [stripe.com/docs/stripe-cli](https://stripe.com/docs/stripe-cli)
+
+En una terminal separada:
+```bash
+stripe login
+stripe listen --forward-to localhost:4000/api/payments/webhook
+```
+Copia el `whsec_...` que aparece y ponlo en `.env`:
+```
+STRIPE_WEBHOOK_SECRET="whsec_TU_SECRET_AQUI"
+```
+
+En otra terminal, simula el pago:
+```bash
+stripe trigger payment_intent.succeeded
+```
+→ El servidor recibe el webhook y actualiza `Payment.status = CONFIRMED`.
+
+---
+
+### 3. Verificar estado del pago
+```
+GET {{baseUrl}}/api/payments/<tripRequestId>
+Authorization: Bearer {{accessToken_B}}
+```
+**Respuesta esperada `200`:**
+```json
+{
+  "payment": {
+    "status": "CONFIRMED",
+    "amount": "0.50",
+    "confirmedAt": "2026-03-25T...",
+    "trip": { "originZone": "La Merced", "destinationZone": "Campus UTA" }
+  }
+}
+```
+
+---
+
+### Tarjeta de prueba Stripe
+Cuando integres el frontend, usa esta tarjeta para simular pagos exitosos:
+
+| Campo | Valor |
+|-------|-------|
+| Número | `4242 4242 4242 4242` |
+| Vencimiento | Cualquier fecha futura (ej. `12/29`) |
+| CVC | Cualquier 3 dígitos (ej. `123`) |
+| ZIP | Cualquier (ej. `12345`) |
 
 ## FASE 7 — Calificaciones *(próximamente)*
 

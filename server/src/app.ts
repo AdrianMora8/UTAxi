@@ -10,6 +10,7 @@ import { authRouter } from './routes/auth.routes';
 import { usersRouter } from './routes/users.routes';
 import { tripsRouter } from './routes/trips.routes';
 import { requestsRouter } from './routes/requests.routes';
+import { paymentsRouter } from './routes/payments.routes';
 
 export function createApp() {
   const app = express();
@@ -41,6 +42,7 @@ export function createApp() {
   app.use('/api/users', usersRouter);
   app.use('/api/trips', tripsRouter);
   app.use('/api/requests', requestsRouter);
+  app.use('/api/payments', paymentsRouter);
 
   // ─── 404 ──────────────────────────────────────────────────────────────────
   app.use((_req, res) => {

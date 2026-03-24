@@ -414,7 +414,129 @@ Authorization: Bearer {{accessToken}}
 **Respuesta esperada `200`:** trip con `"status": "CANCELLED"`
 → Si otro usuario intenta cancelarlo → `403`
 
-## FASE 5 — Solicitudes *(próximamente)*
+## FASE 5 — Solicitudes
+
+> Necesitas **dos cuentas** en Postman: una como conductor (cuenta A) y otra como pasajero (cuenta B).
+> Ambas con su propio `accessToken`.
+
+---
+
+### 1. Enviar solicitud para unirse a un viaje (cuenta B — pasajero)
+```
+POST {{baseUrl}}/api/requests/trip/<trip_id>
+Authorization: Bearer {{accessToken_B}}
+Content-Type: application/json
+
+{
+  "message": "Vivo cerca, salgo puntual"
+}
+```
+**Respuesta esperada `201`:**
+```json
+{
+  "request": {
+    "id": "...",
+    "status": "PENDING",
+    "message": "Vivo cerca, salgo puntual",
+    "passenger": { "fullName": "...", "reputationScore": 5 },
+    "trip": { "destinationZone": "Campus UTA", ... }
+  }
+}
+```
+> Guarda el `request.id`.
+
+Errores que puedes probar:
+- Misma cuenta que creó el viaje → `403` "El conductor no puede unirse a su propio viaje"
+- Segunda solicitud del mismo pasajero → `400` "Ya enviaste una solicitud"
+- Viaje sin cupos → `400` "No hay cupos disponibles"
+
+---
+
+### 2. Ver solicitudes del viaje (cuenta A — conductor)
+```
+GET {{baseUrl}}/api/requests/trip/<trip_id>
+Authorization: Bearer {{accessToken_A}}
+```
+**Respuesta esperada `200`:**
+```json
+{
+  "requests": [
+    {
+      "id": "...",
+      "status": "PENDING",
+      "message": "Vivo cerca, salgo puntual",
+      "passenger": { "fullName": "...", "career": "...", "reputationScore": 5 }
+    }
+  ]
+}
+```
+> Con cuenta B → `403` "Solo el conductor puede ver las solicitudes"
+
+---
+
+### 3. Aceptar solicitud (cuenta A — conductor)
+```
+PATCH {{baseUrl}}/api/requests/<request_id>/respond
+Authorization: Bearer {{accessToken_A}}
+Content-Type: application/json
+
+{ "action": "ACCEPT" }
+```
+**Respuesta esperada `200`:**
+```json
+{
+  "request": {
+    "status": "ACCEPTED",
+    "passenger": { "fullName": "..." },
+    "trip": { "availableSeats": 2 }
+  }
+}
+```
+> Verifica que `availableSeats` bajó en 1.
+
+---
+
+### 4. Verificar cupos decrementados
+```
+GET {{baseUrl}}/api/trips/<trip_id>
+Authorization: Bearer {{accessToken_A}}
+```
+→ `availableSeats` debe ser 1 menos que antes.
+
+---
+
+### 5. Rechazar solicitud (cuenta A — conductor)
+Crea otra solicitud con una tercera cuenta, luego:
+```
+PATCH {{baseUrl}}/api/requests/<request_id>/respond
+Authorization: Bearer {{accessToken_A}}
+Content-Type: application/json
+
+{ "action": "REJECT" }
+```
+**Respuesta esperada `200`:** `"status": "REJECTED"`
+
+---
+
+### 6. Ver mis solicitudes como pasajero (cuenta B)
+```
+GET {{baseUrl}}/api/requests/my
+Authorization: Bearer {{accessToken_B}}
+```
+**Respuesta esperada `200`:** lista de solicitudes con info del viaje y conductor.
+
+---
+
+### 7. Cancelar una solicitud (cuenta B — pasajero)
+```
+DELETE {{baseUrl}}/api/requests/<request_id>
+Authorization: Bearer {{accessToken_B}}
+```
+**Respuesta esperada `200`:**
+```json
+{ "message": "Solicitud cancelada y cupo devuelto al viaje" }
+```
+> Si la solicitud estaba ACCEPTED, el cupo se devuelve automáticamente al viaje.
 
 ## FASE 6 — Pagos con Stripe *(próximamente)*
 

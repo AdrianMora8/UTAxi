@@ -9,6 +9,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { authRouter } from './routes/auth.routes';
 import { usersRouter } from './routes/users.routes';
 import { tripsRouter } from './routes/trips.routes';
+import { requestsRouter } from './routes/requests.routes';
 
 export function createApp() {
   const app = express();
@@ -39,6 +40,7 @@ export function createApp() {
   app.use('/api/auth', authRouter);
   app.use('/api/users', usersRouter);
   app.use('/api/trips', tripsRouter);
+  app.use('/api/requests', requestsRouter);
 
   // ─── 404 ──────────────────────────────────────────────────────────────────
   app.use((_req, res) => {

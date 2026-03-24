@@ -8,6 +8,7 @@ import { prisma } from './config/database';
 import { errorHandler } from './middleware/errorHandler';
 import { authRouter } from './routes/auth.routes';
 import { usersRouter } from './routes/users.routes';
+import { tripsRouter } from './routes/trips.routes';
 
 export function createApp() {
   const app = express();
@@ -37,8 +38,7 @@ export function createApp() {
   // ─── Rutas API ────────────────────────────────────────────────────────────
   app.use('/api/auth', authRouter);
   app.use('/api/users', usersRouter);
-  // app.use('/api/trips', tripsRouter);   ← Fase 4
-  // ...
+  app.use('/api/trips', tripsRouter);
 
   // ─── 404 ──────────────────────────────────────────────────────────────────
   app.use((_req, res) => {

@@ -120,8 +120,8 @@ export default function MyRequests() {
                 const isPending   = req.status === 'PENDING'
                 const isRejected  = req.status === 'REJECTED'
                 const isCompleted = req.status === 'COMPLETED'
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const hasRating   = !!(req as any).rating
+                const hasRating   = !!req.rating
+                const isPaid      = req.payment?.status === 'CONFIRMED'
 
                 return (
                   <div
@@ -204,13 +204,20 @@ export default function MyRequests() {
                             <p className="text-xs text-on-surface-variant">{depTime}</p>
                           </div>
 
-                          {isAccepted && (
+                          {isAccepted && !isPaid && (
                             <button
                               onClick={() => navigate(`/pay/${req.id}`)}
                               className="w-full bg-gradient-primary text-on-primary font-headline font-bold py-3 px-6 rounded-lg text-sm uppercase tracking-tighter hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] transition-all active:scale-95"
                             >
                               Pagar Ahora
                             </button>
+                          )}
+
+                          {isAccepted && isPaid && (
+                            <div className="flex items-center justify-center gap-1.5 text-primary text-xs font-bold border border-primary/20 rounded-lg py-3 px-4 bg-primary/5">
+                              <span className="material-symbols-outlined text-sm material-symbols-filled">check_circle</span>
+                              Pago Confirmado
+                            </div>
                           )}
 
                           {isPending && (

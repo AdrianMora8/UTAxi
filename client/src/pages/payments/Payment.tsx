@@ -19,6 +19,14 @@ export default function Payment() {
     enabled: !!requestId,
   })
 
+  // Check if payment already exists for this request
+  const { data: existingPayment, isLoading: paymentLoading } = useQuery({
+    queryKey: ['payment', requestId],
+    queryFn: () => paymentsApi.getPayment(requestId!).then((r) => r.data.payment),
+    enabled: !!requestId,
+    retry: false, // 404 means no payment yet — don't retry
+  })
+
   const confirmMut = useMutation({
     mutationFn: () => paymentsApi.simulateConfirm(requestId!),
     onSuccess: () => {
@@ -33,7 +41,7 @@ export default function Payment() {
     },
   })
 
-  if (isLoading) {
+  if (isLoading || paymentLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
@@ -43,6 +51,9 @@ export default function Payment() {
 
   const req = reqData
   const trip = req?.trip
+
+  // Already paid — show confirmation state immediately
+  const alreadyPaid = existingPayment?.status === 'CONFIRMED'
 
   if (!req || !trip) {
     return (
@@ -54,8 +65,8 @@ export default function Payment() {
     )
   }
 
-  // Success state
-  if (confirmed) {
+  // Already paid state (came back to this page after paying)
+  if (alreadyPaid || confirmed) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
         <div className="w-full max-w-lg text-center space-y-6">
@@ -256,7 +267,7 @@ export default function Payment() {
           <div className="space-y-4">
             <button
               onClick={() => confirmMut.mutate()}
-              disabled={confirmMut.isPending}
+              disabled={confirmMut.isPending || alreadyPaid}
               className="w-full bg-gradient-primary py-4 rounded-xl text-on-primary font-bold font-headline text-lg shadow-[0_4px_24px_rgba(0,252,64,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             >
               <span className="material-symbols-outlined">lock</span>

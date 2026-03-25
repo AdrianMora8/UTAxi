@@ -20,8 +20,17 @@ export default function TripDetail() {
     queryKey: ['trip', id],
     queryFn: () => tripsApi.getTripById(id!).then((r) => r.data.trip),
     enabled: !!id,
-    
   })
+
+  // Check if current user already has a request for this trip
+  const { data: myRequests } = useQuery({
+    queryKey: ['my-requests'],
+    queryFn: () => requestsApi.getMyRequests().then((r) => r.data.requests),
+    enabled: !!id && !!user,
+  })
+  const alreadyRequested = myRequests?.some(
+    (r) => r.tripId === id && (r.status === 'PENDING' || r.status === 'ACCEPTED')
+  ) ?? false
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

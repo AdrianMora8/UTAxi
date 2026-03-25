@@ -4,7 +4,7 @@ export interface TripRequest {
   id: string
   tripId: string
   passengerId: string
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED'
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED'
   message?: string | null
   createdAt: string
   passenger?: {
@@ -28,6 +28,16 @@ export interface TripRequest {
       reputationScore: number
     }
   }
+  rating?: {
+    id: string
+    score: number
+    comment?: string | null
+  } | null
+  payment?: {
+    id: string
+    status: 'PENDING' | 'CONFIRMED' | 'FAILED' | 'REFUNDED'
+    confirmedAt: string | null
+  } | null
 }
 
 export const requestsApi = {

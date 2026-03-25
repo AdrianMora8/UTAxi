@@ -128,6 +128,7 @@ export class RequestsService {
           },
         },
         rating: { select: { id: true, score: true, comment: true } },
+        payment: { select: { id: true, status: true, confirmedAt: true } },
       },
     });
     return requests;

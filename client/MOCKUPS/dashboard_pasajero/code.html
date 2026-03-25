@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary": "#005b63",
+              "secondary-dim": "#7aeb9d",
+              "surface-tint": "#9cff93",
+              "primary-fixed": "#00fc40",
+              "tertiary-fixed": "#0eeafd",
+              "error-dim": "#d53d18",
+              "on-secondary": "#005f30",
+              "surface-container-highest": "#262626",
+              "primary-fixed-dim": "#00ec3b",
+              "outline-variant": "#494847",
+              "error-container": "#b92902",
+              "on-background": "#ffffff",
+              "inverse-on-surface": "#565554",
+              "tertiary-container": "#0eeafd",
+              "outline": "#777575",
+              "surface-dim": "#0e0e0e",
+              "background": "#0e0e0e",
+              "tertiary-fixed-dim": "#00dbec",
+              "on-error": "#450900",
+              "inverse-surface": "#fcf8f8",
+              "on-tertiary-fixed-variant": "#005c64",
+              "on-tertiary-fixed": "#003d42",
+              "secondary-fixed": "#89faaa",
+              "surface-container": "#1a1919",
+              "on-tertiary-container": "#005159",
+              "secondary-fixed-dim": "#7aeb9d",
+              "surface-container-lowest": "#000000",
+              "on-primary-container": "#005a10",
+              "surface-container-high": "#201f1f",
+              "on-surface": "#ffffff",
+              "surface-bright": "#2c2c2c",
+              "secondary-container": "#006d38",
+              "on-secondary-container": "#e3ffe5",
+              "on-primary": "#006413",
+              "on-surface-variant": "#adaaaa",
+              "on-secondary-fixed-variant": "#006a36",
+              "on-primary-fixed-variant": "#006513",
+              "on-secondary-fixed": "#004a24",
+              "inverse-primary": "#006f16",
+              "on-error-container": "#ffd2c8",
+              "surface-container-low": "#131313",
+              "primary-dim": "#00ec3b",
+              "on-primary-fixed": "#00440a",
+              "surface": "#0e0e0e",
+              "primary-container": "#00fc40",
+              "primary": "#9cff93",
+              "error": "#ff7351",
+              "secondary": "#89faaa",
+              "tertiary": "#8af2ff",
+              "tertiary-dim": "#00dbec",
+              "surface-variant": "#262626"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        .primary-gradient {
+            background: linear-gradient(135deg, #9cff93 0%, #00fc40 100%);
+        }
+        body {
+            background-color: #0e0e0e;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-[#0e0e0e]/80 backdrop-blur-md shadow-[0_0_32px_rgba(0,255,65,0.08)]">
+<div class="flex justify-between items-center px-8 py-4 max-w-full mx-auto">
+<div class="text-2xl font-bold tracking-tighter text-white uppercase font-headline">
+                U-Ride
+            </div>
+<div class="hidden md:flex items-center gap-8 font-headline tracking-tight">
+<a class="text-[#00FF41] border-b-2 border-[#00FF41] pb-1" href="#">Buscar Viaje</a>
+<a class="text-zinc-400 hover:text-white transition-colors" href="#">Publicar Viaje</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-zinc-400 hover:bg-[#262626] rounded-full transition-all duration-300 scale-95 active:scale-90">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-white/10">
+<img alt="Student Profile" class="w-10 h-10 rounded-full border border-primary/20" data-alt="Close up portrait of a young male university student with a friendly expression and stylish haircut in a bright campus setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-K2TOjSVKDe6OwLhF9VguK99R-2Gd7ONfMsFVxpZuzeW50AOJhb458jQyHwrn_q04jRdYnGCKujI_bO7K9EA0jBas7acdHFhrV_QwSvD9E06vHldf-wCruwu5myF9n2H5g1Nw7UAUZQlbOzKutFC9RwqOOPoxv-0LMe9Iv2Dg3428Lu_hPuGJeuZo61bKIUNrE800e2VdaQW5Qg_bBrd7bV8-gKrq-WYixWKC-G-CHHYlFwx6GwkGZVImRJZhlrszaUerucEQNSA"/>
+<span class="material-symbols-outlined text-zinc-400" data-icon="account_circle">account_circle</span>
+</div>
+</div>
+</div>
+</nav>
+<main class="pt-28 pb-12 px-6 lg:px-12 max-w-7xl mx-auto min-h-screen">
+<!-- Hero & Search Section -->
+<section class="mb-16">
+<div class="max-w-2xl mb-10">
+<h1 class="font-headline text-5xl font-bold tracking-tight mb-4 text-on-surface">
+                    Kinetic <span class="text-primary italic">Movement</span> for the Academic Mind.
+                </h1>
+<p class="text-on-surface-variant text-lg max-w-lg">
+                    Connect with fellow students and faculty for a safer, smarter, and greener commute to campus.
+                </p>
+</div>
+<!-- Search Bento Box -->
+<div class="bg-surface-container-low p-1 rounded-xl shadow-2xl">
+<div class="grid grid-cols-1 md:grid-cols-4 gap-1">
+<div class="bg-surface-container-highest p-4 rounded-lg flex flex-col gap-1">
+<label class="text-[10px] uppercase tracking-widest text-primary font-bold">Zona de Origen</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="location_on">location_on</span>
+<input class="bg-transparent border-none p-0 text-on-surface focus:ring-0 w-full placeholder:text-zinc-600" placeholder="¿De dónde sales?" type="text"/>
+</div>
+</div>
+<div class="bg-surface-container-highest p-4 rounded-lg flex flex-col gap-1">
+<label class="text-[10px] uppercase tracking-widest text-primary font-bold">Zona de Destino</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="near_me">near_me</span>
+<input class="bg-transparent border-none p-0 text-on-surface focus:ring-0 w-full placeholder:text-zinc-600" placeholder="¿A dónde vas?" type="text"/>
+</div>
+</div>
+<div class="bg-surface-container-highest p-4 rounded-lg flex flex-col gap-1">
+<label class="text-[10px] uppercase tracking-widest text-primary font-bold">Horario</label>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm" data-icon="schedule">schedule</span>
+<input class="bg-transparent border-none p-0 text-on-surface focus:ring-0 w-full [color-scheme:dark]" type="time"/>
+</div>
+</div>
+<button class="primary-gradient text-on-primary font-headline font-bold text-lg rounded-lg flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,252,64,0.3)] transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+                        Encontrar Viaje
+                    </button>
+</div>
+</div>
+</section>
+<!-- Dynamic Results Header -->
+<div class="flex justify-between items-end mb-8 border-b border-white/5 pb-4">
+<div>
+<h2 class="font-headline text-2xl font-bold">Viajes Disponibles</h2>
+<p class="text-on-surface-variant text-sm font-label uppercase tracking-widest mt-1">12 rutas encontradas para hoy</p>
+</div>
+<div class="flex gap-2">
+<span class="bg-surface-container-high px-4 py-2 rounded-full text-xs font-bold text-primary border border-primary/20">MÁS RECIENTES</span>
+<span class="bg-surface-container px-4 py-2 rounded-full text-xs font-bold text-zinc-500 hover:text-white cursor-pointer transition-colors">MEJOR CALIFICADOS</span>
+</div>
+</div>
+<!-- Ride Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group hover:translate-y-[-4px] transition-transform duration-300 flex flex-col">
+<div class="relative h-32 bg-surface-container">
+<img alt="Ride Preview" class="w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity" data-alt="Wide angle interior of a modern clean electric vehicle showing premium upholstery and dashboard in soft cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLG2Cf5J8NgJ0VyHYGAdV-VHp_HphC5b4-Hz5WC_hmAeM-AkWsXR80Rm5JuYU5PCNNK6e5hkGVCxUufVd7E-KhhvqvOVbrbp2cE6tNmloIqMaxupnEHkUwgRu1L4K7mm6EzcvHoRzbVYmJ7n1Queb-0x54Lfylw2ISqwehcV3MC3dPXBOM6hxeNTKeSKR3A3_jrg9TM-RhLYDljIo4K-2pATySYgNclQi5Tn1NcL_ln2rmi3golDAJo4vuOOChU15n58NU6w7Pk5I"/>
+<div class="absolute top-4 left-4 bg-primary/90 text-on-primary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                        Quedan 2 asientos
+                    </div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<img alt="Driver" class="w-12 h-12 rounded-full border-2 border-surface-container-highest" data-alt="Portrait of a smiling professional female driver with glasses, wearing a casual polo shirt against a blurred city street background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZJxhwQIevUnuGDWxB4QVasLq3H_CmYsBZauF-R4CGxgCT2dNy5zGC7qWjzTTEMVEaTF_rliVBTcOtg2CooQW4yFR2y2aoGs6Xh8cIUhKFT7xZWn3o7OYpnkmovCyNhYSTGwaEauWzJN5gNPHYOF92U4Vo2CiKGnxrik1PlgFzi4h8Lbbd10MmweuDVWvTF5bF3Ij3RxmAuTi-W5ChyZN-6Nx4xyhDwh0b0fXqJOQR1nq24E6tq1fOLJq2T1mTEHuzCWiAdbjhrNk"/>
+<div>
+<h3 class="font-bold text-on-surface">Mariana Ortiz</h3>
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-xs" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold">4.9</span>
+<span class="text-[10px] text-on-surface-variant font-normal">(128 viajes)</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="text-2xl font-headline font-bold text-primary">07:30</p>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">AM</p>
+</div>
+</div>
+<div class="space-y-4 mb-8">
+<div class="flex gap-4 items-start">
+<div class="flex flex-col items-center pt-1">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-px h-8 bg-zinc-800"></div>
+<div class="w-2 h-2 rounded-full border border-primary"></div>
+</div>
+<div class="flex flex-col gap-3">
+<div>
+<p class="text-[10px] uppercase text-zinc-500 font-bold">Origen</p>
+<p class="text-sm font-medium">Campus Norte - Entrada A</p>
+</div>
+<div>
+<p class="text-[10px] uppercase text-zinc-500 font-bold">Destino</p>
+<p class="text-sm font-medium">Zona Rosa / Reforma</p>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-auto w-full py-4 bg-surface-container-highest text-on-surface font-headline font-bold rounded-lg border border-white/5 hover:border-primary/50 hover:bg-surface-container-high transition-all active:scale-95">
+                        Request to Join
+                    </button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group hover:translate-y-[-4px] transition-transform duration-300 flex flex-col">
+<div class="relative h-32 bg-surface-container">
+<img alt="Ride Preview" class="w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity" data-alt="Side profile of a sleek luxury sedan parked under neon city lights at night with deep shadows and vibrant reflections" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTGGT7Mqj0LIU21mtFgwX8eDJuonXNaZmU1dAp9gftcfMSeS0pH4INcpdbEaGpZt6VXhpDauyGfRHy5-OrBSfIjJh47dkqEUiJGfP2UoLSN8f24WFunfOJlLIC7eqoRwpAJT_ZJoYqCs6my4bMXxCvv8P7KnNU-BU5OOkJMiXi-zp64V-tNK9lYjQw8Yyk4F_DFzTyCZKFfkmxyl485tJfEgN5GI658DE-AGoAJVZlGnqbSxGsS15ZT7k0IOH4LLzEfukMW0zOQ4U"/>
+<div class="absolute top-4 left-4 bg-tertiary text-on-tertiary px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                        Quedan 3 asientos
+                    </div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<img alt="Driver" class="w-12 h-12 rounded-full border-2 border-surface-container-highest" data-alt="Profile photo of a young man with a beard and friendly eyes, wearing a tech-style hoodie in a dimly lit indoor space" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDw7S-meOS2zIc4qaGvIKkWTqW_mo5ItSdk-zTQYkNDXxw9XqqTDiqrBFM4a9km9hsePgNHrvrMVl9MyskWIUeYmiZzBYvIGFaLscD0MyV0w8DCogCOEZoG5pdksXY1PHLMNnrfUdr1MXzAaZL6n96mpEcoQAPvEmDNzJkT-_uP8ci2iYUO8tqgCeXIrh5dgw4WxbCOpDePevump33Ny8aN05mR4_nrF5Zm3O8Jsf2GxWa5JbN21-shyo4aJU5U7K85PAWB9YyBCPg"/>
+<div>
+<h3 class="font-bold text-on-surface">Julian Weber</h3>
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-xs" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold">4.7</span>
+<span class="text-[10px] text-on-surface-variant font-normal">(42 viajes)</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="text-2xl font-headline font-bold text-primary">08:15</p>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">AM</p>
+</div>
+</div>
+<div class="space-y-4 mb-8">
+<div class="flex gap-4 items-start">
+<div class="flex flex-col items-center pt-1">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-px h-8 bg-zinc-800"></div>
+<div class="w-2 h-2 rounded-full border border-primary"></div>
+</div>
+<div class="flex flex-col gap-3">
+<div>
+<p class="text-[10px] uppercase text-zinc-500 font-bold">Origen</p>
+<p class="text-sm font-medium">Santa Fe High-Tech</p>
+</div>
+<div>
+<p class="text-[10px] uppercase text-zinc-500 font-bold">Destino</p>
+<p class="text-sm font-medium">Facultad de Ingeniería</p>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-auto w-full py-4 bg-surface-container-highest text-on-surface font-headline font-bold rounded-lg border border-white/5 hover:border-primary/50 hover:bg-surface-container-high transition-all active:scale-95">
+                        Request to Join
+                    </button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden group hover:translate-y-[-4px] transition-transform duration-300 flex flex-col">
+<div class="relative h-32 bg-surface-container">
+<img alt="Ride Preview" class="w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity" data-alt="Abstract dynamic blurred lights of a city at night seen from a moving vehicle window, creating colorful light trails" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAgjVKB_YXZpRcgqWMbS_Knhe6_dypdyv_Rb8mi4aEVmliTGPYkisdrIfxfNuA3Dh-spcloQQFdytK9PVR0dWHpGrGzw_wir5zIfhNKoEbVs5ifwYKDPnHTjzMkrpFxfAP_S4U2Ggle-7gdYyM5gW3f6qGJANjrVJKyDaVuHEJoLw-pomPWdbBzU495UQ26X_L8_1PRLXU0N6HL02X_5SPfW-H-htm2uXqclLH6E_AohN34UXVzwebwr59Oa95Rx_Ds_oSmklLjRig"/>
+<div class="absolute top-4 left-4 bg-error-container text-on-error-container px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                        ¡Último asiento!
+                    </div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<img alt="Driver" class="w-12 h-12 rounded-full border-2 border-surface-container-highest" data-alt="Close up portrait of a mature woman with a kind smile and professional attire, standing in a library setting with soft focus books" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAxzxagghuTOYvJ0W9Kc0t5Fr0oPHpgbxDDKMujgAwWzIjGnBkpLd3xKSzyTzHN7Xw8TeIXOEQNHwGyzueeg76NjJ2K76Yu4E9g5TPvxsBwETsj1vyfvGjN9y5QtdY8GdVimF6rH0OOL_Hcpyud9FWFPGVHtiKIlbfYjHOOa0TgD4M0kx50JHVjZqim4jjaE_KsNvlifrsfOvfAqXTBYwcfhCMiMP2tYIQqq4JdKAAzCMGQL_iG6w_VQk4zDBuoKfIy23IMUeDI50"/>
+<div>
+<h3 class="font-bold text-on-surface">Dra. Elena Ruiz</h3>
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-xs" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold">5.0</span>
+<span class="text-[10px] text-on-surface-variant font-normal">(312 viajes)</span>
+</div>
+</div>
+</div>
+<div class="text-right">
+<p class="text-2xl font-headline font-bold text-primary">09:00</p>
+<p class="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest">AM</p>
+</div>
+</div>
+<div class="space-y-4 mb-8">
+<div class="flex gap-4 items-start">
+<div class="flex flex-col items-center pt-1">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-px h-8 bg-zinc-800"></div>
+<div class="w-2 h-2 rounded-full border border-primary"></div>
+</div>
+<div class="flex flex-col gap-3">
+<div>
+<p class="text-[10px] uppercase text-zinc-500 font-bold">Origen</p>
+<p class="text-sm font-medium">Condesa / Roma Norte</p>
+</div>
+<div>
+<p class="text-[10px] uppercase text-zinc-500 font-bold">Destino</p>
+<p class="text-sm font-medium">Edificio de Rectoría</p>
+</div>
+</div>
+</div>
+</div>
+<button class="mt-auto w-full py-4 bg-surface-container-highest text-on-surface font-headline font-bold rounded-lg border border-white/5 hover:border-primary/50 hover:bg-surface-container-high transition-all active:scale-95">
+                        Request to Join
+                    </button>
+</div>
+</div>
+</div>
+<!-- Security Message Section -->
+<section class="mt-20 p-8 bg-surface-container rounded-2xl flex flex-col md:flex-row items-center gap-8 border border-white/5">
+<div class="relative">
+<div class="w-20 h-20 rounded-full border-4 border-tertiary flex items-center justify-center animate-pulse shadow-[0_0_32px_rgba(138,242,255,0.2)]">
+<span class="material-symbols-outlined text-tertiary text-4xl" data-icon="shield">shield</span>
+</div>
+</div>
+<div class="flex-1 text-center md:text-left">
+<h3 class="font-headline text-xl font-bold text-white mb-2 uppercase tracking-tight">Protocolo de Seguridad Académica</h3>
+<p class="text-on-surface-variant leading-relaxed">
+                    Todos los conductores en U-Ride son estudiantes o personal administrativo verificado con correo institucional. Tu viaje está monitoreado por GPS en tiempo real para tu tranquilidad.
+                </p>
+</div>
+<button class="px-8 py-3 bg-tertiary text-on-tertiary font-bold rounded-lg hover:brightness-110 transition-all">
+                Ver Reglas
+            </button>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 px-8 mt-auto bg-[#0e0e0e] border-t border-white/5">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div>
+<span class="font-['Space_Grotesk'] font-bold text-[#00FF41] text-xl">U-Ride</span>
+<p class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 mt-4">
+                    © 2024 U-Ride Institutional. Powered by Academic Kinetic.
+                </p>
+</div>
+<div class="flex flex-wrap gap-6 md:justify-end">
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors opacity-80 hover:opacity-100" href="#">Centro de Ayuda</a>
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors opacity-80 hover:opacity-100" href="#">Reglas de Seguridad</a>
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors opacity-80 hover:opacity-100" href="#">Privacidad</a>
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors opacity-80 hover:opacity-100" href="#">Soporte</a>
+</div>
+</div>
+</footer>
+<!-- Bottom Navigation Bar (Mobile Only) -->
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-[#131313] border-t border-white/5 z-50 px-6 py-4 flex justify-between items-center">
+<button class="flex flex-col items-center gap-1 text-[#00FF41]">
+<span class="material-symbols-outlined active-icon" data-icon="search">search</span>
+<span class="text-[10px] font-bold uppercase">Buscar</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-500">
+<span class="material-symbols-outlined" data-icon="add_box">add_box</span>
+<span class="text-[10px] font-bold uppercase">Publicar</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-500">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="text-[10px] font-bold uppercase">Alertas</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-500">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] font-bold uppercase">Perfil</span>
+</button>
+</div>
+</body></html>

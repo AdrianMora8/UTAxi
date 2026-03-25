@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-fixed": "#89faaa",
+              "on-surface-variant": "#adaaaa",
+              "on-error-container": "#ffd2c8",
+              "surface-dim": "#0e0e0e",
+              "secondary-container": "#006d38",
+              "inverse-surface": "#fcf8f8",
+              "primary-dim": "#00ec3b",
+              "on-tertiary-container": "#005159",
+              "surface-container": "#1a1919",
+              "secondary-fixed-dim": "#7aeb9d",
+              "surface-container-high": "#201f1f",
+              "on-surface": "#ffffff",
+              "on-secondary-fixed-variant": "#006a36",
+              "primary-fixed": "#00fc40",
+              "on-tertiary-fixed": "#003d42",
+              "on-background": "#ffffff",
+              "outline-variant": "#494847",
+              "error-dim": "#d53d18",
+              "tertiary-dim": "#00dbec",
+              "surface-bright": "#2c2c2c",
+              "on-primary-fixed-variant": "#006513",
+              "error": "#ff7351",
+              "surface-container-highest": "#262626",
+              "inverse-primary": "#006f16",
+              "on-primary": "#006413",
+              "on-secondary": "#005f30",
+              "primary": "#9cff93",
+              "on-secondary-fixed": "#004a24",
+              "secondary-dim": "#7aeb9d",
+              "tertiary": "#8af2ff",
+              "surface-container-low": "#131313",
+              "primary-fixed-dim": "#00ec3b",
+              "on-primary-fixed": "#00440a",
+              "surface": "#0e0e0e",
+              "background": "#0e0e0e",
+              "tertiary-fixed-dim": "#00dbec",
+              "tertiary-fixed": "#0eeafd",
+              "inverse-on-surface": "#565554",
+              "on-primary-container": "#005a10",
+              "surface-container-lowest": "#000000",
+              "on-error": "#450900",
+              "error-container": "#b92902",
+              "secondary": "#89faaa",
+              "surface-tint": "#9cff93",
+              "tertiary-container": "#0eeafd",
+              "on-tertiary-fixed-variant": "#005c64",
+              "on-tertiary": "#005b63",
+              "outline": "#777575"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .kinetic-gradient {
+        background: linear-gradient(135deg, #9cff93 0%, #00fc40 100%);
+      }
+      .glass-effect {
+        backdrop-filter: blur(20px);
+        background-color: rgba(19, 19, 19, 0.7);
+      }
+      input:focus {
+        outline: none;
+      }
+      .tracking-ultra-wide {
+        letter-spacing: 1.5rem;
+      }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface min-h-screen flex flex-col selection:bg-primary selection:text-on-primary">
+<!-- Focused Layout: Navigation Suppressed per Task Mandate -->
+<main class="flex-grow flex items-center justify-center px-6 py-12">
+<div class="w-full max-w-md space-y-12">
+<!-- Branding Anchor -->
+<div class="text-center space-y-4">
+<div class="inline-flex items-center justify-center p-3 rounded-xl bg-surface-container mb-2">
+<span class="material-symbols-outlined text-primary text-4xl" data-icon="verified_user">verified_user</span>
+</div>
+<h1 class="font-headline text-4xl font-bold tracking-tighter text-on-surface uppercase">
+                    Verifica tu cuenta
+                </h1>
+<p class="text-on-surface-variant font-body text-sm max-w-[280px] mx-auto leading-relaxed">
+                    Hemos enviado un código de seguridad a <span class="text-primary font-medium">estudiante@u-ride.edu</span>
+</p>
+</div>
+<!-- Verification Form -->
+<form action="#" class="space-y-10">
+<div class="space-y-2">
+<label class="block text-xs font-label uppercase tracking-widest text-on-surface-variant ml-1 mb-4 text-center">
+                        Ingresa el código de 6 dígitos
+                    </label>
+<div class="relative group">
+<input class="w-full h-24 bg-surface-container-highest border-none rounded-xl text-center font-headline text-5xl font-bold text-primary tracking-ultra-wide focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all duration-300 placeholder:text-surface-container-high placeholder:tracking-ultra-wide" maxlength="6" placeholder="000000" type="text"/>
+<!-- Decorative glow element -->
+<div class="absolute inset-0 -z-10 bg-primary/5 blur-2xl rounded-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500"></div>
+</div>
+</div>
+<div class="space-y-6">
+<button class="kinetic-gradient w-full py-5 rounded-xl text-on-primary font-headline font-bold text-lg uppercase tracking-tight shadow-[0_0_32px_rgba(0,255,65,0.08)] hover:shadow-[0_0_32px_rgba(0,255,65,0.15)] transform active:scale-[0.98] transition-all duration-200" type="submit">
+                        Verificar Código
+                    </button>
+<div class="flex flex-col items-center gap-4">
+<button class="text-on-surface-variant hover:text-white font-label text-sm uppercase tracking-widest transition-colors duration-300 flex items-center gap-2" type="button">
+<span class="material-symbols-outlined text-sm" data-icon="refresh">refresh</span>
+                            Reenviar código
+                        </button>
+<a class="text-zinc-600 hover:text-zinc-400 font-label text-xs uppercase tracking-widest transition-colors duration-300" href="#">
+                            ¿Necesitas ayuda?
+                        </a>
+</div>
+</div>
+</form>
+</div>
+</main>
+<!-- Footer Component Logic -->
+<footer class="w-full py-8 px-8 mt-auto border-t border-white/5 bg-surface-dim">
+<div class="max-center mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="font-headline font-bold text-primary text-xl">U-Ride</span>
+<span class="text-zinc-700 hidden md:block">|</span>
+<p class="font-body text-[10px] uppercase tracking-widest text-zinc-600">
+                    © 2024 U-Ride Institutional. Powered by Academic Kinetic.
+                </p>
+</div>
+<nav class="flex gap-6">
+<a class="font-body text-[10px] uppercase tracking-widest text-zinc-600 hover:text-white transition-colors" href="#">Privacidad</a>
+<a class="font-body text-[10px] uppercase tracking-widest text-zinc-600 hover:text-white transition-colors" href="#">Soporte</a>
+<a class="font-body text-[10px] uppercase tracking-widest text-zinc-600 hover:text-white transition-colors" href="#">Reglas de Seguridad</a>
+</nav>
+</div>
+</footer>
+<!-- Background Decorative Elements -->
+<div class="fixed top-0 left-0 w-full h-full -z-20 overflow-hidden pointer-events-none">
+<div class="absolute -top-[20%] -right-[10%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-[120px]"></div>
+<div class="absolute -bottom-[20%] -left-[10%] w-[50%] h-[50%] bg-tertiary/5 rounded-full blur-[100px]"></div>
+</div>
+</body></html>

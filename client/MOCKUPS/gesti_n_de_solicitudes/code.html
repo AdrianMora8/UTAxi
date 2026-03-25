@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary": "#005b63",
+              "secondary-dim": "#7aeb9d",
+              "surface-tint": "#9cff93",
+              "primary-fixed": "#00fc40",
+              "tertiary-fixed": "#0eeafd",
+              "error-dim": "#d53d18",
+              "on-secondary": "#005f30",
+              "surface-container-highest": "#262626",
+              "primary-fixed-dim": "#00ec3b",
+              "outline-variant": "#494847",
+              "error-container": "#b92902",
+              "on-background": "#ffffff",
+              "inverse-on-surface": "#565554",
+              "tertiary-container": "#0eeafd",
+              "outline": "#777575",
+              "surface-dim": "#0e0e0e",
+              "background": "#0e0e0e",
+              "tertiary-fixed-dim": "#00dbec",
+              "on-error": "#450900",
+              "inverse-surface": "#fcf8f8",
+              "on-tertiary-fixed-variant": "#005c64",
+              "on-tertiary-fixed": "#003d42",
+              "secondary-fixed": "#89faaa",
+              "surface-container": "#1a1919",
+              "on-tertiary-container": "#005159",
+              "secondary-fixed-dim": "#7aeb9d",
+              "surface-container-lowest": "#000000",
+              "on-primary-container": "#005a10",
+              "surface-container-high": "#201f1f",
+              "on-surface": "#ffffff",
+              "surface-bright": "#2c2c2c",
+              "secondary-container": "#006d38",
+              "on-secondary-container": "#e3ffe5",
+              "on-primary": "#006413",
+              "on-surface-variant": "#adaaaa",
+              "on-secondary-fixed-variant": "#006a36",
+              "on-primary-fixed-variant": "#006513",
+              "on-secondary-fixed": "#004a24",
+              "inverse-primary": "#006f16",
+              "on-error-container": "#ffd2c8",
+              "surface-container-low": "#131313",
+              "primary-dim": "#00ec3b",
+              "on-primary-fixed": "#00440a",
+              "surface": "#0e0e0e",
+              "primary-container": "#00fc40",
+              "primary": "#9cff93",
+              "error": "#ff7351",
+              "secondary": "#89faaa",
+              "tertiary": "#8af2ff",
+              "tertiary-dim": "#00dbec",
+              "surface-variant": "#262626"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(19, 19, 19, 0.7);
+            backdrop-filter: blur(20px);
+        }
+        .primary-gradient {
+            background: linear-gradient(135deg, #9cff93 0%, #00fc40 100%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-[#0e0e0e]/80 backdrop-blur-md shadow-[0_0_32px_rgba(0,255,65,0.08)] flex justify-between items-center px-8 py-4 max-w-full mx-auto">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold tracking-tighter text-white uppercase font-headline">U-Ride</span>
+<div class="hidden md:flex gap-6">
+<a class="text-zinc-400 hover:text-white transition-colors font-headline tracking-tight" href="#">Buscar Viaje</a>
+<a class="text-[#00FF41] border-b-2 border-[#00FF41] pb-1 font-headline tracking-tight" href="#">Publicar Viaje</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-zinc-400 hover:text-[#00FF41] transition-all duration-300 scale-95 active:scale-90">notifications</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border border-white/10 hover:border-[#00FF41] transition-all">
+<img alt="Student Profile" class="w-full h-full object-cover" data-alt="close-up portrait of a young male university student with a friendly expression in a modern indoor campus setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6Db1YkGm324Dq_73vfQFcivd1iQbFcbMEz8V2eXXAZgYU1kETZy1qvDas9p2p50RPuiGLLjCWTW4OTZjOmAofBboBBAi7x2tbZyyhSe4aMFSTn2cQD15GNnHbQ96tTuqu0WurSnVU2Z81JwDGH0mcpmA0mkQY7FUAWyJ14Nwu0hjM7V4Bs4xjGe90d67x3cCI7a3wv7PQSIharj7MQPzTUSxRIS_PSZ_c6T2boPxX5qtN3sdjRxoAgL0EWyMxKOf8Ze9DoOWwthc"/>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="pt-24 pb-12 px-6 lg:px-24 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column: Ride Details & Safety -->
+<div class="lg:col-span-4 space-y-8">
+<!-- Ride Summary Card -->
+<section class="bg-surface-container-low rounded-xl p-6 border-l-4 border-primary">
+<span class="text-primary font-headline font-bold text-xs uppercase tracking-[0.2em] block mb-2">Viaje Activo</span>
+<h1 class="text-3xl font-headline font-bold text-on-surface mb-4">Campus Central → Zona Norte</h1>
+<div class="space-y-3 text-on-surface-variant text-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" style="font-size: 20px;">schedule</span>
+<span>Hoy, 18:30 PM</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" style="font-size: 20px;">directions_car</span>
+<span>Toyota Corolla • Negro • ABC-123</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary" style="font-size: 20px;">event_seat</span>
+<span>2 asientos disponibles</span>
+</div>
+</div>
+</section>
+<!-- Map Preview (Contextual) -->
+<div class="rounded-xl overflow-hidden h-48 bg-surface-container relative group">
+<img alt="Route Map" class="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity" data-alt="minimalist dark mode digital map with a glowing neon green route line connecting two points in a city grid" data-location="Mexico City" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyjBPxufSb_XMuIrFC1h35q5yaBQn3U1L4FMEKEe3UIS6NJkUZKAiAsUhEbSCJFrkz2h5OdATWlJi8hSpjyNInrIMlb1jC4hZYk0c-F34QdKXlJpIobtuapch87sy1VRlpHSXu1qBAtVUUmBw21_HVTbwcMcmsdff9kqRs4hYdr4yxwimTquilqKP1LNB1HuEXmoqbqJcLq-Fs9EvDzhvQOR8oCizXjIzY5oFQH6XWnspOjZgR6N8ZtOqvIO3Lqdtq7PBX_-TkDYQ"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<button class="bg-surface-container-highest/90 backdrop-blur px-4 py-2 rounded-lg text-xs font-headline font-bold uppercase tracking-widest text-primary border border-primary/20">Ver Ruta Completa</button>
+</div>
+</div>
+<!-- Safety Rules Section -->
+<section class="bg-surface-container rounded-xl p-6">
+<h2 class="text-xl font-headline font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary">shield</span>
+                    Reglas de Seguridad
+                </h2>
+<div class="space-y-4">
+<div class="flex gap-4">
+<div class="w-8 h-8 rounded bg-tertiary/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-tertiary text-lg">badge</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+<strong class="text-on-surface block">Identificación Requerida</strong>
+                            Muestra tu credencial universitaria digital antes de abordar.
+                        </p>
+</div>
+<div class="flex gap-4">
+<div class="w-8 h-8 rounded bg-tertiary/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-tertiary text-lg">share_location</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+<strong class="text-on-surface block">Seguimiento en Vivo</strong>
+                            Este viaje está siendo monitoreado por el centro de seguridad.
+                        </p>
+</div>
+<div class="flex gap-4">
+<div class="w-8 h-8 rounded bg-tertiary/10 flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-tertiary text-lg">contact_support</span>
+</div>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+<strong class="text-on-surface block">Botón de Pánico</strong>
+                            Disponible en la app durante todo el trayecto.
+                        </p>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Requests & Confirmed -->
+<div class="lg:col-span-8 space-y-8">
+<!-- Pending Requests Section -->
+<section>
+<div class="flex justify-between items-end mb-6">
+<h2 class="text-2xl font-headline font-bold">Solicitudes Pendientes</h2>
+<span class="text-primary font-headline font-bold text-sm bg-primary/10 px-3 py-1 rounded-full">3 Nuevas</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Request Card 1 -->
+<div class="bg-surface-container rounded-xl p-5 hover:bg-surface-container-high transition-all group border border-white/5">
+<div class="flex items-start justify-between mb-4">
+<div class="flex gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="portrait of a young smiling female student with long hair in a casual college outfit" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJtJ4mmX_6axP8FG0H2utxe1PEo44aI2-a5izOW45DxjGhJmk_AlLSsxfJc2w9Vp25iI-sg6XZuo1YytTkDugInqlfFvBZbef4-cIRMB8Rke1nFsD6bRxur2ts6k8EdXGPbkGccMGpaY3Ruxn6DnX4nIEE3CNuOAGU3StteKAdPpAVpwIcOKQP4MIa0BVvRNIvCSVUNiasijd1J5Oy_PSnkQlcVPnLhSf0y_-NAJU3apUMoO8fi4r_xZo-7jhD1HPVzO6jvW28tzU"/>
+</div>
+<div>
+<h3 class="font-headline font-bold text-on-surface">Elena Rivas</h3>
+<p class="text-xs text-on-surface-variant">Estudiante de Diseño • 4.9 ★</p>
+</div>
+</div>
+<span class="text-[10px] text-zinc-500 uppercase tracking-tighter">Hace 2 min</span>
+</div>
+<p class="text-sm text-on-surface-variant mb-6 italic">"Hola! Voy hacia la biblioteca del norte, ¿tienes espacio para mi mochila?"</p>
+<div class="flex gap-3">
+<button class="flex-1 py-3 rounded-lg bg-surface-container-highest text-white font-headline font-bold text-xs uppercase tracking-widest hover:bg-error/20 hover:text-error transition-all scale-95 active:scale-90">Declinar</button>
+<button class="flex-1 py-3 rounded-lg primary-gradient text-on-primary font-headline font-bold text-xs uppercase tracking-widest shadow-[0_4px_16px_rgba(0,252,64,0.2)] scale-95 active:scale-90 transition-transform">Aceptar</button>
+</div>
+</div>
+<!-- Request Card 2 -->
+<div class="bg-surface-container rounded-xl p-5 hover:bg-surface-container-high transition-all group border border-white/5">
+<div class="flex items-start justify-between mb-4">
+<div class="flex gap-3">
+<div class="w-12 h-12 rounded-lg overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="close-up of a young male university student with glasses and a friendly look" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAI3Rc1c5wvvniPRK7TisZomhOu7-ryLpYcHK86PsULpoS-JYpsWAPTaYnkl1iqU3tv64ryYIjtiKzzgF09FadBuaoe8_Z2GTq18IsFgy0GaK78WBx1GOptIF5mV2eiQxWEJOHfrV4Eg6qi0zoHmcHiQOu5b-nVU19bGTa4YPuXk2NTZVqdLS8pvO4gys6YHdSl11U4HGMzxjfNu6gkYn3tRgxp9XRVxMdR-UQ7Hg-oM7jEZy0Xh9InwuIN6TVXK4buFGEmQbtqToM"/>
+</div>
+<div>
+<h3 class="font-headline font-bold text-on-surface">Marco Polo</h3>
+<p class="text-xs text-on-surface-variant">Ing. Sistemas • 4.7 ★</p>
+</div>
+</div>
+<span class="text-[10px] text-zinc-500 uppercase tracking-tighter">Hace 15 min</span>
+</div>
+<p class="text-sm text-on-surface-variant mb-6 italic">"¿Pasas por la entrada de la Facultad de Ciencias?"</p>
+<div class="flex gap-3">
+<button class="flex-1 py-3 rounded-lg bg-surface-container-highest text-white font-headline font-bold text-xs uppercase tracking-widest hover:bg-error/20 hover:text-error transition-all scale-95 active:scale-90">Declinar</button>
+<button class="flex-1 py-3 rounded-lg primary-gradient text-on-primary font-headline font-bold text-xs uppercase tracking-widest shadow-[0_4px_16px_rgba(0,252,64,0.2)] scale-95 active:scale-90 transition-transform">Aceptar</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Confirmed Passengers Section -->
+<section class="bg-surface-container-low rounded-2xl p-8">
+<h2 class="text-2xl font-headline font-bold mb-8">Pasajeros Confirmados</h2>
+<div class="space-y-6">
+<!-- Confirmed Passenger 1 -->
+<div class="flex items-center justify-between p-4 rounded-xl bg-surface-container/50 border border-white/5">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="Confirmed Passenger" class="w-14 h-14 rounded-full object-cover grayscale group-hover:grayscale-0 transition-all" data-alt="portrait of a professional looking female student in a campus environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmVHiosGIq8WJAlKqMHPNsYofdcyVkgMZTmh99bN79oXmdAVeIFpH4qcpLhO3hAy5nYJ242auqQKPnAM8rzKqUMoUmK5OTyAkzuEY47w41cne4yjOE4qORbSVIzHf52iN9pIAXaLlQKJcyX4EBy-yunm992htUCjKeLzy9wd7ZCwlwXWg1LilaZopH7EFu1OTeBY8PDXCVGFxsE7jJ1Nmtt6Vh-Hq6vUozGmUE-_8OhYSeR_lowPrNa2pDErKMVK_IdkQKm_5H-u4"/>
+<div class="absolute -bottom-1 -right-1 w-5 h-5 bg-primary rounded-full border-2 border-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] text-on-primary" style="font-variation-settings: 'FILL' 1">check</span>
+</div>
+</div>
+<div>
+<h4 class="font-headline font-bold">Sofía Herrera</h4>
+<div class="flex items-center gap-2">
+<span class="text-xs text-primary font-bold">Punto de encuentro:</span>
+<span class="text-xs text-on-surface-variant italic">Puerta A - 18:25</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<button class="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined">person_remove</span>
+</button>
+</div>
+</div>
+<!-- Security Pulse specialized component -->
+<div class="p-6 rounded-xl bg-tertiary/5 border border-tertiary/20 flex items-center gap-6">
+<div class="relative w-16 h-16 flex items-center justify-center">
+<div class="absolute inset-0 bg-tertiary rounded-full animate-pulse opacity-20"></div>
+<div class="w-12 h-12 bg-tertiary rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary" style="font-variation-settings: 'FILL' 1">security</span>
+</div>
+</div>
+<div>
+<p class="text-tertiary font-headline font-bold uppercase tracking-widest text-xs mb-1">Monitoreo U-Ride</p>
+<p class="text-on-surface-variant text-sm">Tu viaje está bajo supervisión activa del equipo de transporte institucional.</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 px-8 mt-auto bg-[#0e0e0e] border-t border-white/5">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div>
+<span class="font-['Space_Grotesk'] font-bold text-[#00FF41]">U-Ride</span>
+<p class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 mt-2">© 2024 U-Ride Institutional. Powered by Academic Kinetic.</p>
+</div>
+<div class="flex flex-wrap gap-6 md:justify-end">
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors" href="#">Centro de Ayuda</a>
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors" href="#">Reglas de Seguridad</a>
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors" href="#">Privacidad</a>
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors text-[#00FF41]" href="#">Soporte</a>
+</div>
+</div>
+</footer>
+<!-- Bottom Nav (Mobile Only) -->
+<div class="md:hidden fixed bottom-0 left-0 w-full bg-[#131313]/95 backdrop-blur-xl border-t border-white/5 px-6 py-4 flex justify-around items-center z-50">
+<button class="flex flex-col items-center gap-1 text-zinc-500">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px] font-headline">Buscar</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-[#00FF41]">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">add_box</span>
+<span class="text-[10px] font-headline">Publicar</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-500">
+<span class="material-symbols-outlined">notifications</span>
+<span class="text-[10px] font-headline">Avisos</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-zinc-500">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-headline">Perfil</span>
+</button>
+</div>
+</body></html>

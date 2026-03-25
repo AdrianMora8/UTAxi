@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-fixed": "#89faaa",
+              "on-surface-variant": "#adaaaa",
+              "on-error-container": "#ffd2c8",
+              "surface-dim": "#0e0e0e",
+              "secondary-container": "#006d38",
+              "inverse-surface": "#fcf8f8",
+              "primary-dim": "#00ec3b",
+              "on-tertiary-container": "#005159",
+              "surface-container": "#1a1919",
+              "secondary-fixed-dim": "#7aeb9d",
+              "surface-container-high": "#201f1f",
+              "on-surface": "#ffffff",
+              "on-secondary-fixed-variant": "#006a36",
+              "primary-fixed": "#00fc40",
+              "on-tertiary-fixed": "#003d42",
+              "on-background": "#ffffff",
+              "outline-variant": "#494847",
+              "error-dim": "#d53d18",
+              "tertiary-dim": "#00dbec",
+              "surface-bright": "#2c2c2c",
+              "on-primary-fixed-variant": "#006513",
+              "error": "#ff7351",
+              "surface-container-highest": "#262626",
+              "inverse-primary": "#006f16",
+              "on-primary": "#006413",
+              "on-secondary": "#005f30",
+              "primary": "#9cff93",
+              "on-secondary-fixed": "#004a24",
+              "secondary-dim": "#7aeb9d",
+              "tertiary": "#8af2ff",
+              "surface-container-low": "#131313",
+              "primary-fixed-dim": "#00ec3b",
+              "on-primary-fixed": "#00440a",
+              "surface": "#0e0e0e",
+              "background": "#0e0e0e",
+              "tertiary-fixed-dim": "#00dbec",
+              "tertiary-fixed": "#0eeafd",
+              "inverse-on-surface": "#565554",
+              "on-primary-container": "#005a10",
+              "surface-container-lowest": "#000000",
+              "on-error": "#450900",
+              "error-container": "#b92902",
+              "secondary": "#89faaa",
+              "surface-tint": "#9cff93",
+              "tertiary-container": "#0eeafd",
+              "on-tertiary-fixed-variant": "#005c64",
+              "on-tertiary": "#005b63",
+              "outline": "#777575"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-card {
+        background: rgba(19, 19, 19, 0.7);
+        backdrop-filter: blur(20px);
+      }
+      .primary-gradient-cta {
+        background: linear-gradient(135deg, #9cff93 0%, #00fc40 100%);
+      }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation Bar -->
+<nav class="fixed top-0 w-full z-50 bg-[#0e0e0e]/80 backdrop-blur-md shadow-[0_0_32px_rgba(0,255,65,0.08)]">
+<div class="flex justify-between items-center px-8 py-4 max-w-full mx-auto">
+<div class="flex items-center gap-12">
+<span class="text-2xl font-bold tracking-tighter text-white uppercase font-['Space_Grotesk']">U-Ride</span>
+<div class="hidden md:flex gap-8">
+<a class="text-[#00FF41] border-b-2 border-[#00FF41] pb-1 font-['Space_Grotesk'] tracking-tight transition-all" href="#">Buscar Viaje</a>
+<a class="text-zinc-400 hover:text-white transition-colors font-['Space_Grotesk'] tracking-tight" href="#">Publicar Viaje</a>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-zinc-400 hover:text-white transition-all scale-95 active:scale-90">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="text-zinc-400 hover:text-white transition-all scale-95 active:scale-90 flex items-center gap-2">
+<img alt="Student Profile" class="w-8 h-8 rounded-full border border-white/10" data-alt="portrait of a confident university student with glasses smiling outdoors in soft afternoon sunlight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbcPf4ZXMrlJIDPx9zTNe2a7F4It0l7qr-A88JFOa61BVCY1J4Befsy4jAh96x7KQd0b5StR5PJf84YMh6hDdXyooemRdqqYjPAtppecY5wT4I6V9wvSV0-4e528P614fDCPI_Nv-sjWiW3P4sLuw0TvloBbL8RikM0tXgSNIxVnTMBRZwLIFqGK5aBDXocmpA2O3S31xidJIen2UMUJ6PIMKDjeb5FdFGVqLati-G2ze8h0GJX21VArtRdhMX-uKwLtg2NBOICYY"/>
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</nav>
+<main class="pt-24 pb-12 px-8 max-w-7xl mx-auto min-h-screen">
+<div class="flex flex-col md:flex-row gap-12">
+<!-- Left Column: Trip Details (7/12) -->
+<div class="md:w-7/12 flex flex-col gap-12">
+<!-- Driver Profile Card -->
+<section class="bg-surface-container-low p-8 rounded-xl">
+<div class="flex flex-col sm:flex-row gap-8 items-start sm:items-center">
+<div class="relative">
+<img alt="Driver Profile" class="w-24 h-24 rounded-xl object-cover grayscale hover:grayscale-0 transition-all duration-500" data-alt="close-up portrait of a friendly young male university student with short dark hair in a casual sweater" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYVlDn6iGBUqljWnicNk_OPR9Q1g0lLJSm2YemKPyYzCuzAssBcoEdgIJQ1xA66WfOlUc6OtvuJevAntQnNmrcym6MNVTb5joVMvX3qeYA_CcwwHWb_PnPcMTkbBn1dDTVfUbfsNKz-5tnvT8s0e0Hx-sTi3pZxcc_iPDJwIaexl64IW5oTExC-3uPZhhRoyD_JQntpOBs-WcFJwUDWuL8uA26lQAyUEVXzg5oszLT5rMCKMb356S8udUwxR8lQVBFeHCRETckus8"/>
+<div class="absolute -bottom-2 -right-2 bg-primary p-1 rounded-lg text-on-primary">
+<span class="material-symbols-outlined text-sm" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="flex-1">
+<h2 class="font-headline text-3xl font-bold tracking-tight text-on-surface">Mateo Jiménez</h2>
+<div class="flex items-center gap-2 mt-1">
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" data-icon="star_half">star_half</span>
+</div>
+<span class="text-on-surface-variant font-label text-sm uppercase tracking-widest">(124 Viajes)</span>
+</div>
+<div class="mt-4 flex flex-wrap gap-4">
+<div class="flex items-center gap-2 text-on-surface-variant bg-surface-container p-2 px-3 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="directions_car">directions_car</span>
+<span class="text-sm font-medium">Mazda 3 • Kinetic Blue</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant bg-surface-container p-2 px-3 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="shield">shield</span>
+<span class="text-sm font-medium">Conductor Verificado</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Route Timeline -->
+<section class="bg-surface-container-low p-8 rounded-xl relative overflow-hidden">
+<div class="absolute top-0 right-0 p-8 opacity-5">
+<span class="material-symbols-outlined text-9xl" data-icon="route">route</span>
+</div>
+<h3 class="font-headline text-xl font-bold mb-10 text-on-surface-variant uppercase tracking-widest">Itinerario del Viaje</h3>
+<div class="relative pl-12">
+<!-- Vertical Line -->
+<div class="absolute left-3 top-2 bottom-2 w-0.5 bg-gradient-to-b from-primary via-primary-container to-surface-container-highest"></div>
+<!-- Origin -->
+<div class="relative mb-16">
+<div class="absolute -left-12 top-0 w-7 h-7 bg-surface-container-low border-2 border-primary rounded-full flex items-center justify-center z-10">
+<div class="w-2 h-2 bg-primary rounded-full"></div>
+</div>
+<div>
+<span class="text-primary font-headline text-lg font-bold">07:30 AM</span>
+<h4 class="text-on-surface text-2xl font-bold mt-1">Campus Norte (Puerta Principal)</h4>
+<p class="text-on-surface-variant mt-2 text-sm max-w-md leading-relaxed">Punto de encuentro en la bahía de buses frente a la biblioteca central.</p>
+</div>
+</div>
+<!-- Destination -->
+<div class="relative">
+<div class="absolute -left-12 top-0 w-7 h-7 bg-primary border-2 border-primary rounded-full flex items-center justify-center z-10">
+<span class="material-symbols-outlined text-on-primary text-sm" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+<div>
+<span class="text-on-surface-variant font-headline text-lg font-bold italic">~08:15 AM (Llegada est.)</span>
+<h4 class="text-on-surface text-2xl font-bold mt-1">Facultad de Ingeniería</h4>
+<p class="text-on-surface-variant mt-2 text-sm max-w-md leading-relaxed">Descarga en el parqueadero de posgrados.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Trip Rules/Notes -->
+<section class="bg-surface-container-low p-8 rounded-xl border-l-4 border-tertiary/20">
+<div class="flex items-center gap-4 mb-6">
+<span class="material-symbols-outlined text-tertiary" data-icon="info">info</span>
+<h3 class="font-headline text-xl font-bold uppercase tracking-widest text-on-surface">Reglas de Convivencia</h3>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+<div class="flex items-start gap-4 p-4 rounded-lg bg-surface-container">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="smoke_free">smoke_free</span>
+<div>
+<p class="text-on-surface font-bold text-sm">No Fumar</p>
+<p class="text-on-surface-variant text-xs mt-1">Prohibido vapeo y cigarrillos dentro del vehículo.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 rounded-lg bg-surface-container">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="music_note">music_note</span>
+<div>
+<p class="text-on-surface font-bold text-sm">Música</p>
+<p class="text-on-surface-variant text-xs mt-1">Audífonos preferibles. Se acepta Indie/Lofi.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 rounded-lg bg-surface-container">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="pets">pets</span>
+<div>
+<p class="text-on-surface font-bold text-sm">Mascotas</p>
+<p class="text-on-surface-variant text-xs mt-1">Solo mascotas pequeñas en transportadora.</p>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 rounded-lg bg-surface-container">
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="fastfood">fastfood</span>
+<div>
+<p class="text-on-surface font-bold text-sm">Comida</p>
+<p class="text-on-surface-variant text-xs mt-1">Evitar alimentos con olores fuertes.</p>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-white/5">
+<p class="text-on-surface-variant italic text-sm leading-relaxed">"Hola a todos, usualmente salgo puntual. Por favor estar 5 minutos antes para no retrasar a los demás. ¡Nos vemos!"</p>
+</div>
+</section>
+</div>
+<!-- Right Column: Action Panel (5/12) -->
+<div class="md:w-5/12">
+<div class="sticky top-24 flex flex-col gap-6">
+<!-- Main Action Card -->
+<div class="bg-surface-container p-8 rounded-xl shadow-[0_32px_64px_rgba(0,0,0,0.5)] border border-white/5">
+<div class="flex justify-between items-center mb-8">
+<div>
+<p class="text-on-surface-variant font-label text-xs uppercase tracking-[0.2em] mb-1">Precio por Asiento</p>
+<div class="flex items-baseline gap-1">
+<span class="text-primary text-4xl font-headline font-bold">$4.500</span>
+<span class="text-on-surface-variant font-label text-sm uppercase">COP</span>
+</div>
+</div>
+<div class="bg-secondary-container/20 text-secondary-fixed px-4 py-2 rounded-lg border border-secondary-container/30">
+<p class="text-[10px] uppercase font-bold tracking-widest text-center">Disponibles</p>
+<p class="text-xl font-headline font-bold text-center">3/4</p>
+</div>
+</div>
+<div class="space-y-4 mb-8">
+<div class="flex justify-between text-sm py-2 border-b border-white/5">
+<span class="text-on-surface-variant">Tasa de Servicio</span>
+<span class="text-on-surface">$500</span>
+</div>
+<div class="flex justify-between text-lg font-bold py-2">
+<span class="text-on-surface">Total estimado</span>
+<span class="text-primary">$5.000</span>
+</div>
+</div>
+<button class="w-full primary-gradient-cta hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95 group overflow-hidden relative">
+<span class="relative z-10 flex items-center justify-center gap-3">
+                                Solicitar Unirse
+                                <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</span>
+</button>
+<p class="text-center text-on-surface-variant text-[11px] mt-6 uppercase tracking-widest leading-relaxed">
+                            Al solicitar, aceptas las <a class="text-primary hover:underline" href="#">Políticas de Cancelación</a> de U-Ride.
+                        </p>
+</div>
+<!-- Trip Stats & Map Mini -->
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<div class="h-48 w-full bg-surface-container-highest relative">
+<img class="w-full h-full object-cover opacity-60 grayscale" data-alt="abstract stylized topographic map showing dark urban streets and green highlight routes with digital neon overlays" data-location="Mexico City" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcUI1vYSqRGDmVZs_EL5oY_wtMXt7wNrreFTdWPqV0G9uMHeCs0cxtCsVad3xZhcSObrLmFhaBvXVXqVIkDT3Ch4m_xTYiRewpUmiK29r6fvXuAskydlSiY8KrcGQHcUhRmiVrjhUyZe_ejalCDlNGe19s-PNJ3BhFJufoN_ZgQEESdUWsT8nQcdP-bZHVuzsfh79z6swY39opru2XovY38_JrczDJQvGrFsMIZWi-5tEl2WxIJjunpCKqKOkxF14L6dPK9S98CUs"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent"></div>
+<div class="absolute bottom-4 left-4 flex items-center gap-2 bg-surface-container-highest/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
+<span class="material-symbols-outlined text-primary text-sm" data-icon="map">map</span>
+<span class="text-xs font-bold uppercase tracking-widest">Ver Ruta Completa</span>
+</div>
+</div>
+<div class="p-6 grid grid-cols-2 gap-4">
+<div class="bg-surface-container p-4 rounded-lg">
+<span class="material-symbols-outlined text-tertiary mb-2" data-icon="timer">timer</span>
+<p class="text-on-surface-variant text-[10px] uppercase tracking-widest">Duración</p>
+<p class="text-on-surface font-headline font-bold">45 min</p>
+</div>
+<div class="bg-surface-container p-4 rounded-lg">
+<span class="material-symbols-outlined text-tertiary mb-2" data-icon="distance">distance</span>
+<p class="text-on-surface-variant text-[10px] uppercase tracking-widest">Distancia</p>
+<p class="text-on-surface font-headline font-bold">12.4 km</p>
+</div>
+<div class="bg-surface-container p-4 rounded-lg">
+<span class="material-symbols-outlined text-tertiary mb-2" data-icon="eco">eco</span>
+<p class="text-on-surface-variant text-[10px] uppercase tracking-widest">Ahorro CO2</p>
+<p class="text-on-surface font-headline font-bold">2.4 kg</p>
+</div>
+<div class="bg-surface-container p-4 rounded-lg">
+<span class="material-symbols-outlined text-tertiary mb-2" data-icon="group">group</span>
+<p class="text-on-surface-variant text-[10px] uppercase tracking-widest">Frecuencia</p>
+<p class="text-on-surface font-headline font-bold">Diario</p>
+</div>
+</div>
+</div>
+<!-- Security Pulse -->
+<div class="glass-card p-6 rounded-xl border border-tertiary/10 flex items-center gap-5">
+<div class="relative">
+<div class="absolute inset-0 bg-tertiary rounded-full animate-ping opacity-20"></div>
+<div class="w-12 h-12 bg-tertiary/20 rounded-full flex items-center justify-center relative z-10">
+<span class="material-symbols-outlined text-tertiary" data-icon="security">security</span>
+</div>
+</div>
+<div>
+<p class="text-on-surface font-headline font-bold text-sm">Viaje Seguro Monitoreado</p>
+<p class="text-on-surface-variant text-xs mt-1">Este trayecto está bajo el protocolo de seguridad Kinetic-Guard.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-[#0e0e0e] w-full py-12 px-8 mt-auto border-t border-white/5">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div>
+<span class="font-['Space_Grotesk'] font-bold text-[#00FF41] text-xl">U-Ride</span>
+<p class="text-zinc-600 font-['Inter'] text-sm uppercase tracking-widest mt-4">
+                    © 2024 U-Ride Institutional. Powered by Academic Kinetic.
+                </p>
+</div>
+<div class="flex flex-wrap gap-8 md:justify-end">
+<a class="text-zinc-600 hover:text-white transition-colors font-['Inter'] text-sm uppercase tracking-widest" href="#">Centro de Ayuda</a>
+<a class="text-zinc-600 hover:text-white transition-colors font-['Inter'] text-sm uppercase tracking-widest" href="#">Reglas de Seguridad</a>
+<a class="text-zinc-600 hover:text-white transition-colors font-['Inter'] text-sm uppercase tracking-widest" href="#">Privacidad</a>
+<a class="text-zinc-600 hover:text-white transition-colors font-['Inter'] text-sm uppercase tracking-widest" href="#">Soporte</a>
+</div>
+</div>
+</footer>
+</body></html>

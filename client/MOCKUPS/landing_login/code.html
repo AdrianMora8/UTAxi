@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary": "#005b63",
+              "secondary-dim": "#7aeb9d",
+              "surface-tint": "#9cff93",
+              "primary-fixed": "#00fc40",
+              "tertiary-fixed": "#0eeafd",
+              "error-dim": "#d53d18",
+              "on-secondary": "#005f30",
+              "surface-container-highest": "#262626",
+              "primary-fixed-dim": "#00ec3b",
+              "outline-variant": "#494847",
+              "error-container": "#b92902",
+              "on-background": "#ffffff",
+              "inverse-on-surface": "#565554",
+              "tertiary-container": "#0eeafd",
+              "outline": "#777575",
+              "surface-dim": "#0e0e0e",
+              "background": "#0e0e0e",
+              "tertiary-fixed-dim": "#00dbec",
+              "on-error": "#450900",
+              "inverse-surface": "#fcf8f8",
+              "on-tertiary-fixed-variant": "#005c64",
+              "on-tertiary-fixed": "#003d42",
+              "secondary-fixed": "#89faaa",
+              "surface-container": "#1a1919",
+              "on-tertiary-container": "#005159",
+              "secondary-fixed-dim": "#7aeb9d",
+              "surface-container-lowest": "#000000",
+              "on-primary-container": "#005a10",
+              "surface-container-high": "#201f1f",
+              "on-surface": "#ffffff",
+              "surface-bright": "#2c2c2c",
+              "secondary-container": "#006d38",
+              "on-secondary-container": "#e3ffe5",
+              "on-primary": "#006413",
+              "on-surface-variant": "#adaaaa",
+              "on-secondary-fixed-variant": "#006a36",
+              "on-primary-fixed-variant": "#006513",
+              "on-secondary-fixed": "#004a24",
+              "inverse-primary": "#006f16",
+              "on-error-container": "#ffd2c8",
+              "surface-container-low": "#131313",
+              "primary-dim": "#00ec3b",
+              "on-primary-fixed": "#00440a",
+              "surface": "#0e0e0e",
+              "primary-container": "#00fc40",
+              "primary": "#9cff93",
+              "error": "#ff7351",
+              "secondary": "#89faaa",
+              "tertiary": "#8af2ff",
+              "tertiary-dim": "#00dbec",
+              "surface-variant": "#262626"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .bg-gradient-primary {
+        background: linear-gradient(135deg, #9cff93 0%, #00fc40 100%);
+      }
+      .glass-panel {
+        background: rgba(19, 19, 19, 0.7);
+        backdrop-filter: blur(20px);
+      }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation (Shell Implementation) -->
+<nav class="fixed top-0 w-full z-50 bg-[#0e0e0e]/80 backdrop-blur-md shadow-[0_0_32px_rgba(0,255,65,0.08)]">
+<div class="flex justify-between items-center px-8 py-4 max-w-full mx-auto">
+<div class="text-2xl font-bold tracking-tighter text-white uppercase font-headline">U-Ride</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="font-headline tracking-tight text-[#00FF41] border-b-2 border-[#00FF41] pb-1" href="#">Buscar Viaje</a>
+<a class="font-headline tracking-tight text-zinc-400 hover:text-white transition-colors" href="#">Publicar Viaje</a>
+<div class="flex items-center gap-4 ml-4">
+<button class="material-symbols-outlined text-[#00FF41] hover:bg-[#262626] p-2 rounded-full transition-all duration-300 scale-95 active:scale-90" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-[#00FF41] hover:bg-[#262626] p-2 rounded-full transition-all duration-300 scale-95 active:scale-90" data-icon="account_circle">account_circle</button>
+</div>
+</div>
+<button class="md:hidden material-symbols-outlined text-white" data-icon="menu">menu</button>
+</div>
+</nav>
+<main class="pt-24 min-h-screen flex flex-col">
+<!-- Hero Section -->
+<section class="relative px-6 py-12 md:px-24 md:py-32 flex flex-col md:flex-row items-center gap-12 overflow-hidden">
+<!-- Background Decoration -->
+<div class="absolute -top-24 -right-24 w-96 h-96 bg-primary/10 rounded-full blur-[120px]"></div>
+<div class="absolute top-1/2 -left-24 w-64 h-64 bg-tertiary/5 rounded-full blur-[80px]"></div>
+<div class="flex-1 z-10">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-highest border border-outline-variant/20 mb-6">
+<span class="material-symbols-outlined text-tertiary text-sm" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="text-xs font-label uppercase tracking-widest text-on-surface-variant">Solo correos universitarios permitidos</span>
+</div>
+<h1 class="text-5xl md:text-8xl font-headline font-bold leading-[0.9] tracking-tighter text-on-surface mb-8">
+                    Transporte seguro para la <span class="text-primary italic">comunidad estudiantil</span>
+</h1>
+<p class="text-lg md:text-xl text-on-surface-variant max-w-xl mb-10 leading-relaxed">
+                    U-Ride es la red exclusiva de transporte académico diseñada para conectar estudiantes y personal en rutas seguras y eficientes.
+                </p>
+<div class="flex flex-wrap gap-4">
+<button class="bg-gradient-primary text-on-primary px-8 py-4 rounded-lg font-headline font-bold text-lg hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] transition-all scale-95 active:scale-90">
+                        Comenzar Ahora
+                    </button>
+<button class="bg-surface-container-highest text-on-surface px-8 py-4 rounded-lg font-headline font-bold text-lg hover:bg-surface-bright transition-all scale-95 active:scale-90">
+                        Saber más
+                    </button>
+</div>
+</div>
+<div class="flex-1 relative w-full aspect-square md:aspect-auto md:h-[600px] z-10">
+<div class="w-full h-full rounded-2xl overflow-hidden shadow-2xl">
+<img class="w-full h-full object-cover grayscale contrast-125 brightness-75 hover:grayscale-0 transition-all duration-700" data-alt="Group of diverse university students laughing and walking together across a modern sunlit campus courtyard with green lawns" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu0rVbCcbO75GmJ-nS-4-erz-i5Z5VeI-LskZhh54Qf9cnZ_LZhfzeUJJUz9N0_IhypGFP-lOdeVeUMk40dRWoqhaVMZQpmQDQlUaBTuSZAiCm73pghHvFhqOKZAj48-f_0wzMoITtHzsXqbOeZF1-trPZxVKcomP_03jGEIGaRQeiU-BaJ63erG4_Y_QisOf6jTcbpq-1AI74eRKp-gQn0-O84I5G6qr6tdJ1u3aqWmkf_5ZNGwXq--iVcyu3xsggjgDkByKTuEQ"/>
+</div>
+<!-- Floating Card -->
+<div class="absolute -bottom-6 -left-6 md:-left-12 glass-panel p-6 rounded-xl border border-outline-variant/10 shadow-2xl max-w-xs">
+<div class="flex items-center gap-4 mb-4">
+<div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<div>
+<div class="font-headline font-bold text-on-surface">Validación Institucional</div>
+<div class="text-xs text-on-surface-variant">Acceso restringido por dominio</div>
+</div>
+</div>
+<div class="h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full w-3/4 bg-primary rounded-full"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Login / Bento Grid Benefits -->
+<section class="bg-surface-container-low px-6 py-20 md:px-24">
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Login Panel -->
+<div class="lg:col-span-5 bg-surface-container p-8 md:p-12 rounded-2xl border border-outline-variant/5">
+<h2 class="text-3xl font-headline font-bold mb-2">Bienvenido de vuelta</h2>
+<p class="text-on-surface-variant mb-8">Ingresa con tu credencial institucional.</p>
+<form class="space-y-6">
+<div>
+<label class="block text-xs font-label uppercase tracking-widest text-on-surface-variant mb-2">Correo Institucional</label>
+<input class="w-full bg-surface-container-highest border-none rounded-lg p-4 focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all outline-none text-on-surface" placeholder="usuario@universidad.edu" type="email"/>
+</div>
+<div>
+<label class="block text-xs font-label uppercase tracking-widest text-on-surface-variant mb-2">Contraseña</label>
+<input class="w-full bg-surface-container-highest border-none rounded-lg p-4 focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all outline-none text-on-surface" placeholder="••••••••" type="password"/>
+</div>
+<div class="flex items-center justify-between">
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="rounded bg-surface-container-highest border-none text-primary focus:ring-offset-background" type="checkbox"/>
+<span class="text-sm text-on-surface-variant">Recordarme</span>
+</label>
+<a class="text-sm text-primary hover:underline" href="#">¿Olvidaste tu contraseña?</a>
+</div>
+<button class="w-full bg-gradient-primary text-on-primary py-4 rounded-lg font-headline font-bold text-lg scale-95 active:scale-90 transition-transform shadow-[0_4px_12px_rgba(0,255,65,0.15)]" type="submit">
+                            Iniciar Sesión
+                        </button>
+</form>
+<div class="mt-8 pt-8 border-t border-outline-variant/10 text-center">
+<p class="text-on-surface-variant mb-4">¿No tienes una cuenta?</p>
+<button class="w-full py-4 rounded-lg border border-outline-variant/20 font-headline font-bold text-on-surface hover:bg-surface-container-highest transition-all">
+                            Registrarse como Estudiante
+                        </button>
+</div>
+</div>
+<!-- Benefits Bento Grid -->
+<div class="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Security Card -->
+<div class="bg-surface-container p-8 rounded-2xl flex flex-col justify-between group hover:bg-surface-container-high transition-all">
+<div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-12 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<div>
+<h3 class="text-2xl font-headline font-bold mb-3">Security First</h3>
+<p class="text-on-surface-variant leading-relaxed">Monitoreo en tiempo real y perfiles verificados únicamente por la administración universitaria.</p>
+</div>
+</div>
+<!-- Coordination Card -->
+<div class="bg-primary p-8 rounded-2xl flex flex-col justify-between group text-on-primary">
+<div class="w-14 h-14 rounded-xl bg-on-primary/10 flex items-center justify-center mb-12 group-hover:rotate-12 transition-transform">
+<span class="material-symbols-outlined text-on-primary text-3xl">route</span>
+</div>
+<div>
+<h3 class="text-2xl font-headline font-bold mb-3">Coordination</h3>
+<p class="text-on-primary-fixed-variant leading-relaxed font-medium">Algoritmos inteligentes que optimizan rutas entre facultades y zonas residenciales.</p>
+</div>
+</div>
+<!-- Reputation Card -->
+<div class="md:col-span-2 bg-tertiary-container/10 p-8 rounded-2xl flex flex-col md:flex-row gap-8 items-center border border-tertiary/20">
+<div class="flex-1">
+<div class="w-14 h-14 rounded-xl bg-tertiary/10 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-tertiary text-3xl" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+<h3 class="text-2xl font-headline font-bold mb-3">Reputation &amp; Trust</h3>
+<p class="text-on-surface-variant leading-relaxed">Sistema de karma académico basado en puntualidad y respeto, integrando reseñas directas de compañeros.</p>
+</div>
+<div class="flex-1 flex justify-center">
+<div class="relative">
+<div class="absolute inset-0 bg-tertiary/20 blur-2xl rounded-full"></div>
+<img class="relative w-48 h-48 object-cover rounded-full border-4 border-surface shadow-2xl" data-alt="Close up of a driver and student passenger giving a high five inside a clean modern car interior" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDj39pYuc-gEqylXmuO50nR5kDSmLlvRDfhZpjj29qkV6A_Jqo9eL8Uo92Pk82dZBBDQciN4T-8bFiPVdHHvPFsZFZZ03gKtQvTCb0iJ25sxvvMWbtSvhGRYN44MOxjmjw6AoWno9luNo7oiYLfqIpthYa87eZcl0UZPEL1ZeAch8e5WHvUt8yvfs50LX340VrR48QmJfwoJbx-f7rlRUm0Op_Jc-HKmBLHZeeODDN9eSVaaA-iwIr2khifsnRzfOhgvGfHpB2joXc"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Institutional Trust Banner -->
+<section class="py-12 px-6 text-center border-t border-white/5 bg-surface">
+<div class="max-w-4xl mx-auto">
+<p class="font-label text-xs uppercase tracking-[0.3em] text-on-surface-variant mb-6">Colaborando con las mejores facultades</p>
+<div class="flex flex-wrap justify-center items-center gap-12 opacity-30 grayscale contrast-150">
+<span class="text-2xl font-headline font-bold">UNAM</span>
+<span class="text-2xl font-headline font-bold">TEC</span>
+<span class="text-2xl font-headline font-bold">IPN</span>
+<span class="text-2xl font-headline font-bold">ITAM</span>
+<span class="text-2xl font-headline font-bold">IBERO</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer (Shell Implementation) -->
+<footer class="w-full py-12 px-8 mt-auto bg-[#0e0e0e] border-t border-white/5">
+<div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center border-t border-zinc-800 pt-8">
+<div class="flex flex-col gap-4">
+<span class="font-['Space_Grotesk'] font-bold text-[#00FF41] text-2xl">U-Ride</span>
+<p class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600">
+                    © 2024 U-Ride Institutional. Powered by Academic Kinetic.
+                </p>
+</div>
+<div class="flex flex-wrap gap-6 md:justify-end">
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors opacity-80 hover:opacity-100" href="#">Centro de Ayuda</a>
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors opacity-80 hover:opacity-100" href="#">Reglas de Seguridad</a>
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors opacity-80 hover:opacity-100" href="#">Privacidad</a>
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors opacity-80 hover:opacity-100" href="#">Soporte</a>
+</div>
+</div>
+</footer>
+</body></html>

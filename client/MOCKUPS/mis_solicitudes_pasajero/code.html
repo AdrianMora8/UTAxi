@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-fixed": "#89faaa",
+              "on-surface-variant": "#adaaaa",
+              "on-error-container": "#ffd2c8",
+              "surface-dim": "#0e0e0e",
+              "secondary-container": "#006d38",
+              "inverse-surface": "#fcf8f8",
+              "primary-dim": "#00ec3b",
+              "on-tertiary-container": "#005159",
+              "surface-container": "#1a1919",
+              "secondary-fixed-dim": "#7aeb9d",
+              "surface-container-high": "#201f1f",
+              "on-surface": "#ffffff",
+              "on-secondary-fixed-variant": "#006a36",
+              "primary-fixed": "#00fc40",
+              "on-tertiary-fixed": "#003d42",
+              "on-background": "#ffffff",
+              "outline-variant": "#494847",
+              "error-dim": "#d53d18",
+              "tertiary-dim": "#00dbec",
+              "surface-bright": "#2c2c2c",
+              "on-primary-fixed-variant": "#006513",
+              "error": "#ff7351",
+              "surface-container-highest": "#262626",
+              "inverse-primary": "#006f16",
+              "on-primary": "#006413",
+              "on-secondary": "#005f30",
+              "primary": "#9cff93",
+              "on-secondary-fixed": "#004a24",
+              "secondary-dim": "#7aeb9d",
+              "tertiary": "#8af2ff",
+              "surface-container-low": "#131313",
+              "primary-fixed-dim": "#00ec3b",
+              "on-primary-fixed": "#00440a",
+              "surface": "#0e0e0e",
+              "background": "#0e0e0e",
+              "tertiary-fixed-dim": "#00dbec",
+              "tertiary-fixed": "#0eeafd",
+              "inverse-on-surface": "#565554",
+              "on-primary-container": "#005a10",
+              "surface-container-lowest": "#000000",
+              "on-error": "#450900",
+              "error-container": "#b92902",
+              "secondary": "#89faaa",
+              "surface-tint": "#9cff93",
+              "tertiary-container": "#0eeafd",
+              "on-tertiary-fixed-variant": "#005c64",
+              "on-tertiary": "#005b63",
+              "outline": "#777575"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-card {
+        background: rgba(19, 19, 19, 0.7);
+        backdrop-filter: blur(20px);
+      }
+      .gradient-primary {
+        background: linear-gradient(135deg, #9cff93 0%, #00fc40 100%);
+      }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary selection:text-on-primary">
+<!-- Top Navigation (Mobile Only) -->
+<header class="md:hidden fixed top-0 w-full z-50 bg-[#0e0e0e]/80 backdrop-blur-md shadow-[0_0_32px_rgba(0,255,65,0.08)] flex justify-between items-center px-8 py-4">
+<span class="text-2xl font-bold tracking-tighter text-white uppercase font-headline">U-Ride</span>
+<div class="flex gap-4 items-center">
+<span class="material-symbols-outlined text-zinc-400">notifications</span>
+<div class="w-8 h-8 rounded-full overflow-hidden">
+<img alt="Student Profile" data-alt="Close-up portrait of a stylish university student with a confident expression in a soft-lit indoor setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrAtKTDDsHTRg6ilWrKv-oX-z7IqipH_3y2mbNbCK34Q_XTQAQaC5d2Z-rHXnhO2RLsYVSAnVKB-7qJQDxYz9qbUJGf-2hlvqkrcw4at36K3Bon64WF4yQ57OuTs1a9Av6x3FfAE6dAvM3bOuhNJcoXlmE8PguarmHdOyHkRM5u2OwClahojIocmGgbtPArGhiAI87ooWl8Wh9JaywLCGSUG6cc2LFNp1zNvykuWXgJ7esZs7So5wDb8X8_tkS-EgyZf7lwVjNSc8"/>
+</div>
+</div>
+</header>
+<!-- Side Navigation (Desktop) -->
+<aside class="hidden md:flex h-full w-72 fixed left-0 top-0 bg-[#131313] flex-col p-6 gap-2 z-50">
+<div class="mb-10 px-4">
+<h1 class="text-xl font-black text-white font-headline">U-Ride</h1>
+<p class="text-xs text-zinc-500 font-label tracking-widest uppercase">The Academic Kinetic</p>
+</div>
+<nav class="flex-1 flex flex-col gap-2">
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-[#1a1919] hover:text-[#00FF41] transition-all duration-300 rounded-lg font-headline" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span>Buscar Viaje</span>
+</a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-[#1a1919] hover:text-[#00FF41] transition-all duration-300 rounded-lg font-headline" href="#">
+<span class="material-symbols-outlined" data-icon="add_box">add_box</span>
+<span>Publicar Viaje</span>
+</a>
+<a class="bg-[#00FF41]/10 text-[#00FF41] rounded-lg px-4 py-3 flex items-center gap-3 font-headline active:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span>Notificaciones</span>
+</a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-[#1a1919] hover:text-[#00FF41] transition-all duration-300 rounded-lg font-headline" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span>Perfil</span>
+</a>
+</nav>
+<div class="mt-auto flex flex-col gap-2 border-t border-white/5 pt-6">
+<a class="text-zinc-600 hover:text-white text-sm uppercase tracking-widest font-label flex items-center gap-3 px-4 py-2 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="help">help</span>
+<span>Centro de Ayuda</span>
+</a>
+<a class="text-zinc-600 hover:text-white text-sm uppercase tracking-widest font-label flex items-center gap-3 px-4 py-2 transition-colors" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="shield">shield</span>
+<span>Seguridad</span>
+</a>
+<button class="mt-4 text-[#ff7351] font-headline font-bold uppercase tracking-tighter text-left px-4 hover:opacity-80 transition-opacity">
+                Cerrar Sesión
+            </button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-72 min-h-screen pt-24 pb-12 px-6 md:px-12 lg:px-24">
+<!-- Header Section -->
+<header class="mb-12">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div>
+<span class="text-primary font-label text-xs font-bold tracking-[0.2em] uppercase mb-2 block">Panel de Pasajero</span>
+<h2 class="text-5xl md:text-6xl font-headline font-bold tracking-tighter text-white leading-none">Mis Solicitudes</h2>
+</div>
+<div class="flex gap-2 bg-surface-container-low p-1 rounded-xl">
+<button class="px-6 py-2 bg-surface-container-highest text-white rounded-lg text-sm font-medium transition-all">Activas</button>
+<button class="px-6 py-2 text-on-surface-variant hover:text-white rounded-lg text-sm font-medium transition-all">Historial</button>
+</div>
+</div>
+</header>
+<!-- Requests Grid (Asymmetric Editorial Layout) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Active Requests List -->
+<div class="lg:col-span-8 space-y-6">
+<!-- Request Card: Aceptado -->
+<div class="group relative bg-surface-container-low rounded-xl overflow-hidden hover:bg-surface-container transition-all duration-500 shadow-xl">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="p-8">
+<div class="flex flex-col md:flex-row justify-between gap-6">
+<div class="flex-1">
+<!-- Route Information -->
+<div class="flex items-center gap-4 mb-6">
+<div class="flex flex-col items-center gap-1">
+<div class="w-3 h-3 rounded-full border-2 border-primary"></div>
+<div class="w-px h-6 bg-outline-variant"></div>
+<div class="w-3 h-3 bg-primary rounded-sm"></div>
+</div>
+<div class="flex flex-col gap-4">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Origen</p>
+<p class="text-lg font-headline font-semibold">Campus Central - Puerta 3</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Destino</p>
+<p class="text-lg font-headline font-semibold">Plaza Las Américas</p>
+</div>
+</div>
+</div>
+<!-- Driver Info -->
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="Driver" class="w-12 h-12 rounded-lg object-cover" data-alt="Portrait of a friendly male driver with a professional smile, natural outdoor lighting, high quality commercial photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC13g4tCreC5mSmpbFtK0_u4z1qwTvFFRhhvEuUQ0BJkU4B3b5nIZ-s4ATurAtFCroTtlg6wiZf8gyL1AvxDz_nj5nzcdsB3rhecTCoh7xqfbhRDdmMZ_8iIi8-6oOWfzgsP6H2Hy21ByTxH02qUPtW3DFTcd1iiqPCd_hh4PDLClYJmwaFLqjTb3RzW19Hm9e5PHEUkVfnadI-34boPEP6bLUjtGyGO4M_dWq97my9sI5X7SBtzFsV-IcNduCpDu1eQ5R1NagVIiU"/>
+<div class="absolute -bottom-1 -right-1 w-4 h-4 bg-tertiary rounded-full border-2 border-surface-container-low animate-pulse" style="animation-duration: 2s"></div>
+</div>
+<div>
+<p class="text-sm font-bold text-white">Carlos Méndez</p>
+<div class="flex items-center gap-1 text-[#FFD700]">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold">4.9</span>
+<span class="text-zinc-500 text-xs font-normal ml-1">• Toyota Corolla (ABC-123)</span>
+</div>
+</div>
+</div>
+</div>
+<div class="md:w-48 flex flex-col justify-between items-end gap-6">
+<div class="flex flex-col items-end">
+<span class="px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-[10px] font-black tracking-widest uppercase mb-2">ACEPTADO</span>
+<p class="text-3xl font-headline font-bold text-white">$45.00</p>
+<p class="text-xs text-on-surface-variant">Hoy, 18:30 PM</p>
+</div>
+<button class="w-full gradient-primary text-on-primary font-headline font-bold py-3 px-6 rounded-lg text-sm uppercase tracking-tighter hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] transition-all active:scale-95">
+                                    Pagar Ahora
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Request Card: Pendiente -->
+<div class="bg-surface-container rounded-xl p-8 border border-white/5">
+<div class="flex flex-col md:flex-row justify-between gap-6">
+<div class="flex-1">
+<div class="flex items-center gap-4 mb-6 opacity-80">
+<div class="flex flex-col items-center gap-1">
+<div class="w-3 h-3 rounded-full border-2 border-zinc-500"></div>
+<div class="w-px h-6 bg-outline-variant"></div>
+<div class="w-3 h-3 bg-zinc-500 rounded-sm"></div>
+</div>
+<div class="flex flex-col gap-4">
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Origen</p>
+<p class="text-lg font-headline font-semibold">Residencias Universitarias</p>
+</div>
+<div>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">Destino</p>
+<p class="text-lg font-headline font-semibold">Facultad de Ingeniería</p>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-highest flex items-center justify-center">
+<span class="material-symbols-outlined text-zinc-500" data-icon="person">person</span>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface-variant">Buscando conductor...</p>
+<p class="text-xs text-zinc-600">Enviada hace 2 minutos</p>
+</div>
+</div>
+</div>
+<div class="md:w-48 flex flex-col justify-between items-end">
+<div class="flex flex-col items-end">
+<span class="px-3 py-1 bg-[#FFD700]/10 text-[#FFD700] border border-[#FFD700]/20 rounded-full text-[10px] font-black tracking-widest uppercase mb-2">PENDIENTE</span>
+<p class="text-3xl font-headline font-bold text-white">$20.00</p>
+<p class="text-xs text-on-surface-variant">Mañana, 07:45 AM</p>
+</div>
+<button class="mt-6 text-on-surface-variant hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Cancelar Solicitud</button>
+</div>
+</div>
+</div>
+<!-- Request Card: Rechazado -->
+<div class="bg-surface-container-low rounded-xl p-8 border border-white/5 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+<div class="flex flex-col md:flex-row justify-between gap-6">
+<div class="flex-1">
+<div class="flex items-center gap-4 mb-6">
+<div class="flex flex-col items-center gap-1">
+<div class="w-3 h-3 rounded-full border-2 border-zinc-700"></div>
+<div class="w-px h-6 bg-zinc-800"></div>
+<div class="w-3 h-3 bg-zinc-700 rounded-sm"></div>
+</div>
+<div class="flex flex-col gap-4">
+<p class="text-lg font-headline font-semibold">Centro Deportivo → Estación Norte</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<img alt="Driver" class="w-10 h-10 rounded-lg object-cover" data-alt="Professional headshot of a woman in business casual attire, soft natural light, minimalist background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtAlMMcMPWprIwhTc8WpKGKXk3JAX8M4NpcZw7IliLDNDGQg1EqZvqtAeSOSN3Ij7axBKXngg4uRKrz_ZN-rePfp39qpjW1tPGqKaL-1pXpIV1XwOKX77bjAP6IerUV0V0wBCfvfZew6thMDsrXGRgBLh0B3XIlWsfw79_kShuYTpA6cDUwmwFmeSmu8oGLLcmB1qynAHbOh-lECI_KgVAgWdPDBzmbXEbHa7dHiBbAl8JY1Fx2dQ3H55yNJpkb3J3jxXG5zkcELM"/>
+<div>
+<p class="text-sm font-bold">Elena Rivas</p>
+<p class="text-xs text-zinc-500">Conductora rechazada</p>
+</div>
+</div>
+</div>
+<div class="md:w-48 flex flex-col justify-between items-end">
+<div class="flex flex-col items-end">
+<span class="px-3 py-1 bg-error/10 text-error border border-error/20 rounded-full text-[10px] font-black tracking-widest uppercase mb-2">RECHAZADO</span>
+<p class="text-3xl font-headline font-bold text-zinc-500">$35.00</p>
+<p class="text-xs text-zinc-600">Ayer, 14:20 PM</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Side Content / Stats (Bento Style) -->
+<div class="lg:col-span-4 space-y-8">
+<!-- Map Preview Card -->
+<div class="bg-surface-container rounded-2xl overflow-hidden group">
+<div class="h-48 relative">
+<img alt="Map View" class="w-full h-full object-cover opacity-50 group-hover:scale-105 transition-transform duration-700" data-alt="Dark stylized map interface with neon green route lines and glowing points of interest, architectural city grid visible" data-location="Mexico City" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyQ7C_2PfPwIutAinETru0KLKk4pJ8m99YZhkSjtaDQ_OtqLRb_Zy4zsAvSr6QsmIxMefmrcET7VfVKFE6jMsgHkTZxHZWg-2ktM9VGayvUQSaEzLvSRSH2n2pESSR1RpeI3SONww4Kq-yryZSroj0nipO34u5dbzyyXi88pwswlMQHB9pTic9r0IgRg9iEhS3BdVMhMpZxAp4YmPJ2KAkW1sHbT-mglk2WAh-e4FORMImAihM87d5B27Hi1aoNQYyqMK11WbL_SU"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent"></div>
+<div class="absolute bottom-4 left-4">
+<p class="text-white font-headline font-bold text-lg">Próximo Punto</p>
+<p class="text-xs text-primary font-bold uppercase tracking-widest">En camino 12 min</p>
+</div>
+</div>
+<div class="p-6">
+<div class="flex items-center justify-between mb-4">
+<span class="text-on-surface-variant text-xs font-bold uppercase tracking-widest">Saldo U-Wallet</span>
+<span class="material-symbols-outlined text-primary" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<p class="text-4xl font-headline font-bold text-white mb-6">$342.50</p>
+<button class="w-full bg-surface-container-highest hover:bg-surface-bright text-white font-bold py-3 rounded-lg text-sm transition-all border border-white/5">
+                            Recargar Saldo
+                        </button>
+</div>
+</div>
+<!-- Security Tip Card -->
+<div class="bg-tertiary/5 border border-tertiary/10 rounded-2xl p-6 relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 opacity-10">
+<span class="material-symbols-outlined text-[120px]" data-icon="verified_user">verified_user</span>
+</div>
+<h4 class="text-tertiary font-headline font-bold text-xl mb-3">Protocolo Kinetic</h4>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-4">
+                        Recuerda siempre verificar la matrícula y el nombre del conductor antes de subir al vehículo. Tu seguridad es nuestra prioridad institucional.
+                    </p>
+<a class="text-tertiary text-xs font-bold uppercase tracking-widest hover:underline" href="#">Ver más consejos</a>
+</div>
+</div>
+</div>
+<!-- Empty State (Hidden by default, shown if no list) -->
+<div class="hidden flex-col items-center justify-center py-32 text-center">
+<div class="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center mb-8 border border-white/5">
+<span class="material-symbols-outlined text-4xl text-zinc-600" data-icon="directions_car">directions_car</span>
+</div>
+<h3 class="text-2xl font-headline font-bold text-white mb-2">No tienes viajes activos</h3>
+<p class="text-on-surface-variant max-w-xs mx-auto mb-8">¿Planeando tu próxima clase? Busca un viaje compartido y ahorra tiempo.</p>
+<button class="gradient-primary text-on-primary px-8 py-3 rounded-lg font-headline font-bold uppercase tracking-tighter">Buscar Viaje</button>
+</div>
+</main>
+<!-- Footer -->
+<footer class="md:ml-72 bg-[#0e0e0e] w-full py-12 px-8 mt-auto border-t border-white/5">
+<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+<div>
+<p class="font-['Space_Grotesk'] font-bold text-[#00FF41] text-xl mb-2">U-Ride</p>
+<p class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 leading-relaxed">
+                    © 2024 U-Ride Institutional. Powered by Academic Kinetic.
+                </p>
+</div>
+<div class="flex flex-wrap gap-6 md:justify-end">
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors" href="#">Centro de Ayuda</a>
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors" href="#">Reglas de Seguridad</a>
+<a class="font-['Inter'] text-sm uppercase tracking-widest text-zinc-600 hover:text-white transition-colors" href="#">Privacidad</a>
+</div>
+</div>
+</footer>
+<!-- Bottom Navigation (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full bg-[#0e0e0e]/90 backdrop-blur-lg border-t border-white/5 px-4 py-3 flex justify-around items-center z-50">
+<a class="flex flex-col items-center gap-1 text-zinc-500" href="#">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+<span class="text-[10px] font-bold uppercase">Buscar</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-[#00FF41]" href="#">
+<span class="material-symbols-outlined" data-icon="notifications" style="font-variation-settings: 'FILL' 1;">notifications</span>
+<span class="text-[10px] font-bold uppercase">Viajes</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-zinc-500" href="#">
+<span class="material-symbols-outlined" data-icon="add_box">add_box</span>
+<span class="text-[10px] font-bold uppercase">Publicar</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-zinc-500" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] font-bold uppercase">Perfil</span>
+</a>
+</nav>
+</body></html>

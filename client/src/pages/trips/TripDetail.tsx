@@ -42,6 +42,7 @@ export default function TripDetail() {
   const depTime = new Date(trip.departureTime)
   const timeStr = depTime.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', hour12: true })
   const isDriver = trip.driverId === user?.id
+  const isInProgress = trip.status === 'IN_PROGRESS'
 
   const driverInitials = trip.driver.fullName
     .split(' ')
@@ -235,7 +236,17 @@ export default function TripDetail() {
                   </div>
                 </div>
 
-                {isDriver ? (
+                {isInProgress ? (
+                  <button
+                    onClick={() => navigate(`/trips/${trip.id}/active`)}
+                    className="w-full bg-gradient-to-r from-tertiary/20 to-primary/20 hover:from-tertiary/30 hover:to-primary/30 border border-tertiary/30 text-tertiary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95"
+                  >
+                    <span className="flex items-center justify-center gap-3">
+                      <span className="material-symbols-outlined animate-pulse">location_on</span>
+                      Ver Viaje Activo
+                    </span>
+                  </button>
+                ) : isDriver ? (
                   <button
                     onClick={() => navigate(`/trips/${trip.id}/requests`)}
                     className="w-full bg-gradient-primary hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95 group"
@@ -298,10 +309,12 @@ export default function TripDetail() {
                 {/* Map placeholder */}
                 <div className="h-48 w-full bg-surface-container-highest relative flex items-center justify-center">
                   <span className="material-symbols-outlined text-on-surface-variant/20 text-[80px]">map</span>
-                  <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-surface-container-highest/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10">
-                    <span className="material-symbols-outlined text-primary text-sm">map</span>
-                    <span className="text-xs font-bold uppercase tracking-widest">Mapa disponible en Fase 6</span>
-                  </div>
+                  {isInProgress && (
+                    <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-tertiary/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-tertiary/20">
+                      <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse" />
+                      <span className="text-tertiary text-xs font-bold uppercase tracking-widest">GPS Activo</span>
+                    </div>
+                  )}
                 </div>
 
                 <div className="p-6 grid grid-cols-2 gap-4">

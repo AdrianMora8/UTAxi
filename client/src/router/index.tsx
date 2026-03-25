@@ -14,6 +14,7 @@ const CreateTrip = lazy(() => import('@/pages/trips/CreateTrip'))
 const ManageRequests = lazy(() => import('@/pages/trips/ManageRequests'))
 const MyRequests = lazy(() => import('@/pages/requests/MyRequests'))
 const Payment = lazy(() => import('@/pages/payments/Payment'))
+const ActiveTrip = lazy(() => import('@/pages/trips/ActiveTrip'))
 
 function Loading() {
   return (
@@ -121,7 +122,15 @@ export const router = createBrowserRouter([
               </Suspense>
             ),
           },
-          // Fase 6+: GPS, admin, etc.
+          {
+            path: '/trips/:id/active',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <ActiveTrip />
+              </Suspense>
+            ),
+          },
+          // Fase 7+: ratings, reports, admin
         ],
       },
     ],

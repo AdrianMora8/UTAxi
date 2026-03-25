@@ -18,8 +18,8 @@ export default function TripDetail() {
     queryKey: ['trip', id],
     queryFn: () => tripsApi.getTripById(id!).then((r) => r.data.trip),
     enabled: !!id,
+    
   })
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">

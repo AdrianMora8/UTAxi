@@ -16,6 +16,7 @@ const MyRequests = lazy(() => import('@/pages/requests/MyRequests'))
 const Payment = lazy(() => import('@/pages/payments/Payment'))
 const ActiveTrip = lazy(() => import('@/pages/trips/ActiveTrip'))
 const Report = lazy(() => import('@/pages/reports/Report'))
+const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
 
 function Loading() {
   return (
@@ -141,6 +142,21 @@ export const router = createBrowserRouter([
           },
           // Fase 8: admin
         ],
+      },
+    ],
+  },
+
+  // Ruta admin — layout propio (sidebar), solo rol ADMIN
+  {
+    element: <ProtectedRoute requireAdmin />,
+    children: [
+      {
+        path: '/admin',
+        element: (
+          <Suspense fallback={<Loading />}>
+            <AdminDashboard />
+          </Suspense>
+        ),
       },
     ],
   },

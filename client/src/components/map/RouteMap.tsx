@@ -1,4 +1,5 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import { useState, useEffect } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -41,9 +42,92 @@ interface RouteMapProps {
   originZone: string
   destinationZone: string
   interactive?: boolean
+  onOriginSelect?: (address: string) => void
 }
 
-export default function RouteMap({ originZone, destinationZone, interactive = false }: RouteMapProps) {
+function UserLocation({ interactive }: { interactive: boolean }) {
+  const [userPos, setUserPos] = useState<[number, number] | null>(null)
+  const map = useMap()
+
+  useEffect(() => {
+    if (!interactive) return
+
+    map.locate({ enableHighAccuracy: true }).on("locationfound", function (e) {
+      setUserPos([e.latlng.lat, e.latlng.lng])
+      map.flyTo(e.latlng, map.getZoom())
+    })
+  }, [map, interactive])
+
+  const userIcon = L.divIcon({
+    className: '',
+    html: `
+      <div style="position:relative;width:24px;height:24px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;width:24px;height:24px;background:rgba(255,64,129,0.2);border-radius:50%;animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></div>
+        <div style="width:12px;height:12px;background:#ff4081;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(255,64,129,0.6);"></div>
+      </div>
+      <style>@keyframes ping{75%,100%{transform:scale(2);opacity:0;}}</style>
+    `,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  })
+
+  return userPos === null ? null : (
+    <Marker position={userPos} icon={userIcon}>
+      <Popup className="leaflet-popup-dark">
+        <span style={{ fontSize: '11px', fontWeight: 'bold' }}>Mi Ubicación Real</span>
+      </Popup>
+    </Marker>
+  )
+}
+
+function LocationSelector({ interactive, onSelect }: { interactive: boolean, onSelect?: (address: string) => void }) {
+  const [position, setPosition] = useState<[number, number] | null>(null)
+  
+  useMapEvents({
+    click(e) {
+      if (!interactive) return
+      setPosition([e.latlng.lat, e.latlng.lng])
+      
+      // Reverse geocoding
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${e.latlng.lat}&lon=${e.latlng.lng}&format=json`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.address) {
+            const address = data.address.road || data.address.neighbourhood || data.address.suburb || 'Ubicación seleccionada'
+            const city = data.address.city || data.address.town || data.address.village || ''
+            const shortAddress = city && address !== city ? `${address}, ${city}` : address
+            if (onSelect) onSelect(shortAddress)
+          } else if (onSelect) {
+            onSelect('Ubicación seleccionada')
+          }
+        })
+        .catch(err => console.error("Geocoding failed", err))
+    }
+  })
+
+  // Blue origin icon
+  const originIcon = L.divIcon({
+    className: '',
+    html: `
+      <div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;width:32px;height:32px;background:rgba(0,122,255,0.15);border-radius:50%;"></div>
+        <div style="width:14px;height:14px;background:#007aff;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(0,122,255,0.6);"></div>
+      </div>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  })
+
+  return position === null ? null : (
+    <Marker position={position} icon={originIcon}>
+      <Popup className="leaflet-popup-dark">
+        <span style={{ fontSize: '11px', fontWeight: 'bold' }}>Punto de Salida</span>
+      </Popup>
+    </Marker>
+  )
+}
+
+export default function RouteMap({ originZone, destinationZone, interactive = false, onOriginSelect }: RouteMapProps) {
   const destCoords = CAMPUS_COORDS[destinationZone] ?? UTA_CENTER
 
   return (
@@ -61,12 +145,16 @@ export default function RouteMap({ originZone, destinationZone, interactive = fa
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         className="map-tiles-dark"
       />
+      
+      <UserLocation interactive={interactive} />
+      <LocationSelector interactive={interactive} onSelect={onOriginSelect} />
+
       <Marker position={destCoords} icon={destIcon}>
         <Popup className="leaflet-popup-dark">
           <span style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
             Destino
           </span>
-          <span style={{ fontSize: '11px', color: '#a0a0a0' }}>{destinationZone}</span>
+          <span style={{ fontSize: '11px', color: '#a0a0a0' }}>{destinationZone || 'Aún no seleccionado'}</span>
           {originZone && (
             <>
               <hr style={{ margin: '6px 0', borderColor: 'rgba(255,255,255,0.1)' }} />

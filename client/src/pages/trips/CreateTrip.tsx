@@ -269,13 +269,12 @@ export default function CreateTrip() {
             {/* Route preview card */}
             <div className="relative h-[360px] rounded-3xl overflow-hidden shadow-2xl bg-surface-container-high">
               <Suspense fallback={<div className="h-full w-full flex items-center justify-center"><span className="material-symbols-outlined text-on-surface-variant/10 text-[160px]">map</span></div>}>
-                {destination ? (
-                  <RouteMap originZone={origin} destinationZone={destination} interactive />
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <span className="material-symbols-outlined text-on-surface-variant/10 text-[160px]">map</span>
-                  </div>
-                )}
+                <RouteMap 
+                  originZone={origin} 
+                  destinationZone={destination} 
+                  interactive 
+                  onOriginSelect={(address) => setValue('originZone', address, { shouldValidate: true })}
+                />
               </Suspense>
               {/* Glass overlay */}
               <div className="absolute bottom-6 left-6 right-6 glass-panel p-6 rounded-2xl border border-white/5">

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export interface AuthUser {
   id: string
@@ -22,10 +23,19 @@ interface AuthState {
   clearAuth: () => void
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  accessToken: null,
-  setAuth: (user, accessToken) => set({ user, accessToken }),
-  setAccessToken: (token) => set({ accessToken: token }),
-  clearAuth: () => set({ user: null, accessToken: null }),
-}))
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      accessToken: null,
+      setAuth: (user, accessToken) => set({ user, accessToken }),
+      setAccessToken: (token) => set({ accessToken: token }),
+      clearAuth: () => set({ user: null, accessToken: null }),
+    }),
+    {
+      name: 'uride-auth',
+      // Solo persistir el user, NO el accessToken (se regenera via refresh cookie)
+      partialize: (state) => ({ user: state.user }),
+    },
+  ),
+)

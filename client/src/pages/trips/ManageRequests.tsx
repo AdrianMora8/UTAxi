@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { requestsApi } from '@/api/requests.api'
 import { tripsApi } from '@/api/trips.api'
@@ -8,6 +8,7 @@ const RouteMap = lazy(() => import('@/components/map/RouteMap'))
 
 export default function ManageRequests() {
   const { id: tripId } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const qc = useQueryClient()
 
   const { data: tripData } = useQuery({
@@ -29,6 +30,13 @@ export default function ManageRequests() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['trip-requests', tripId] })
       qc.invalidateQueries({ queryKey: ['trip', tripId] })
+    },
+  })
+
+  const startTripMut = useMutation({
+    mutationFn: () => tripsApi.updateTripStatus(tripId!, 'IN_PROGRESS'),
+    onSuccess: () => {
+      navigate(`/trips/${tripId}/active`)
     },
   })
 
@@ -110,6 +118,37 @@ export default function ManageRequests() {
               <div className="h-24 animate-pulse bg-surface-container rounded-lg" />
             )}
           </section>
+
+          {/* Control de Viaje */}
+          {trip?.status === 'SCHEDULED' && (
+            <section className="bg-surface-container-low rounded-xl p-6 border-l-4 border-tertiary">
+              <h2 className="text-xl font-headline font-bold mb-4 text-tertiary">Control de Viaje</h2>
+              <p className="text-sm text-on-surface-variant mb-6">
+                Cuando todos tus pasajeros estén a bordo o sea la hora de partida, inicia el viaje para comenzar a transmitir tu ubicación por GPS.
+              </p>
+              <button
+                onClick={() => startTripMut.mutate()}
+                disabled={startTripMut.isPending}
+                className="w-full bg-gradient-to-r from-tertiary/20 to-primary/20 hover:from-tertiary/30 hover:to-primary/30 border border-tertiary/30 text-tertiary font-headline font-bold py-4 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined">play_arrow</span>
+                {startTripMut.isPending ? 'Iniciando...' : 'Empezar Viaje'}
+              </button>
+            </section>
+          )}
+
+          {trip?.status === 'IN_PROGRESS' && (
+            <section className="bg-surface-container-low rounded-xl p-6 border-l-4 border-primary">
+              <h2 className="text-xl font-headline font-bold mb-4 text-primary">Viaje en Curso</h2>
+              <button
+                onClick={() => navigate(`/trips/${tripId}/active`)}
+                className="w-full bg-gradient-primary hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-bold py-4 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined">map</span>
+                Ir al Mapa GPS
+              </button>
+            </section>
+          )}
 
           {/* Route map */}
           <div className="rounded-xl overflow-hidden h-48 relative">

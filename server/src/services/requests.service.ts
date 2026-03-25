@@ -16,6 +16,48 @@ export class RequestsService {
     });
     if (existing) throw new AppError(400, 'Ya enviaste una solicitud para este viaje');
 
+    const bufferHours = 2;
+    const bufferStart = new Date(trip.departureTime);
+    bufferStart.setHours(bufferStart.getHours() - bufferHours);
+    
+    const bufferEnd = new Date(trip.departureTime);
+    bufferEnd.setHours(bufferEnd.getHours() + bufferHours);
+
+    // Check if user is driving another trip
+    const conflictingDriverTrip = await this.prisma.trip.findFirst({
+      where: {
+        driverId: passengerId,
+        status: { in: [TripStatus.SCHEDULED, TripStatus.IN_PROGRESS] },
+        departureTime: {
+          gte: bufferStart,
+          lte: bufferEnd
+        }
+      }
+    });
+
+    if (conflictingDriverTrip) {
+      throw new AppError(400, 'Ya tienes un viaje programado como conductor en ese horario (±2 horas). No puedes pedir este viaje.');
+    }
+
+    // Check if user is already a passenger in another overlapping trip
+    const conflictingPassengerTrip = await this.prisma.tripRequest.findFirst({
+      where: {
+        passengerId,
+        status: { in: ['ACCEPTED', 'PENDING'] },
+        trip: {
+          status: { in: [TripStatus.SCHEDULED, TripStatus.IN_PROGRESS] },
+          departureTime: {
+            gte: bufferStart,
+            lte: bufferEnd
+          }
+        }
+      }
+    });
+
+    if (conflictingPassengerTrip) {
+      throw new AppError(400, 'Ya estás anotado o tienes solicitud pendiente en otro viaje para ese horario (±2 horas).');
+    }
+
     const request = await this.prisma.tripRequest.create({
       data: { tripId, passengerId, message },
       include: {

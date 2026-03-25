@@ -65,4 +65,7 @@ export const tripsApi = {
 
   createTrip: (data: CreateTripPayload) =>
     apiClient.post<{ trip: Trip }>('/trips', data),
+
+  updateTripStatus: (id: string, status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') =>
+    apiClient.patch<{ trip: Trip }>(`/trips/${id}/status`, { status }),
 }

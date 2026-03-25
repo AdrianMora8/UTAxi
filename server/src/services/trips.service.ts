@@ -13,6 +13,48 @@ export class TripsService {
     notes?: string;
     rules?: string;
   }) {
+    const bufferHours = 2;
+    const bufferStart = new Date(data.departureTime);
+    bufferStart.setHours(bufferStart.getHours() - bufferHours);
+    
+    const bufferEnd = new Date(data.departureTime);
+    bufferEnd.setHours(bufferEnd.getHours() + bufferHours);
+
+    // Check if user is driving another trip at that time
+    const conflictingDriverTrip = await this.prisma.trip.findFirst({
+      where: {
+        driverId,
+        status: { in: [TripStatus.SCHEDULED, TripStatus.IN_PROGRESS] },
+        departureTime: {
+          gte: bufferStart,
+          lte: bufferEnd
+        }
+      }
+    });
+    
+    if (conflictingDriverTrip) {
+      throw new AppError(400, 'Ya tienes un viaje programado como conductor en ese horario (±2 horas). No puedes crear viajes simultáneos.');
+    }
+
+    // Check if user is a passenger in another trip at that time
+    const conflictingPassengerTrip = await this.prisma.tripRequest.findFirst({
+      where: {
+        passengerId: driverId,
+        status: { in: ['ACCEPTED', 'PENDING'] },
+        trip: {
+          status: { in: [TripStatus.SCHEDULED, TripStatus.IN_PROGRESS] },
+          departureTime: {
+            gte: bufferStart,
+            lte: bufferEnd
+          }
+        }
+      }
+    });
+
+    if (conflictingPassengerTrip) {
+      throw new AppError(400, 'Ya tienes una solicitud de pasajero en otro viaje para ese horario (±2 horas). No puedes ser conductor simultáneamente.');
+    }
+
     const trip = await this.prisma.trip.create({
       data: {
         driverId,

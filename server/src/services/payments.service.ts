@@ -86,6 +86,41 @@ export class PaymentsService {
     return { received: true };
   }
 
+  async simulateConfirm(tripRequestId: string, payerId: string) {
+    const tripRequest = await this.prisma.tripRequest.findUnique({
+      where: { id: tripRequestId },
+      include: { trip: true },
+    });
+
+    if (!tripRequest) throw new AppError(404, 'Solicitud no encontrada');
+    if (tripRequest.passengerId !== payerId) throw new AppError(403, 'Solo el pasajero puede pagar su solicitud');
+    if (tripRequest.status !== RequestStatus.ACCEPTED) throw new AppError(400, 'Solo se puede pagar una solicitud aceptada');
+
+    const existing = await this.prisma.payment.findUnique({ where: { tripRequestId } });
+    if (existing && existing.status === PaymentStatus.CONFIRMED) {
+      throw new AppError(409, 'Este viaje ya fue pagado');
+    }
+
+    const payment = await this.prisma.payment.upsert({
+      where: { tripRequestId },
+      create: {
+        tripRequestId,
+        tripId: tripRequest.tripId,
+        payerId,
+        amount: tripRequest.trip.pricePerSeat,
+        stripePaymentId: `sim_${Date.now()}`,
+        status: PaymentStatus.CONFIRMED,
+        confirmedAt: new Date(),
+      },
+      update: {
+        status: PaymentStatus.CONFIRMED,
+        confirmedAt: new Date(),
+      },
+    });
+
+    return { payment, amount: Number(tripRequest.trip.pricePerSeat) };
+  }
+
   async getByTripRequest(tripRequestId: string, userId: string) {
     const payment = await this.prisma.payment.findUnique({
       where: { tripRequestId },

@@ -1,12 +1,18 @@
+import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tripsApi } from '@/api/trips.api'
+import { requestsApi } from '@/api/requests.api'
 import { useAuthStore } from '@/store/authStore'
 
 export default function TripDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const qc = useQueryClient()
+  const [message, setMessage] = useState('')
+  const [requestError, setRequestError] = useState('')
+  const [requestDone, setRequestDone] = useState(false)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['trip', id],
@@ -243,15 +249,43 @@ export default function TripDetail() {
                   <div className="w-full bg-error/10 text-error font-headline font-bold py-5 rounded-xl text-center text-lg uppercase tracking-wider border border-error/20">
                     Sin asientos disponibles
                   </div>
+                ) : requestDone ? (
+                  <div className="w-full bg-primary/10 border border-primary/20 text-primary font-headline font-bold py-5 rounded-xl text-center text-lg uppercase tracking-wider">
+                    ¡Solicitud enviada!
+                  </div>
                 ) : (
-                  <button className="w-full bg-gradient-primary hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95 group overflow-hidden">
-                    <span className="flex items-center justify-center gap-3">
-                      Solicitar Unirse
-                      <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
-                        arrow_forward
+                  <div className="space-y-3">
+                    <textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      rows={2}
+                      maxLength={300}
+                      placeholder="Mensaje al conductor (opcional)"
+                      className="w-full bg-surface-container-highest border-none rounded-xl p-4 text-on-surface placeholder:text-outline text-sm resize-none focus:ring-1 focus:ring-primary/40 outline-none"
+                    />
+                    {requestError && (
+                      <p className="text-xs text-error">{requestError}</p>
+                    )}
+                    <button
+                      onClick={() => {
+                        setRequestError('')
+                        requestsApi.createRequest(trip.id, message || undefined)
+                          .then(() => { setRequestDone(true); qc.invalidateQueries({ queryKey: ['trip', id] }) })
+                          .catch((err: unknown) => {
+                            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Error al enviar la solicitud'
+                            setRequestError(msg)
+                          })
+                      }}
+                      className="w-full bg-gradient-primary hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95 group overflow-hidden"
+                    >
+                      <span className="flex items-center justify-center gap-3">
+                        Solicitar Unirse
+                        <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">
+                          arrow_forward
+                        </span>
                       </span>
-                    </span>
-                  </button>
+                    </button>
+                  </div>
                 )}
 
                 <p className="text-center text-on-surface-variant text-[11px] mt-6 uppercase tracking-widest leading-relaxed">

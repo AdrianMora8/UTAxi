@@ -12,6 +12,8 @@ const TripDetail = lazy(() => import('@/pages/trips/TripDetail'))
 const Profile = lazy(() => import('@/pages/profile/Profile'))
 const CreateTrip = lazy(() => import('@/pages/trips/CreateTrip'))
 const ManageRequests = lazy(() => import('@/pages/trips/ManageRequests'))
+const MyRequests = lazy(() => import('@/pages/requests/MyRequests'))
+const Payment = lazy(() => import('@/pages/payments/Payment'))
 
 function Loading() {
   return (
@@ -103,7 +105,23 @@ export const router = createBrowserRouter([
               </Suspense>
             ),
           },
-          // Fase 5+: passenger requests, payments, admin, etc.
+          {
+            path: '/requests',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <MyRequests />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/pay/:requestId',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <Payment />
+              </Suspense>
+            ),
+          },
+          // Fase 6+: GPS, admin, etc.
         ],
       },
     ],

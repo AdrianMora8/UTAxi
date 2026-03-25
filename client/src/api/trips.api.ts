@@ -46,10 +46,23 @@ export interface GetTripsResponse {
   limit: number
 }
 
+export interface CreateTripPayload {
+  originZone: string
+  destinationZone: string
+  departureTime: string
+  totalSeats: number
+  pricePerSeat: number
+  notes?: string
+  rules?: string
+}
+
 export const tripsApi = {
   getTrips: (filters: GetTripsFilters = {}) =>
     apiClient.get<GetTripsResponse>('/trips', { params: filters }),
 
   getTripById: (id: string) =>
     apiClient.get<{ trip: Trip }>(`/trips/${id}`),
+
+  createTrip: (data: CreateTripPayload) =>
+    apiClient.post<{ trip: Trip }>('/trips', data),
 }

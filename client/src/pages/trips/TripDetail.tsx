@@ -1,10 +1,11 @@
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { tripsApi } from '@/api/trips.api'
 import { useAuthStore } from '@/store/authStore'
 
 export default function TripDetail() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
 
   const { data, isLoading, isError } = useQuery({
@@ -229,9 +230,15 @@ export default function TripDetail() {
                 </div>
 
                 {isDriver ? (
-                  <div className="w-full bg-surface-container-highest text-on-surface-variant font-headline font-bold py-5 rounded-xl text-center text-lg uppercase tracking-wider">
-                    Este es tu viaje
-                  </div>
+                  <button
+                    onClick={() => navigate(`/trips/${trip.id}/requests`)}
+                    className="w-full bg-gradient-primary hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95 group"
+                  >
+                    <span className="flex items-center justify-center gap-3">
+                      <span className="material-symbols-outlined">group</span>
+                      Gestionar Solicitudes
+                    </span>
+                  </button>
                 ) : trip.availableSeats === 0 ? (
                   <div className="w-full bg-error/10 text-error font-headline font-bold py-5 rounded-xl text-center text-lg uppercase tracking-wider border border-error/20">
                     Sin asientos disponibles

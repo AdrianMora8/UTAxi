@@ -10,6 +10,8 @@ const Home = lazy(() => import('@/pages/Home'))
 const TripList = lazy(() => import('@/pages/trips/TripList'))
 const TripDetail = lazy(() => import('@/pages/trips/TripDetail'))
 const Profile = lazy(() => import('@/pages/profile/Profile'))
+const CreateTrip = lazy(() => import('@/pages/trips/CreateTrip'))
+const ManageRequests = lazy(() => import('@/pages/trips/ManageRequests'))
 
 function Loading() {
   return (
@@ -85,7 +87,23 @@ export const router = createBrowserRouter([
               </Suspense>
             ),
           },
-          // Fase 4+: create trip, requests, admin, etc.
+          {
+            path: '/trips/new',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <CreateTrip />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/trips/:id/requests',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <ManageRequests />
+              </Suspense>
+            ),
+          },
+          // Fase 5+: passenger requests, payments, admin, etc.
         ],
       },
     ],

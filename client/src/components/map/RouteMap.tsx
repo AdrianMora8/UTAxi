@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -11,7 +11,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-// Green destination marker
 const destIcon = L.divIcon({
   className: '',
   html: `
@@ -24,7 +23,18 @@ const destIcon = L.divIcon({
   iconAnchor: [16, 16],
 })
 
-// Known UTA campus coordinates (Ambato, Ecuador)
+const originIcon = L.divIcon({
+  className: '',
+  html: `
+    <div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
+      <div style="position:absolute;width:32px;height:32px;background:rgba(0,122,255,0.15);border-radius:50%;"></div>
+      <div style="width:14px;height:14px;background:#007aff;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(0,122,255,0.6);"></div>
+    </div>
+  `,
+  iconSize: [32, 32],
+  iconAnchor: [16, 16],
+})
+
 const CAMPUS_COORDS: Record<string, [number, number]> = {
   'Campus Central UTA — Huachi': [-1.2491, -78.6167],
   'Facultad de Ingeniería Civil (FICE)': [-1.2505, -78.6182],
@@ -35,7 +45,6 @@ const CAMPUS_COORDS: Record<string, [number, number]> = {
   'Facultad de Ciencias de la Salud (FCS)': [-1.2483, -78.6194],
   'Facultad de Jurisprudencia (FJ)': [-1.2471, -78.6208],
 }
-
 const UTA_CENTER: [number, number] = [-1.2491, -78.6167]
 
 interface RouteMapProps {
@@ -43,99 +52,153 @@ interface RouteMapProps {
   destinationZone: string
   interactive?: boolean
   onOriginSelect?: (address: string) => void
+  onDestinationSelect?: (address: string) => void
 }
 
-function UserLocation({ interactive }: { interactive: boolean }) {
-  const [userPos, setUserPos] = useState<[number, number] | null>(null)
+async function getStreetAddress(lat: number, lng: number): Promise<string> {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+    const data = await res.json()
+    if (data && data.address) {
+      const road = data.address.road || ''
+      const secondary = data.address.neighbourhood || data.address.suburb || data.address.residential || data.address.hamlet || ''
+      const city = data.address.city || data.address.town || data.address.village || ''
+      
+      let addr = ''
+      if (road && secondary && road !== secondary) {
+        addr = `${road} y ${secondary}`
+      } else if (road) {
+        addr = road
+      } else if (secondary) {
+        addr = secondary
+      } else {
+        addr = 'Ubicación seleccionada'
+      }
+      return city ? `${addr}, ${city}` : addr
+    }
+  } catch (err) {
+    console.error("Geocoding failed", err)
+  }
+  return 'Ubicación seleccionada'
+}
+
+function DraggableMarker({
+  position,
+  icon,
+  label,
+  subLabel,
+  interactive,
+  onLocationChange,
+}: {
+  position: [number, number] | null
+  icon: L.DivIcon
+  label: string
+  subLabel: string
+  interactive: boolean
+  onLocationChange?: (addr: string) => void
+}) {
+  const markerRef = useRef<L.Marker>(null)
+
+  const eventHandlers = useMemo(
+    () => ({
+      dragend() {
+        const marker = markerRef.current
+        if (marker != null) {
+          const pos = marker.getLatLng()
+          if (onLocationChange) {
+            getStreetAddress(pos.lat, pos.lng).then(onLocationChange)
+          }
+        }
+      },
+    }),
+    [onLocationChange],
+  )
+
+  if (!position) return null
+
+  return (
+    <Marker
+      draggable={interactive}
+      eventHandlers={eventHandlers}
+      position={position}
+      ref={markerRef}
+      icon={icon}
+      autoPan={true}
+    >
+      <Popup className="leaflet-popup-dark" minWidth={100}>
+        <span style={{ fontSize: '11px', fontWeight: 'bold', display: 'block' }}>{label}</span>
+        <span style={{ fontSize: '11px', color: '#a0a0a0' }}>{subLabel || 'Aún no seleccionado'}</span>
+        {interactive && (
+          <span style={{ fontSize: '9px', color: '#8af2ff', display: 'block', marginTop: '4px', fontStyle: 'italic' }}>
+            (Arrastra el marcador para ajustarlo)
+          </span>
+        )}
+      </Popup>
+    </Marker>
+  )
+}
+
+function MapController({ interactive, onLocated }: { interactive: boolean, onLocated: (pos: [number, number]) => void }) {
   const map = useMap()
+  const [located, setLocated] = useState(false)
+  useEffect(() => {
+    if (!interactive || located) return
+    map.locate({ enableHighAccuracy: true }).on("locationfound", function (e) {
+      if (located) return
+      setLocated(true)
+      const pos: [number, number] = [e.latlng.lat, e.latlng.lng]
+      onLocated(pos)
+      map.flyTo(e.latlng, 15)
+    })
+  }, [map, interactive, located, onLocated])
+  return null
+}
+
+export default function RouteMap({ originZone, destinationZone, interactive = false, onOriginSelect, onDestinationSelect }: RouteMapProps) {
+  const [originCoords, setOriginCoords] = useState<[number, number] | null>(null)
+  const [destCoords, setDestCoords] = useState<[number, number] | null>(null)
 
   useEffect(() => {
-    if (!interactive) return
+    if (interactive) return
 
-    map.locate({ enableHighAccuracy: true }).on("locationfound", function (e) {
-      setUserPos([e.latlng.lat, e.latlng.lng])
-      map.flyTo(e.latlng, map.getZoom())
-    })
-  }, [map, interactive])
+    let isMounted = true
 
-  const userIcon = L.divIcon({
-    className: '',
-    html: `
-      <div style="position:relative;width:24px;height:24px;display:flex;align-items:center;justify-content:center;">
-        <div style="position:absolute;width:24px;height:24px;background:rgba(255,64,129,0.2);border-radius:50%;animation:ping 1.5s cubic-bezier(0,0,0.2,1) infinite;"></div>
-        <div style="width:12px;height:12px;background:#ff4081;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(255,64,129,0.6);"></div>
-      </div>
-      <style>@keyframes ping{75%,100%{transform:scale(2);opacity:0;}}</style>
-    `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-  })
-
-  return userPos === null ? null : (
-    <Marker position={userPos} icon={userIcon}>
-      <Popup className="leaflet-popup-dark">
-        <span style={{ fontSize: '11px', fontWeight: 'bold' }}>Mi Ubicación Real</span>
-      </Popup>
-    </Marker>
-  )
-}
-
-function LocationSelector({ interactive, onSelect }: { interactive: boolean, onSelect?: (address: string) => void }) {
-  const [position, setPosition] = useState<[number, number] | null>(null)
-  
-  useMapEvents({
-    click(e) {
-      if (!interactive) return
-      setPosition([e.latlng.lat, e.latlng.lng])
-      
-      // Reverse geocoding
-      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${e.latlng.lat}&lon=${e.latlng.lng}&format=json`)
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.address) {
-            const address = data.address.road || data.address.neighbourhood || data.address.suburb || 'Ubicación seleccionada'
-            const city = data.address.city || data.address.town || data.address.village || ''
-            const shortAddress = city && address !== city ? `${address}, ${city}` : address
-            if (onSelect) onSelect(shortAddress)
-          } else if (onSelect) {
-            onSelect('Ubicación seleccionada')
-          }
-        })
-        .catch(err => console.error("Geocoding failed", err))
+    if (originZone) {
+      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(originZone + ', Ambato, Ecuador')}&format=json&limit=1`)
+        .then(r => r.json())
+        .then(d => { if (isMounted && d && d[0]) setOriginCoords([parseFloat(d[0].lat), parseFloat(d[0].lon)]) })
     }
-  })
+    if (destinationZone) {
+      if (CAMPUS_COORDS[destinationZone]) {
+        setDestCoords(CAMPUS_COORDS[destinationZone])
+      } else {
+        fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(destinationZone + ', Ambato, Ecuador')}&format=json&limit=1`)
+          .then(r => r.json())
+          .then(d => { if (isMounted && d && d[0]) setDestCoords([parseFloat(d[0].lat), parseFloat(d[0].lon)]) })
+      }
+    }
+    
+    return () => { isMounted = false }
+  }, [interactive, originZone, destinationZone])
 
-  // Blue origin icon
-  const originIcon = L.divIcon({
-    className: '',
-    html: `
-      <div style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;">
-        <div style="position:absolute;width:32px;height:32px;background:rgba(0,122,255,0.15);border-radius:50%;"></div>
-        <div style="width:14px;height:14px;background:#007aff;border-radius:50%;border:2px solid #fff;box-shadow:0 0 8px rgba(0,122,255,0.6);"></div>
-      </div>
-    `,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-  })
+  const handleLocated = (pos: [number, number]) => {
+    setOriginCoords(pos)
+    const dPos: [number, number] = [pos[0] + 0.003, pos[1] + 0.003]
+    setDestCoords(dPos)
+    if (onOriginSelect && !originZone) getStreetAddress(pos[0], pos[1]).then(onOriginSelect)
+    if (onDestinationSelect && !destinationZone) getStreetAddress(dPos[0], dPos[1]).then(onDestinationSelect)
+  }
 
-  return position === null ? null : (
-    <Marker position={position} icon={originIcon}>
-      <Popup className="leaflet-popup-dark">
-        <span style={{ fontSize: '11px', fontWeight: 'bold' }}>Punto de Salida</span>
-      </Popup>
-    </Marker>
-  )
-}
-
-export default function RouteMap({ originZone, destinationZone, interactive = false, onOriginSelect }: RouteMapProps) {
-  const destCoords = CAMPUS_COORDS[destinationZone] ?? UTA_CENTER
+  const displayOrigin = interactive ? (originCoords || UTA_CENTER) : originCoords
+  const displayDest = interactive ? (destCoords || [UTA_CENTER[0] + 0.003, UTA_CENTER[1] + 0.003]) : destCoords
+  const center = displayOrigin || displayDest || UTA_CENTER
 
   return (
     <MapContainer
-      center={destCoords}
-      zoom={15}
+      center={center}
+      zoom={14}
       style={{ width: '100%', height: '100%' }}
-      zoomControl={false}
+      zoomControl={interactive}
       attributionControl={false}
       scrollWheelZoom={interactive}
       dragging={interactive}
@@ -145,24 +208,25 @@ export default function RouteMap({ originZone, destinationZone, interactive = fa
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         className="map-tiles-dark"
       />
-      
-      <UserLocation interactive={interactive} />
-      <LocationSelector interactive={interactive} onSelect={onOriginSelect} />
+      <MapController interactive={interactive} onLocated={handleLocated} />
 
-      <Marker position={destCoords} icon={destIcon}>
-        <Popup className="leaflet-popup-dark">
-          <span style={{ fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
-            Destino
-          </span>
-          <span style={{ fontSize: '11px', color: '#a0a0a0' }}>{destinationZone || 'Aún no seleccionado'}</span>
-          {originZone && (
-            <>
-              <hr style={{ margin: '6px 0', borderColor: 'rgba(255,255,255,0.1)' }} />
-              <span style={{ fontSize: '10px', color: '#666' }}>Desde: {originZone}</span>
-            </>
-          )}
-        </Popup>
-      </Marker>
+      <DraggableMarker
+        position={displayOrigin}
+        icon={originIcon}
+        label="Punto de Partida"
+        subLabel={originZone}
+        interactive={interactive}
+        onLocationChange={onOriginSelect}
+      />
+
+      <DraggableMarker
+        position={displayDest}
+        icon={destIcon}
+        label="Punto de Llegada"
+        subLabel={destinationZone}
+        interactive={interactive}
+        onLocationChange={onDestinationSelect}
+      />
     </MapContainer>
   )
 }

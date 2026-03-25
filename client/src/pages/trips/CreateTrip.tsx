@@ -21,16 +21,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>
 
-const CAMPUS_OPTIONS = [
-  'Campus Central UTA — Huachi',
-  'Facultad de Ingeniería Civil (FICE)',
-  'Facultad de Ingeniería en Sistemas (FISI)',
-  'Facultad de Ciencias Administrativas (FCA)',
-  'Facultad de Ciencias Humanas y de la Educación (FCHE)',
-  'Facultad de Diseño, Arquitectura y Artes (FDAA)',
-  'Facultad de Ciencias de la Salud (FCS)',
-  'Facultad de Jurisprudencia (FJ)',
-]
+
 
 export default function CreateTrip() {
   const navigate = useNavigate()
@@ -95,7 +86,7 @@ export default function CreateTrip() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-primary-container block">
-                  Zona de Origen
+                  Punto de Partida
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary text-lg">
@@ -115,21 +106,18 @@ export default function CreateTrip() {
 
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-widest text-primary-container block">
-                  Destino (Campus)
+                  Punto de Llegada
                 </label>
                 <div className="relative">
                   <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-tertiary text-lg">
-                    school
+                    flag
                   </span>
-                  <select
+                  <input
                     {...register('destinationZone')}
-                    className="w-full pl-12 pr-4 py-4 bg-surface-container-highest rounded-xl border-none focus:ring-1 focus:ring-primary/40 transition-all text-on-surface appearance-none outline-none [color-scheme:dark]"
-                  >
-                    <option value="">Selecciona el campus...</option>
-                    {CAMPUS_OPTIONS.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
+                    type="text"
+                    className="w-full pl-12 pr-4 py-4 bg-surface-container-highest rounded-xl border-none focus:ring-1 focus:ring-primary/40 transition-all text-on-surface placeholder:text-zinc-600 outline-none"
+                    placeholder="Ej: Campus Huachi o Dirección"
+                  />
                 </div>
                 {errors.destinationZone && (
                   <p className="text-xs text-error">{errors.destinationZone.message}</p>
@@ -274,6 +262,7 @@ export default function CreateTrip() {
                   destinationZone={destination} 
                   interactive 
                   onOriginSelect={(address) => setValue('originZone', address, { shouldValidate: true })}
+                  onDestinationSelect={(address) => setValue('destinationZone', address, { shouldValidate: true })}
                 />
               </Suspense>
               {/* Glass overlay */}

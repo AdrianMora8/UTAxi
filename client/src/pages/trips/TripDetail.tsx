@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tripsApi } from '@/api/trips.api'
 import { requestsApi } from '@/api/requests.api'
 import { useAuthStore } from '@/store/authStore'
+
+const RouteMap = lazy(() => import('@/components/map/RouteMap'))
 
 export default function TripDetail() {
   const { id } = useParams<{ id: string }>()
@@ -306,11 +308,13 @@ export default function TripDetail() {
 
               {/* Stats grid */}
               <div className="bg-surface-container-low rounded-xl overflow-hidden">
-                {/* Map placeholder */}
-                <div className="h-48 w-full bg-surface-container-highest relative flex items-center justify-center">
-                  <span className="material-symbols-outlined text-on-surface-variant/20 text-[80px]">map</span>
+                {/* Route map */}
+                <div className="h-48 w-full relative">
+                  <Suspense fallback={<div className="h-full w-full bg-surface-container-highest flex items-center justify-center"><span className="material-symbols-outlined text-on-surface-variant/20 text-[80px]">map</span></div>}>
+                    <RouteMap originZone={trip.originZone} destinationZone={trip.destinationZone} />
+                  </Suspense>
                   {isInProgress && (
-                    <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-tertiary/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-tertiary/20">
+                    <div className="absolute bottom-4 left-4 z-[1000] flex items-center gap-2 bg-tertiary/10 backdrop-blur-md px-3 py-1.5 rounded-lg border border-tertiary/20">
                       <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse" />
                       <span className="text-tertiary text-xs font-bold uppercase tracking-widest">GPS Activo</span>
                     </div>

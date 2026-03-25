@@ -1,7 +1,10 @@
+import { lazy, Suspense } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { requestsApi } from '@/api/requests.api'
 import { tripsApi } from '@/api/trips.api'
+
+const RouteMap = lazy(() => import('@/components/map/RouteMap'))
 
 export default function ManageRequests() {
   const { id: tripId } = useParams<{ id: string }>()
@@ -108,14 +111,17 @@ export default function ManageRequests() {
             )}
           </section>
 
-          {/* Map placeholder */}
-          <div className="rounded-xl overflow-hidden h-48 bg-surface-container relative flex items-center justify-center">
-            <span className="material-symbols-outlined text-on-surface-variant/10 text-[80px]">map</span>
-            <div className="absolute bottom-3 left-0 right-0 flex justify-center">
-              <span className="bg-surface-container-highest/90 backdrop-blur px-4 py-2 rounded-lg text-xs font-headline font-bold uppercase tracking-widest text-primary border border-primary/20">
-                Mapa — Fase 6
-              </span>
-            </div>
+          {/* Route map */}
+          <div className="rounded-xl overflow-hidden h-48 relative">
+            {tripData ? (
+              <Suspense fallback={<div className="h-full w-full bg-surface-container flex items-center justify-center"><span className="material-symbols-outlined text-on-surface-variant/20 text-[80px]">map</span></div>}>
+                <RouteMap originZone={tripData.originZone} destinationZone={tripData.destinationZone} />
+              </Suspense>
+            ) : (
+              <div className="h-full w-full bg-surface-container flex items-center justify-center">
+                <span className="material-symbols-outlined text-on-surface-variant/20 text-[80px]">map</span>
+              </div>
+            )}
           </div>
 
           {/* Safety rules */}

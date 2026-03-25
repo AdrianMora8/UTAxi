@@ -48,3 +48,19 @@
     letter-spacing: 1.5rem;
   }
 }
+
+/* Dark filter for OpenStreetMap tiles */
+.map-tiles-dark {
+  filter: invert(100%) hue-rotate(180deg) brightness(90%) contrast(85%) saturate(60%);
+}
+
+.leaflet-popup-dark .leaflet-popup-content-wrapper {
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+.leaflet-popup-dark .leaflet-popup-tip {
+  background: #1a1a1a;
+}

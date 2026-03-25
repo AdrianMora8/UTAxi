@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -5,6 +6,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { tripsApi } from '@/api/trips.api'
+
+const RouteMap = lazy(() => import('@/components/map/RouteMap'))
 
 const schema = z.object({
   originZone: z.string().min(2, 'Mínimo 2 caracteres').max(100),
@@ -264,8 +267,16 @@ export default function CreateTrip() {
           <div className="sticky top-24 space-y-6">
 
             {/* Route preview card */}
-            <div className="relative h-[360px] rounded-3xl overflow-hidden shadow-2xl bg-surface-container-high flex items-center justify-center">
-              <span className="material-symbols-outlined text-on-surface-variant/10 text-[160px]">map</span>
+            <div className="relative h-[360px] rounded-3xl overflow-hidden shadow-2xl bg-surface-container-high">
+              <Suspense fallback={<div className="h-full w-full flex items-center justify-center"><span className="material-symbols-outlined text-on-surface-variant/10 text-[160px]">map</span></div>}>
+                {destination ? (
+                  <RouteMap originZone={origin} destinationZone={destination} interactive />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center">
+                    <span className="material-symbols-outlined text-on-surface-variant/10 text-[160px]">map</span>
+                  </div>
+                )}
+              </Suspense>
               {/* Glass overlay */}
               <div className="absolute bottom-6 left-6 right-6 glass-panel p-6 rounded-2xl border border-white/5">
                 <div className="flex justify-between items-center mb-4">

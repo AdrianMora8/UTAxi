@@ -15,6 +15,7 @@ const ManageRequests = lazy(() => import('@/pages/trips/ManageRequests'))
 const MyRequests = lazy(() => import('@/pages/requests/MyRequests'))
 const Payment = lazy(() => import('@/pages/payments/Payment'))
 const ActiveTrip = lazy(() => import('@/pages/trips/ActiveTrip'))
+const Report = lazy(() => import('@/pages/reports/Report'))
 
 function Loading() {
   return (
@@ -130,7 +131,15 @@ export const router = createBrowserRouter([
               </Suspense>
             ),
           },
-          // Fase 7+: ratings, reports, admin
+          {
+            path: '/reports',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <Report />
+              </Suspense>
+            ),
+          },
+          // Fase 8: admin
         ],
       },
     ],

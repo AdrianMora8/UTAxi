@@ -99,7 +99,7 @@ export default function ManageRequests() {
                     <span className="material-symbols-outlined text-primary" style={{ fontSize: 20 }}>
                       payments
                     </span>
-                    <span>${trip.pricePerSeat.toFixed(2)} / asiento</span>
+                    <span>${Number(trip.pricePerSeat).toFixed(2)} / asiento</span>
                   </div>
                 </div>
               </>

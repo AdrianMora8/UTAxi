@@ -210,7 +210,7 @@ export default function TripDetail() {
                     </p>
                     <div className="flex items-baseline gap-1">
                       <span className="text-primary text-4xl font-headline font-bold">
-                        ${trip.pricePerSeat.toFixed(2)}
+                        ${Number(trip.pricePerSeat).toFixed(2)}
                       </span>
                       <span className="text-on-surface-variant font-label text-sm uppercase">USD</span>
                     </div>
@@ -228,11 +228,11 @@ export default function TripDetail() {
                 <div className="space-y-4 mb-8">
                   <div className="flex justify-between text-sm py-2 border-b border-white/5">
                     <span className="text-on-surface-variant">Precio por asiento</span>
-                    <span className="text-on-surface">${trip.pricePerSeat.toFixed(2)}</span>
+                    <span className="text-on-surface">${Number(trip.pricePerSeat).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-lg font-bold py-2">
                     <span className="text-on-surface">Total</span>
-                    <span className="text-primary">${trip.pricePerSeat.toFixed(2)}</span>
+                    <span className="text-primary">${Number(trip.pricePerSeat).toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -340,6 +340,17 @@ export default function TripDetail() {
                   </div>
                 </div>
               </div>
+
+              {/* Report button */}
+              {!isDriver && (
+                <button
+                  onClick={() => navigate(`/reports?userId=${trip.driver.id}&name=${encodeURIComponent(trip.driver.fullName)}`)}
+                  className="w-full flex items-center justify-center gap-2 text-on-surface-variant hover:text-error border border-white/5 hover:border-error/20 py-3 rounded-xl text-sm font-bold transition-colors"
+                >
+                  <span className="material-symbols-outlined text-sm">flag</span>
+                  Reportar conductor
+                </button>
+              )}
 
               {/* Security pulse */}
               <div className="glass-panel p-6 rounded-xl border border-tertiary/10 flex items-center gap-5">

@@ -2,18 +2,21 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { requestsApi } from '@/api/requests.api'
+import RatingModal from '@/components/ratings/RatingModal'
 
 type TabMode = 'active' | 'history'
 
 const STATUS_LABEL: Record<string, { text: string; className: string }> = {
   PENDING:   { text: 'PENDIENTE',  className: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' },
   ACCEPTED:  { text: 'ACEPTADO',   className: 'bg-primary/10 text-primary border border-primary/20' },
+  COMPLETED: { text: 'COMPLETADO', className: 'bg-tertiary/10 text-tertiary border border-tertiary/20' },
   REJECTED:  { text: 'RECHAZADO',  className: 'bg-error/10 text-error border border-error/20' },
   CANCELLED: { text: 'CANCELADO',  className: 'bg-zinc-700/30 text-zinc-500 border border-zinc-700/30' },
 }
 
 export default function MyRequests() {
   const [tab, setTab] = useState<TabMode>('active')
+  const [ratingTarget, setRatingTarget] = useState<{ requestId: string; driverName: string } | null>(null)
   const navigate = useNavigate()
   const qc = useQueryClient()
 
@@ -29,7 +32,7 @@ export default function MyRequests() {
   })
 
   const requests = data ?? []
-  const active  = requests.filter((r) => r.status === 'PENDING' || r.status === 'ACCEPTED')
+  const active  = requests.filter((r) => r.status === 'PENDING' || r.status === 'ACCEPTED' || r.status === 'COMPLETED')
   const history = requests.filter((r) => r.status === 'REJECTED' || r.status === 'CANCELLED')
   const displayed = tab === 'active' ? active : history
 
@@ -113,9 +116,12 @@ export default function MyRequests() {
                 const driverInitials = driver
                   ? driver.fullName.split(' ').slice(0, 2).map((n: string) => n[0]).join('')
                   : '?'
-                const isAccepted = req.status === 'ACCEPTED'
-                const isPending  = req.status === 'PENDING'
-                const isRejected = req.status === 'REJECTED'
+                const isAccepted  = req.status === 'ACCEPTED'
+                const isPending   = req.status === 'PENDING'
+                const isRejected  = req.status === 'REJECTED'
+                const isCompleted = req.status === 'COMPLETED'
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const hasRating   = !!(req as any).rating
 
                 return (
                   <div
@@ -193,7 +199,7 @@ export default function MyRequests() {
                               {badge.text}
                             </span>
                             <p className="text-3xl font-headline font-bold text-white">
-                              ${trip.pricePerSeat.toFixed(2)}
+                              ${Number(trip.pricePerSeat).toFixed(2)}
                             </p>
                             <p className="text-xs text-on-surface-variant">{depTime}</p>
                           </div>
@@ -215,6 +221,23 @@ export default function MyRequests() {
                             >
                               Cancelar Solicitud
                             </button>
+                          )}
+
+                          {isCompleted && !hasRating && (
+                            <button
+                              onClick={() => setRatingTarget({ requestId: req.id, driverName: driver?.fullName ?? 'Conductor' })}
+                              className="w-full flex items-center justify-center gap-2 bg-primary/10 border border-primary/20 text-primary font-headline font-bold py-2 px-4 rounded-lg text-xs uppercase tracking-wider hover:bg-primary/20 transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-sm material-symbols-filled">star</span>
+                              Calificar
+                            </button>
+                          )}
+
+                          {isCompleted && hasRating && (
+                            <div className="flex items-center gap-1 text-primary text-xs font-bold">
+                              <span className="material-symbols-outlined text-sm material-symbols-filled">star</span>
+                              Calificado
+                            </div>
                           )}
                         </div>
                       </div>
@@ -266,6 +289,14 @@ export default function MyRequests() {
           </div>
         </div>
       </main>
+
+      {ratingTarget && (
+        <RatingModal
+          tripRequestId={ratingTarget.requestId}
+          driverName={ratingTarget.driverName}
+          onClose={() => setRatingTarget(null)}
+        />
+      )}
 
       <footer className="w-full py-12 px-8 bg-[#0e0e0e] border-t border-white/5">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">

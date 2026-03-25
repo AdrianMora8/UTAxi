@@ -127,6 +127,7 @@ export class RequestsService {
             driver: { select: { id: true, fullName: true, reputationScore: true } },
           },
         },
+        rating: { select: { id: true, score: true, comment: true } },
       },
     });
     return requests;

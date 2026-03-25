@@ -79,7 +79,7 @@ export default function Payment() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-on-surface-variant">Monto pagado</span>
-              <span className="text-primary font-headline font-bold">${trip.pricePerSeat.toFixed(2)}</span>
+              <span className="text-primary font-headline font-bold">${Number(trip.pricePerSeat).toFixed(2)}</span>
             </div>
           </div>
           <Link
@@ -130,7 +130,7 @@ export default function Payment() {
                 <div>
                   <p className="text-primary text-xs font-bold uppercase tracking-widest mb-1">Total a Pagar</p>
                   <h2 className="font-headline text-4xl font-extrabold text-white">
-                    ${trip.pricePerSeat.toFixed(2)}
+                    ${Number(trip.pricePerSeat).toFixed(2)}
                   </h2>
                 </div>
                 <div className="text-right">

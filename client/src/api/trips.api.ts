@@ -1,0 +1,55 @@
+import { apiClient } from './client'
+
+export interface TripDriver {
+  id: string
+  fullName: string
+  reputationScore: number
+  career?: string
+  totalTrips?: number
+  vehicle?: {
+    brand: string
+    model: string
+    year?: number
+    color: string
+    plateNumber?: string
+  } | null
+}
+
+export interface Trip {
+  id: string
+  driverId: string
+  originZone: string
+  destinationZone: string
+  departureTime: string
+  totalSeats: number
+  availableSeats: number
+  pricePerSeat: number
+  notes?: string | null
+  rules?: string | null
+  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+  driver: TripDriver
+  _count?: { requests: number }
+}
+
+export interface GetTripsFilters {
+  destinationZone?: string
+  departureDate?: string
+  minSeats?: number
+  page?: number
+  limit?: number
+}
+
+export interface GetTripsResponse {
+  trips: Trip[]
+  total: number
+  page: number
+  limit: number
+}
+
+export const tripsApi = {
+  getTrips: (filters: GetTripsFilters = {}) =>
+    apiClient.get<GetTripsResponse>('/trips', { params: filters }),
+
+  getTripById: (id: string) =>
+    apiClient.get<{ trip: Trip }>(`/trips/${id}`),
+}

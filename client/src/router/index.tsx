@@ -7,6 +7,8 @@ const Login = lazy(() => import('@/pages/auth/Login'))
 const Register = lazy(() => import('@/pages/auth/Register'))
 const VerifyEmail = lazy(() => import('@/pages/auth/VerifyEmail'))
 const Home = lazy(() => import('@/pages/Home'))
+const TripList = lazy(() => import('@/pages/trips/TripList'))
+const TripDetail = lazy(() => import('@/pages/trips/TripDetail'))
 
 function Loading() {
   return (
@@ -58,7 +60,23 @@ export const router = createBrowserRouter([
               </Suspense>
             ),
           },
-          // Fase 2+: trips, profile, admin, etc.
+          {
+            path: '/trips',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <TripList />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/trips/:id',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <TripDetail />
+              </Suspense>
+            ),
+          },
+          // Fase 3+: profile, admin, etc.
         ],
       },
     ],

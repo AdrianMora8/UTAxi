@@ -31,7 +31,7 @@ export default function Login() {
     try {
       const res = await authApi.login(data)
       setAuth(res.data.user, res.data.accessToken)
-      navigate('/')
+      navigate('/trips')
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??

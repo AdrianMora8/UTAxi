@@ -9,6 +9,7 @@ const VerifyEmail = lazy(() => import('@/pages/auth/VerifyEmail'))
 const Home = lazy(() => import('@/pages/Home'))
 const TripList = lazy(() => import('@/pages/trips/TripList'))
 const TripDetail = lazy(() => import('@/pages/trips/TripDetail'))
+const Profile = lazy(() => import('@/pages/profile/Profile'))
 
 function Loading() {
   return (
@@ -76,7 +77,15 @@ export const router = createBrowserRouter([
               </Suspense>
             ),
           },
-          // Fase 3+: profile, admin, etc.
+          {
+            path: '/profile',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <Profile />
+              </Suspense>
+            ),
+          },
+          // Fase 4+: create trip, requests, admin, etc.
         ],
       },
     ],

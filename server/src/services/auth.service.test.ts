@@ -317,6 +317,23 @@ describe('AuthService', () => {
         data: { refreshToken: null },
       });
     });
+
+    it('throws error when user not found', async () => {
+      prisma.user.update.mockRejectedValue(new Error('User not found'));
+
+      await expect(service.logout('user-1')).rejects.toThrow('User not found');
+    });
+
+    it('succeeds even with null refreshToken stored', async () => {
+      prisma.user.update.mockResolvedValue({
+        id: 'user-1',
+        refreshToken: null,
+      });
+
+      const result = await service.logout('user-1');
+
+      expect(result).toEqual({ message: 'Sesión cerrada correctamente' });
+    });
   });
 
   describe('forgotPassword', () => {
@@ -356,6 +373,35 @@ describe('AuthService', () => {
         message: 'Si la cuenta existe, recibirás un correo para recuperar tu contraseña',
       });
       expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+
+    it('sets correct token expiration time (30 minutes)', async () => {
+      const user = {
+        id: 'user-1',
+        email: validEmail,
+        passwordResetToken: null,
+        passwordResetExpiry: null,
+      };
+      prisma.user.findUnique.mockResolvedValue(user);
+      prisma.user.update.mockResolvedValue({
+        ...user,
+        passwordResetToken: '123456',
+      });
+
+      const beforeCall = Date.now();
+      await service.forgotPassword(validEmail);
+      const afterCall = Date.now();
+
+      // Get the actual call arguments
+      const callArgs = prisma.user.update.mock.calls[0][0];
+      const expiryTime = callArgs.data.passwordResetExpiry.getTime();
+
+      // Should be approximately 30 minutes from now (with 5 second tolerance for execution time)
+      const expectedExpiry = beforeCall + 30 * 60 * 1000;
+      const tolerance = 5 * 1000; // 5 seconds
+
+      expect(expiryTime).toBeGreaterThanOrEqual(expectedExpiry - tolerance);
+      expect(expiryTime).toBeLessThanOrEqual(afterCall + 30 * 60 * 1000 + tolerance);
     });
   });
 

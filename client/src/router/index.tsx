@@ -6,6 +6,8 @@ import ProtectedRoute from '@/components/layout/ProtectedRoute'
 const Login = lazy(() => import('@/pages/auth/Login'))
 const Register = lazy(() => import('@/pages/auth/Register'))
 const VerifyEmail = lazy(() => import('@/pages/auth/VerifyEmail'))
+const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword'))
+const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword'))
 const Home = lazy(() => import('@/pages/Home'))
 const TripList = lazy(() => import('@/pages/trips/TripList'))
 const TripDetail = lazy(() => import('@/pages/trips/TripDetail'))
@@ -49,6 +51,22 @@ export const router = createBrowserRouter([
     element: (
       <Suspense fallback={<Loading />}>
         <VerifyEmail />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/forgot-password',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ForgotPassword />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/reset-password',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ResetPassword />
       </Suspense>
     ),
   },

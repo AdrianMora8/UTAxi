@@ -31,6 +31,7 @@ vi.mock('../utils/jwt', () => ({
 
 vi.mock('../config/mailer', () => ({
   sendVerificationEmail: vi.fn(async () => {}),
+  sendPasswordResetEmail: vi.fn(async () => {}),
 }));
 
 const makePrismaMock = () => ({
@@ -315,6 +316,129 @@ describe('AuthService', () => {
         where: { id: 'user-1' },
         data: { refreshToken: null },
       });
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('sends reset code to user email', async () => {
+      const user = {
+        id: 'user-1',
+        email: validEmail,
+        passwordResetToken: null,
+        passwordResetExpiry: null,
+      };
+      prisma.user.findUnique.mockResolvedValue(user);
+      prisma.user.update.mockResolvedValue({
+        ...user,
+        passwordResetToken: '123456',
+      });
+
+      const result = await service.forgotPassword(validEmail);
+
+      expect(result).toEqual({
+        message: 'Si la cuenta existe, recibirás un correo para recuperar tu contraseña',
+      });
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { email: validEmail },
+        data: {
+          passwordResetToken: '123456',
+          passwordResetExpiry: expect.any(Date),
+        },
+      });
+    });
+
+    it('does not reveal if email does not exist (security)', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      const result = await service.forgotPassword(validEmail);
+
+      expect(result).toEqual({
+        message: 'Si la cuenta existe, recibirás un correo para recuperar tu contraseña',
+      });
+      expect(prisma.user.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resetPassword', () => {
+    const code = '123456';
+    const newPassword = 'NewPassword456!';
+
+    it('resets password with valid code', async () => {
+      const user = {
+        id: 'user-1',
+        email: validEmail,
+        passwordHash: 'old_hash',
+        passwordResetToken: code,
+        passwordResetExpiry: new Date(Date.now() + 10 * 60 * 1000), // 10 min from now
+      };
+      prisma.user.findUnique.mockResolvedValue(user);
+      prisma.user.update.mockResolvedValue({
+        ...user,
+        passwordHash: `hashed_${newPassword}`,
+        passwordResetToken: null,
+        passwordResetExpiry: null,
+      });
+
+      const result = await service.resetPassword(validEmail, code, newPassword);
+
+      expect(result).toEqual({
+        message: 'Contraseña recuperada correctamente. Ya puedes iniciar sesión.',
+      });
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { email: validEmail },
+        data: {
+          passwordHash: `hashed_${newPassword}`,
+          passwordResetToken: null,
+          passwordResetExpiry: null,
+        },
+      });
+    });
+
+    it('throws error when user not found', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.resetPassword(validEmail, code, newPassword)).rejects.toEqual(
+        new AppError(404, 'Usuario no encontrado'),
+      );
+    });
+
+    it('throws error when no reset request pending', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: validEmail,
+        passwordResetToken: null,
+        passwordResetExpiry: null,
+      });
+
+      await expect(service.resetPassword(validEmail, code, newPassword)).rejects.toEqual(
+        new AppError(400, 'No hay solicitud de recuperación de contraseña pendiente'),
+      );
+    });
+
+    it('throws error when code has expired', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: validEmail,
+        passwordResetToken: code,
+        passwordResetExpiry: new Date(Date.now() - 10 * 60 * 1000), // 10 min ago
+      });
+
+      await expect(service.resetPassword(validEmail, code, newPassword)).rejects.toEqual(
+        new AppError(400, 'El código ha expirado. Solicita un nuevo código.'),
+      );
+    });
+
+    it('throws error when code is incorrect', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'user-1',
+        email: validEmail,
+        passwordResetToken: code,
+        passwordResetExpiry: new Date(Date.now() + 10 * 60 * 1000),
+      });
+
+      await expect(service.resetPassword(validEmail, '999999', newPassword)).rejects.toEqual(
+        new AppError(400, 'Código incorrecto'),
+      );
     });
   });
 });

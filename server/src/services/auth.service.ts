@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 import { hashPassword, comparePassword, generateOTP } from '../utils/hash';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../utils/jwt';
-import { sendVerificationEmail } from '../config/mailer';
+import { sendVerificationEmail, sendPasswordResetEmail } from '../config/mailer';
 import { env } from '../config/env';
 
 const OTP_EXPIRY_MINUTES = 15;
@@ -149,5 +149,59 @@ export class AuthService {
       data: { refreshToken: null },
     });
     return { message: 'Sesión cerrada correctamente' };
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      // No revelar si el usuario existe o no (por seguridad)
+      return { message: 'Si la cuenta existe, recibirás un correo para recuperar tu contraseña' };
+    }
+
+    const code = generateOTP();
+    const expiry = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
+
+    await this.prisma.user.update({
+      where: { email },
+      data: {
+        passwordResetToken: code,
+        passwordResetExpiry: expiry,
+      },
+    });
+
+    await sendPasswordResetEmail(email, code);
+
+    return { message: 'Si la cuenta existe, recibirás un correo para recuperar tu contraseña' };
+  }
+
+  async resetPassword(email: string, code: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      throw new AppError(404, 'Usuario no encontrado');
+    }
+    if (!user.passwordResetToken || !user.passwordResetExpiry) {
+      throw new AppError(400, 'No hay solicitud de recuperación de contraseña pendiente');
+    }
+    if (new Date() > user.passwordResetExpiry) {
+      throw new AppError(400, 'El código ha expirado. Solicita un nuevo código.');
+    }
+    if (user.passwordResetToken !== code) {
+      throw new AppError(400, 'Código incorrecto');
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+
+    await this.prisma.user.update({
+      where: { email },
+      data: {
+        passwordHash,
+        passwordResetToken: null,
+        passwordResetExpiry: null,
+      },
+    });
+
+    return { message: 'Contraseña recuperada correctamente. Ya puedes iniciar sesión.' };
   }
 }

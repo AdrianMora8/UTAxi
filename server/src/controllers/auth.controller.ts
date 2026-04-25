@@ -63,3 +63,15 @@ export async function logout(req: Request, res: Response): Promise<void> {
   res.clearCookie('refreshToken');
   res.json({ message: 'Sesión cerrada correctamente' });
 }
+
+export async function forgotPassword(req: Request, res: Response): Promise<void> {
+  const { email } = req.body;
+  const result = await authService.forgotPassword(email);
+  res.json(result);
+}
+
+export async function resetPassword(req: Request, res: Response): Promise<void> {
+  const { email, code, newPassword } = req.body;
+  const result = await authService.resetPassword(email, code, newPassword);
+  res.json(result);
+}

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { register, verifyEmail, login, refresh, logout } from '../controllers/auth.controller';
+import { register, verifyEmail, login, refresh, logout, forgotPassword, resetPassword } from '../controllers/auth.controller';
 import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -24,6 +24,16 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Contraseña requerida'),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Correo inválido'),
+});
+
+const resetPasswordSchema = z.object({
+  email: z.string().email('Correo inválido'),
+  code: z.string().length(6, 'El código debe tener 6 dígitos'),
+  newPassword: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+});
+
 // ─── Helper de validación ────────────────────────────────────────────────────
 
 function validate<T>(schema: z.ZodSchema<T>) {
@@ -40,5 +50,7 @@ router.post('/verify-email', validate(verifySchema), verifyEmail);
 router.post('/login', validate(loginSchema), login);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
+router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
+router.post('/reset-password', validate(resetPasswordSchema), resetPassword);
 
 export { router as authRouter };

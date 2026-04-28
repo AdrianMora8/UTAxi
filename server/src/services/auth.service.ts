@@ -193,56 +193,104 @@ export class AuthService {
   }
 
   async forgotPassword(email: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    try {
+      const user = await this.prisma.user.findUnique({ where: { email } });
 
-    if (!user) {
-      // No revelar si el usuario existe o no (por seguridad)
+      if (!user) {
+        // No revelar si el usuario existe o no (por seguridad)
+        return { message: 'Si la cuenta existe, recibirás un correo para recuperar tu contraseña' };
+      }
+
+      const code = generateOTP();
+      const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+
+      await this.prisma.user.update({
+        where: { email },
+        data: {
+          passwordResetToken: code,
+          passwordResetExpiry: expiry,
+        },
+      });
+
+      await sendPasswordResetEmail(email, code);
+
       return { message: 'Si la cuenta existe, recibirás un correo para recuperar tu contraseña' };
+    } catch (error: any) {
+      console.error('🔴 Error en forgotPassword:', {
+        message: error.message,
+        email,
+      });
+
+      if (error.message?.includes('Authentication failed')) {
+        throw new AppError(503, 'No se puede conectar a la base de datos.');
+      }
+
+      throw new AppError(500, `Error al procesar: ${error.message}`);
     }
-
-    const code = generateOTP();
-    const expiry = new Date(Date.now() + 30 * 60 * 1000); // 30 minutos
-
-    await this.prisma.user.update({
-      where: { email },
-      data: {
-        passwordResetToken: code,
-        passwordResetExpiry: expiry,
-      },
-    });
-
-    await sendPasswordResetEmail(email, code);
-
-    return { message: 'Si la cuenta existe, recibirás un correo para recuperar tu contraseña' };
   }
 
   async resetPassword(email: string, code: string, newPassword: string) {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    try {
+      const user = await this.prisma.user.findUnique({ where: { email } });
 
-    if (!user) {
-      throw new AppError(404, 'Usuario no encontrado');
-    }
-    if (!user.passwordResetToken || !user.passwordResetExpiry) {
-      throw new AppError(400, 'No hay solicitud de recuperación de contraseña pendiente');
-    }
-    if (new Date() > user.passwordResetExpiry) {
-      throw new AppError(400, 'El código ha expirado. Solicita un nuevo código.');
-    }
-    if (user.passwordResetToken !== code) {
-      throw new AppError(400, 'Código incorrecto');
-    }
+      if (!user) {
+        throw new AppError(404, 'Usuario no encontrado');
+      }
+      if (!user.passwordResetToken || !user.passwordResetExpiry) {
+        throw new AppError(400, 'No hay solicitud de recuperación pendiente. Solicita un nuevo código en "Olvidé mi contraseña".');
+      }
 
-    const passwordHash = await hashPassword(newPassword);
+      // Validar expiración con precisión
+      const now = new Date();
+      const expiryTime = new Date(user.passwordResetExpiry);
+      const secondsExpired = Math.floor((now.getTime() - expiryTime.getTime()) / 1000);
 
-    await this.prisma.user.update({
-      where: { email },
-      data: {
-        passwordHash,
-        passwordResetToken: null,
-        passwordResetExpiry: null,
-      },
-    });
+      if (now > expiryTime) {
+        // Limpiar token expirado para evitar bloqueos futuros
+        await this.prisma.user.update({
+          where: { email },
+          data: {
+            passwordResetToken: null,
+            passwordResetExpiry: null,
+          },
+        });
+        throw new AppError(400, `El código ha expirado (expiró hace ${secondsExpired} segundos). Solicita un nuevo código.`);
+      }
 
-    return { message: 'Contraseña recuperada correctamente. Ya puedes iniciar sesión.' };
+      // Validar código (case-sensitive, sin espacios)
+      const normalizedCode = code.trim();
+      if (user.passwordResetToken !== normalizedCode) {
+        throw new AppError(400, 'Código incorrecto. Verifica el código de 6 dígitos que recibiste en tu email.');
+      }
+
+      // Validar que la nueva contraseña sea diferente
+      const passwordMatch = await comparePassword(newPassword, user.passwordHash);
+      if (passwordMatch) {
+        throw new AppError(400, 'La nueva contraseña no puede ser igual a la anterior.');
+      }
+
+      const passwordHash = await hashPassword(newPassword);
+
+      await this.prisma.user.update({
+        where: { email },
+        data: {
+          passwordHash,
+          passwordResetToken: null,
+          passwordResetExpiry: null,
+        },
+      });
+
+      return { message: 'Contraseña recuperada correctamente. Ya puedes iniciar sesión.' };
+    } catch (error: any) {
+      // Si es un AppError, relanzar
+      if (error.status) throw error;
+
+      console.error('🔴 Error en resetPassword:', {
+        message: error.message,
+        email,
+      });
+
+      throw new AppError(500, `Error al resetear: ${error.message}`);
+    }
   }
 }

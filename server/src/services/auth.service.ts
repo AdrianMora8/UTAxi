@@ -263,12 +263,6 @@ export class AuthService {
         throw new AppError(400, 'Código incorrecto. Verifica el código de 6 dígitos que recibiste en tu email.');
       }
 
-      // Validar que la nueva contraseña sea diferente
-      const passwordMatch = await comparePassword(newPassword, user.passwordHash);
-      if (passwordMatch) {
-        throw new AppError(400, 'La nueva contraseña no puede ser igual a la anterior.');
-      }
-
       const passwordHash = await hashPassword(newPassword);
 
       await this.prisma.user.update({

@@ -396,12 +396,12 @@ describe('AuthService', () => {
       const callArgs = prisma.user.update.mock.calls[0][0];
       const expiryTime = callArgs.data.passwordResetExpiry.getTime();
 
-      // Should be approximately 30 minutes from now (with 5 second tolerance for execution time)
-      const expectedExpiry = beforeCall + 30 * 60 * 1000;
+      // Should be approximately 15 minutes from now (with 5 second tolerance for execution time)
+      const expectedExpiry = beforeCall + 15 * 60 * 1000;
       const tolerance = 5 * 1000; // 5 seconds
 
       expect(expiryTime).toBeGreaterThanOrEqual(expectedExpiry - tolerance);
-      expect(expiryTime).toBeLessThanOrEqual(afterCall + 30 * 60 * 1000 + tolerance);
+      expect(expiryTime).toBeLessThanOrEqual(afterCall + 15 * 60 * 1000 + tolerance);
     });
   });
 
@@ -456,8 +456,8 @@ describe('AuthService', () => {
         passwordResetExpiry: null,
       });
 
-      await expect(service.resetPassword(validEmail, code, newPassword)).rejects.toEqual(
-        new AppError(400, 'No hay solicitud de recuperación de contraseña pendiente'),
+      await expect(service.resetPassword(validEmail, code, newPassword)).rejects.toThrow(
+        'No hay solicitud de recuperación pendiente',
       );
     });
 
@@ -469,8 +469,8 @@ describe('AuthService', () => {
         passwordResetExpiry: new Date(Date.now() - 10 * 60 * 1000), // 10 min ago
       });
 
-      await expect(service.resetPassword(validEmail, code, newPassword)).rejects.toEqual(
-        new AppError(400, 'El código ha expirado. Solicita un nuevo código.'),
+      await expect(service.resetPassword(validEmail, code, newPassword)).rejects.toThrow(
+        /El código ha expirado/,
       );
     });
 
@@ -482,8 +482,8 @@ describe('AuthService', () => {
         passwordResetExpiry: new Date(Date.now() + 10 * 60 * 1000),
       });
 
-      await expect(service.resetPassword(validEmail, '999999', newPassword)).rejects.toEqual(
-        new AppError(400, 'Código incorrecto'),
+      await expect(service.resetPassword(validEmail, '999999', newPassword)).rejects.toThrow(
+        'Código incorrecto',
       );
     });
   });

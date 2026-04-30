@@ -44,7 +44,7 @@ export class AuthService {
       return { message: `Código de verificación enviado a ${email}` };
     } catch (error: any) {
       // Si es un AppError, relanzar
-      if (error.status) throw error;
+      if (error instanceof AppError) throw error;
       
       // Log de error detallado
       console.error('🔴 Error en register:', {
@@ -140,7 +140,7 @@ export class AuthService {
       };
     } catch (error: any) {
       // Si es un AppError, relanzar
-      if (error.status) throw error;
+      if (error instanceof AppError) throw error;
       
       console.error('🔴 Error en login:', {
         message: error.message,
@@ -277,7 +277,7 @@ export class AuthService {
       return { message: 'Contraseña recuperada correctamente. Ya puedes iniciar sesión.' };
     } catch (error: any) {
       // Si es un AppError, relanzar
-      if (error.status) throw error;
+      if (error instanceof AppError) throw error;
 
       console.error('🔴 Error en resetPassword:', {
         message: error.message,

@@ -28,8 +28,13 @@ export async function getMe(req: Request, res: Response) {
 }
 
 export async function updateMe(req: Request, res: Response) {
+  // Validar que el usuario está autenticado
+  if (!req.user) {
+    throw new Error('No estás autenticado');
+  }
+
   const data = updateMeSchema.parse(req.body);
-  const user = await svc.updateMe(req.user!.id, data);
+  const user = await svc.updateMe(req.user.id, data);
   res.json({ user });
 }
 

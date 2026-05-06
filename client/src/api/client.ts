@@ -1,8 +1,11 @@
 import axios from 'axios'
 import { useAuthStore } from '@/store/authStore'
 
+// En desarrollo, usa el proxy de Vite (/api). En producción, usa la URL completa.
+const API_BASE_URL = import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:4000/api')
+
 export const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   withCredentials: true, // envía cookies httpOnly (refresh token)
 })
 
@@ -39,7 +42,8 @@ apiClient.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const { data } = await axios.post('/api/auth/refresh', {}, { withCredentials: true })
+        const refreshUrl = import.meta.env.DEV ? '/api/auth/refresh' : `${API_BASE_URL}/auth/refresh`
+        const { data } = await axios.post(refreshUrl, {}, { withCredentials: true })
         const newToken: string = data.accessToken
 
         useAuthStore.getState().setAccessToken(newToken)

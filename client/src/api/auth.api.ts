@@ -35,6 +35,9 @@ export const authApi = {
   verifyEmail: (email: string, code: string) =>
     apiClient.post<{ message: string }>('/auth/verify-email', { email, code }),
 
+  resendCode: (email: string) =>
+    apiClient.post<{ message: string }>('/auth/resend-code', { email }),
+
   login: (payload: LoginPayload) =>
     apiClient.post<LoginResponse>('/auth/login', payload),
 

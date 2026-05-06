@@ -24,7 +24,8 @@ describe('POST /api/auth/register - Integration Tests', () => {
 
   beforeEach(async () => {
     // Limpiar tabla de usuarios antes de cada test
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    const prisma = getPrisma();
+    await prisma.user.deleteMany({});
   });
 
   it('should register a new user with valid UTA email', async () => {
@@ -39,7 +40,7 @@ describe('POST /api/auth/register - Integration Tests', () => {
 
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('message');
-    expect(response.body.message).toContain('verification');
+    expect(response.body.message).toContain('Código');
 
     // Verificar que el usuario se creó en BD sin verificar
     const user = await prisma.user.findUnique({
@@ -96,7 +97,8 @@ describe('POST /api/auth/verify-email - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    const prisma = getPrisma();
+    await prisma.user.deleteMany({});
   });
 
   it('should verify email with correct code', async () => {
@@ -157,7 +159,8 @@ describe('POST /api/auth/login - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    const prisma = getPrisma();
+    await prisma.user.deleteMany({});
   });
 
   it('should login successfully with verified user', async () => {
@@ -205,8 +208,8 @@ describe('POST /api/auth/login - Integration Tests', () => {
         password,
       });
 
-    expect(response.status).toBe(403);
-    expect(response.body.error).toContain('verify');
+    expect(response.status).toBe(401);
+    expect(response.body.error).toContain('verificar');
   });
 
   it('should reject login for non-existent user', async () => {
@@ -217,7 +220,7 @@ describe('POST /api/auth/login - Integration Tests', () => {
         password: 'Password123!',
       });
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(401);
   });
 });
 
@@ -231,7 +234,8 @@ describe('POST /api/auth/refresh - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    const prisma = getPrisma();
+    await prisma.user.deleteMany({});
   });
 
   it('should refresh access token with valid refresh token', async () => {
@@ -275,7 +279,8 @@ describe('POST /api/auth/logout - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    const prisma = getPrisma();
+    await prisma.user.deleteMany({});
   });
 
   it('should logout successfully', async () => {

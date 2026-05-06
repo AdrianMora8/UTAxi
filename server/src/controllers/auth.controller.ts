@@ -30,8 +30,8 @@ export async function register(req: Request, res: Response): Promise<void> {
     console.error('❌ Error en registro:', error.message);
     
     // Errores conocidos (AppError)
-    if (error.status) {
-      res.status(error.status).json({ error: error.message });
+    if (error.statusCode) {
+      res.status(error.statusCode).json({ error: error.message });
       return;
     }
     
@@ -68,8 +68,8 @@ export async function resendCode(req: Request, res: Response): Promise<void> {
   } catch (error: any) {
     console.error('❌ Error al reenviar código:', error.message);
     
-    if (error.status) {
-      res.status(error.status).json({ error: error.message });
+    if (error.statusCode) {
+      res.status(error.statusCode).json({ error: error.message });
       return;
     }
     
@@ -104,8 +104,8 @@ export async function verifyEmail(req: Request, res: Response): Promise<void> {
   } catch (error: any) {
     console.error('❌ Error en verificación de email:', error.message);
     
-    if (error.status) {
-      res.status(error.status).json({ error: error.message });
+    if (error.statusCode) {
+      res.status(error.statusCode).json({ error: error.message });
       return;
     }
     
@@ -146,8 +146,8 @@ export async function login(req: Request, res: Response): Promise<void> {
   } catch (error: any) {
     console.error('❌ Error en login:', error.message);
     
-    if (error.status) {
-      res.status(error.status).json({ error: error.message });
+    if (error.statusCode) {
+      res.status(error.statusCode).json({ error: error.message });
       return;
     }
     
@@ -179,8 +179,8 @@ export async function refresh(req: Request, res: Response): Promise<void> {
   } catch (error: any) {
     console.error('❌ Error en refresh:', error.message);
     
-    if (error.status) {
-      res.status(error.status).json({ error: error.message });
+    if (error.statusCode) {
+      res.status(error.statusCode).json({ error: error.message });
       return;
     }
     
@@ -223,8 +223,8 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
   } catch (error: any) {
     console.error('❌ Error en forgotPassword:', error.message);
     
-    if (error.status) {
-      res.status(error.status).json({ error: error.message });
+    if (error.statusCode) {
+      res.status(error.statusCode).json({ error: error.message });
       return;
     }
     
@@ -251,8 +251,8 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
   } catch (error: any) {
     console.error('❌ Error en resetPassword:', error.message);
     
-    if (error.status) {
-      res.status(error.status).json({ error: error.message });
+    if (error.statusCode) {
+      res.status(error.statusCode).json({ error: error.message });
       return;
     }
     

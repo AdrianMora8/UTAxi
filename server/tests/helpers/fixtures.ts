@@ -67,11 +67,11 @@ export async function createVerifiedTestUser(
   return await prisma.user.create({
     data: {
       email,
-      password: hashedPassword,
+      passwordHash: hashedPassword,
       fullName,
       emailVerified: true,
-      role: 'USER',
-      reputation: 5.0,
+      role: 'STUDENT',
+      reputationScore: 5.0,
     },
   });
 }
@@ -90,12 +90,12 @@ export async function createUnverifiedTestUser(
   return await prisma.user.create({
     data: {
       email,
-      password: hashedPassword,
+      passwordHash: hashedPassword,
       fullName,
       emailVerified: false,
       emailVerifyToken: '123456',
       emailVerifyExpiry: new Date(Date.now() + 3600000),
-      role: 'USER',
+      role: 'STUDENT',
     },
   });
 }
@@ -124,7 +124,7 @@ export async function createTestTrip(driverId: string) {
     data: {
       driverId,
       ...TEST_TRIPS.valid,
-      status: 'PENDING',
+      status: 'SCHEDULED',
     },
   });
 }

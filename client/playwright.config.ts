@@ -17,7 +17,7 @@ export default defineConfig({
     ['junit', { outputFile: 'test-results/e2e-junit.xml' }],
   ],
   use: {
-    baseURL: 'http://localhost:5173', // Vite dev server port
+    baseURL: 'http://localhost:4278', // Vite dev server port (may vary)
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

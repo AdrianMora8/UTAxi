@@ -2,31 +2,74 @@ import { PrismaClient } from '@prisma/client';
 
 /**
  * Setup y teardown para pruebas de integración.
- * Ejecuta migraciones y limpia datos entre tests.
+ * Limpia datos entre tests de forma segura.
  */
 
-const prisma = new PrismaClient();
+// Usar la misma instancia de Prisma que la aplicación
+// para que los cambios sean visibles entre la app y los tests
+let prisma: PrismaClient;
+
+function getPrismaInstance(): PrismaClient {
+  const globalForPrisma = globalThis as unknown as {
+    prisma: PrismaClient | undefined;
+  };
+
+  if (globalForPrisma.prisma) {
+    return globalForPrisma.prisma;
+  }
+
+  const newPrisma = new PrismaClient();
+  if (process.env.NODE_ENV !== 'production') {
+    globalForPrisma.prisma = newPrisma;
+  }
+  return newPrisma;
+}
 
 export async function setupTestDb() {
+  prisma = getPrismaInstance();
+
   // Verificar que estamos en ambiente de test
   if (process.env.NODE_ENV !== 'test') {
     throw new Error('setupTestDb debe usarse solo en NODE_ENV=test');
   }
 
-  // Ejecutar migraciones en BD de test
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "Trip" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "TripRequest" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "Rating" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "Report" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "Vehicle" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "Payment" CASCADE');
+  try {
+    // Limpiar datos en orden para respetar las foreign keys
+    // Usar deleteMany de Prisma es más seguro que SQL crudo
+    await prisma.report.deleteMany({});
+    await prisma.rating.deleteMany({});
+    await prisma.tripRequest.deleteMany({});
+    await prisma.trip.deleteMany({});
+    await prisma.vehicle.deleteMany({});
+    await prisma.payment.deleteMany({});
+    await prisma.user.deleteMany({});
+  } catch (error) {
+    console.error('Error limpiando BD de test:', error);
+    throw error;
+  }
 }
 
 export async function teardownTestDb() {
-  await prisma.$disconnect();
+  // Solo limpiar datos, no desconectar Prisma
+  // Se desconectará después de TODOS los tests
+  try {
+    if (prisma) {
+      await prisma.report.deleteMany({});
+      await prisma.rating.deleteMany({});
+      await prisma.tripRequest.deleteMany({});
+      await prisma.trip.deleteMany({});
+      await prisma.vehicle.deleteMany({});
+      await prisma.payment.deleteMany({});
+      await prisma.user.deleteMany({});
+    }
+  } catch (error) {
+    console.error('Error en teardown:', error);
+  }
 }
 
 export function getPrisma() {
+  if (!prisma) {
+    prisma = getPrismaInstance();
+  }
   return prisma;
 }

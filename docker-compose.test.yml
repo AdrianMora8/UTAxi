@@ -7,6 +7,6 @@ services:
       POSTGRES_USER: utaxi
       POSTGRES_PASSWORD: utaxi123
     ports:
-      - "5437:5432"
+      - "5436:5432"
     tmpfs:
       - /var/lib/postgresql/data

@@ -2,6 +2,11 @@ const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
+/**
+ * Script para verificar manualmente a un usuario por email
+ * Uso: node verify-user.js
+ */
+
 async function main() {
   try {
     const user = await prisma.user.update({

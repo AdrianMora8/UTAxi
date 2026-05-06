@@ -31,6 +31,11 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
 
+  // ─── Ruta raíz ───────────────────────────────────────────────────────────
+  app.get('/', (_req, res) => {
+    res.json({ message: 'API UTAxi - Servidor activo', version: '1.0.0' });
+  });
+
   // ─── Health check ─────────────────────────────────────────────────────────
   app.get('/health', async (_req, res) => {
     try {

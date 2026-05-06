@@ -192,6 +192,48 @@ export class AuthService {
     return { message: 'Sesión cerrada correctamente' };
   }
 
+  async resendVerificationCode(email: string) {
+    try {
+      const user = await this.prisma.user.findUnique({ where: { email } });
+
+      if (!user) {
+        throw new AppError(404, 'Usuario no encontrado');
+      }
+
+      if (user.emailVerified) {
+        throw new AppError(400, 'Este correo ya ha sido verificado');
+      }
+
+      const code = generateOTP();
+      const expiry = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+
+      await this.prisma.user.update({
+        where: { email },
+        data: {
+          emailVerifyToken: code,
+          emailVerifyExpiry: expiry,
+        },
+      });
+
+      await sendVerificationEmail(email, code);
+
+      return { message: `Código de verificación reenviado a ${email}` };
+    } catch (error: any) {
+      if (error instanceof AppError) throw error;
+
+      console.error('🔴 Error en resendVerificationCode:', {
+        message: error.message,
+        email,
+      });
+
+      if (error.message?.includes('Authentication failed')) {
+        throw new AppError(503, 'No se puede conectar a la base de datos.');
+      }
+
+      throw new AppError(500, `Error al reenviar código: ${error.message}`);
+    }
+  }
+
   async forgotPassword(email: string) {
     try {
       const user = await this.prisma.user.findUnique({ where: { email } });

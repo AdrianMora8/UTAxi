@@ -52,6 +52,42 @@ export async function register(req: Request, res: Response): Promise<void> {
   }
 }
 
+export async function resendCode(req: Request, res: Response): Promise<void> {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      res.status(400).json({ 
+        error: 'Email es requerido' 
+      });
+      return;
+    }
+
+    const result = await authService.resendVerificationCode(email);
+    res.json(result);
+  } catch (error: any) {
+    console.error('❌ Error al reenviar código:', error.message);
+    
+    if (error.status) {
+      res.status(error.status).json({ error: error.message });
+      return;
+    }
+    
+    if (error.message.includes('Authentication failed')) {
+      res.status(503).json({ 
+        error: 'No se puede conectar a la base de datos.',
+        details: error.message 
+      });
+      return;
+    }
+    
+    res.status(500).json({ 
+      error: 'Error interno del servidor',
+      details: error.message 
+    });
+  }
+}
+
 export async function verifyEmail(req: Request, res: Response): Promise<void> {
   try {
     const { email, code } = req.body;

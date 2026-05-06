@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { register, verifyEmail, login, refresh, logout, forgotPassword, resetPassword } from '../controllers/auth.controller';
+import { register, verifyEmail, resendCode, login, refresh, logout, forgotPassword, resetPassword } from '../controllers/auth.controller';
 import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -47,6 +47,7 @@ function validate<T>(schema: z.ZodSchema<T>) {
 
 router.post('/register', validate(registerSchema), register);
 router.post('/verify-email', validate(verifySchema), verifyEmail);
+router.post('/resend-code', validate(z.object({ email: z.string().email() })), resendCode);
 router.post('/login', validate(loginSchema), login);
 router.post('/refresh', refresh);
 router.post('/logout', logout);

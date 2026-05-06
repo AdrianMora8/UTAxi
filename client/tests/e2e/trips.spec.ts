@@ -47,7 +47,7 @@ test.describe('Trips Flow - E2E', () => {
     await page.click('button:has-text("Request to Join")');
     
     // Debería mostrar mensaje de confirmación
-    await expect(page.locator('text=/request sent|solicitud enviada/'i)).toBeVisible();
+    await expect(page.locator('text=/request sent|solicitud enviada/i')).toBeVisible();
   });
 
   test('should filter trips by location', async ({ page }) => {

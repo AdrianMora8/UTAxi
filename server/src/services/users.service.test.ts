@@ -52,6 +52,7 @@ describe('UsersService', () => {
     it('updates user with provided data', async () => {
       const payload = { fullName: 'Nuevo Nombre' };
       const expected = { id: userId, fullName: 'Nuevo Nombre' };
+      prisma.user.findUnique.mockResolvedValue({ id: userId });
       prisma.user.update.mockResolvedValue(expected);
 
       const result = await service.updateMe(userId, payload);
@@ -108,7 +109,7 @@ describe('UsersService', () => {
     it('updates vehicle when it exists', async () => {
       const payload = { color: 'Negro' };
       const expected = { id: 'veh-1', color: 'Negro' };
-      prisma.vehicle.findUnique.mockResolvedValue({ id: 'veh-1' });
+      prisma.vehicle.findUnique.mockResolvedValue({ id: 'veh-1', userId });
       prisma.vehicle.update.mockResolvedValue(expected);
 
       const result = await service.updateVehicle(userId, payload);

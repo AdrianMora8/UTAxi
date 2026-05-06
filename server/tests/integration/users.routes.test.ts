@@ -22,7 +22,7 @@ describe('GET /api/users/me - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
   });
 
   it('should get current user profile with valid token', async () => {
@@ -76,7 +76,7 @@ describe('PATCH /api/users/me - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
   });
 
   it('should update user profile with valid data', async () => {
@@ -162,8 +162,8 @@ describe('POST /api/users/vehicles - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "Vehicle" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "vehicles" CASCADE');
   });
 
   it('should create vehicle with valid data', async () => {
@@ -232,8 +232,8 @@ describe('GET /api/users/vehicles - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "Vehicle" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "vehicles" CASCADE');
   });
 
   it('should list user vehicles', async () => {
@@ -290,8 +290,8 @@ describe('PATCH /api/users/vehicles/:vehicleId - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "Vehicle" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "vehicles" CASCADE');
   });
 
   it('should update vehicle with valid data', async () => {
@@ -351,8 +351,8 @@ describe('DELETE /api/users/vehicles/:vehicleId - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "Vehicle" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "vehicles" CASCADE');
   });
 
   it('should delete user vehicle', async () => {

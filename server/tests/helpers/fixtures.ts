@@ -67,7 +67,7 @@ export async function createVerifiedTestUser(
   return await prisma.user.create({
     data: {
       email,
-      password: hashedPassword,
+      passwordHash: hashedPassword,
       fullName,
       emailVerified: true,
       role: 'USER',
@@ -90,7 +90,7 @@ export async function createUnverifiedTestUser(
   return await prisma.user.create({
     data: {
       email,
-      password: hashedPassword,
+      passwordHash: hashedPassword,
       fullName,
       emailVerified: false,
       emailVerifyToken: '123456',

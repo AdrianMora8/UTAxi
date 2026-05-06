@@ -14,13 +14,12 @@ export async function setupTestDb() {
   }
 
   // Ejecutar migraciones en BD de test
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "Trip" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "TripRequest" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "Rating" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "Report" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "Vehicle" CASCADE');
-  await prisma.$executeRawUnsafe('TRUNCATE TABLE "Payment" CASCADE');
+  await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
+  await prisma.$executeRawUnsafe('TRUNCATE TABLE "trips" CASCADE');
+  await prisma.$executeRawUnsafe('TRUNCATE TABLE "trip_requests" CASCADE');
+  await prisma.$executeRawUnsafe('TRUNCATE TABLE "vehicles" CASCADE');
+  await prisma.$executeRawUnsafe('TRUNCATE TABLE "reports" CASCADE');
+  await prisma.$executeRawUnsafe('TRUNCATE TABLE "payments" CASCADE');
 }
 
 export async function teardownTestDb() {

@@ -7,7 +7,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 
-const ZAP_API_URL = 'http://localhost:8090';
+const ZAP_API_URL = 'http://localhost:9090';
 const TARGET_URL = 'http://localhost:3000';
 
 async function runSecurityScan() {

@@ -24,7 +24,7 @@ describe('POST /api/auth/register - Integration Tests', () => {
 
   beforeEach(async () => {
     // Limpiar tabla de usuarios antes de cada test
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
   });
 
   it('should register a new user with valid UTA email', async () => {
@@ -96,7 +96,7 @@ describe('POST /api/auth/verify-email - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
   });
 
   it('should verify email with correct code', async () => {
@@ -157,7 +157,7 @@ describe('POST /api/auth/login - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
   });
 
   it('should login successfully with verified user', async () => {
@@ -231,7 +231,7 @@ describe('POST /api/auth/refresh - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
   });
 
   it('should refresh access token with valid refresh token', async () => {
@@ -275,7 +275,7 @@ describe('POST /api/auth/logout - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE');
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "users" CASCADE');
   });
 
   it('should logout successfully', async () => {

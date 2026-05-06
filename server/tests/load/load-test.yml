@@ -1,0 +1,79 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    # Ramp-up: Aumentar usuarios gradualmente
+    - duration: 60
+      arrivalRate: 5
+      name: 'Ramp up'
+    # Sustain: Mantener carga constante
+    - duration: 120
+      arrivalRate: 20
+      name: 'Sustain load'
+    # Ramp-down: Reducir gradualmente
+    - duration: 60
+      arrivalRate: 5
+      name: 'Ramp down'
+  processor: './load-test-processor.js'
+  variables:
+    baseUrl: 'http://localhost:3000'
+  defaults:
+    headers:
+      Content-Type: 'application/json'
+      Accept: 'application/json'
+  http:
+    timeout: 30
+
+scenarios:
+  - name: 'Authentication Flow'
+    weight: 10
+    flow:
+      - post:
+          url: '/api/auth/login'
+          json:
+            email: 'load-test@uta.edu.ec'
+            password: 'TestPassword123!'
+          expect:
+            - statusCode: [200, 401]
+          capture:
+            - json: '$.accessToken'
+              as: 'token'
+
+  - name: 'Get Trips List'
+    weight: 40
+    flow:
+      - get:
+          url: '/api/trips?page=1&limit=20'
+          headers:
+            Authorization: 'Bearer {{ token }}'
+          expect:
+            - statusCode: [200, 401]
+
+  - name: 'Search Trips with Filters'
+    weight: 30
+    flow:
+      - get:
+          url: '/api/trips?from=Polanco&to=Campus&limit=20'
+          headers:
+            Authorization: 'Bearer {{ token }}'
+          expect:
+            - statusCode: [200, 401]
+
+  - name: 'Get User Profile'
+    weight: 10
+    flow:
+      - get:
+          url: '/api/users/me'
+          headers:
+            Authorization: 'Bearer {{ token }}'
+          expect:
+            - statusCode: [200, 401]
+
+  - name: 'Get Trip Details'
+    weight: 10
+    flow:
+      - get:
+          url: '/api/trips/1'
+          headers:
+            Authorization: 'Bearer {{ token }}'
+          expect:
+            - statusCode: [200, 404]

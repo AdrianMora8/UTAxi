@@ -7,10 +7,21 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:report": "eslint . --format json --output-file eslint-report.json",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "e2e": "playwright test",
+    "e2e:watch": "playwright test --ui",
+    "e2e:debug": "playwright test --debug",
+    "e2e:headed": "playwright test --headed",
+    "e2e:report": "playwright show-report",
+    "analyze": "npm run lint:report && npm run test:coverage",
+    "qa": "npm run analyze && npm run e2e",
+    "sonar": "npm run analyze && sonar-scanner"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

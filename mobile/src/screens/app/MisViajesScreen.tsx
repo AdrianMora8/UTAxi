@@ -213,7 +213,10 @@ function TripRequestCard({
   );
 }
 
+type TabMode = 'active' | 'history';
+
 export default function MisViajesScreen({ navigation }: Props) {
+  const [tab, setTab] = useState<TabMode>('active');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [retryingTripId, setRetryingTripId] = useState<string | null>(null);
   const [ratingTarget, setRatingTarget] = useState<{ requestId: string; driverName: string } | null>(null);
@@ -262,7 +265,10 @@ export default function MisViajesScreen({ navigation }: Props) {
     },
   });
 
-  const requests = data ?? [];
+  const allRequests = data ?? [];
+  const requests = tab === 'active'
+    ? allRequests.filter(r => r.status === 'PENDING' || r.status === 'ACCEPTED')
+    : allRequests.filter(r => r.status === 'COMPLETED');
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -272,6 +278,28 @@ export default function MisViajesScreen({ navigation }: Props) {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Mis Viajes</Text>
         <View style={{ width: 38 }} />
+      </View>
+
+      {/* Tab selector */}
+      <View style={styles.tabBar}>
+        <TouchableOpacity
+          style={[styles.tabBtn, tab === 'active' && styles.tabBtnActive]}
+          onPress={() => setTab('active')}
+          activeOpacity={0.75}
+        >
+          <Text style={[styles.tabBtnText, tab === 'active' && styles.tabBtnTextActive]}>
+            Activas
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabBtn, tab === 'history' && styles.tabBtnActive]}
+          onPress={() => setTab('history')}
+          activeOpacity={0.75}
+        >
+          <Text style={[styles.tabBtnText, tab === 'history' && styles.tabBtnTextActive]}>
+            Historial
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {isLoading ? (
@@ -289,16 +317,22 @@ export default function MisViajesScreen({ navigation }: Props) {
       ) : requests.length === 0 ? (
         <View style={styles.centered}>
           <Ionicons name="car-outline" size={56} color={colors.textDim} />
-          <Text style={styles.emptyTitle}>Aún no has tomado ningún viaje</Text>
-          <Text style={styles.emptySubtext}>
-            Busca un viaje disponible y solicita unirte
+          <Text style={styles.emptyTitle}>
+            {tab === 'active' ? 'No tienes solicitudes activas' : 'Sin viajes completados'}
           </Text>
-          <TouchableOpacity
-            style={styles.retryBtn}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.retryText}>Buscar viajes</Text>
-          </TouchableOpacity>
+          <Text style={styles.emptySubtext}>
+            {tab === 'active'
+              ? 'Busca un viaje disponible y solicita unirte'
+              : 'Tus viajes completados aparecerán aquí'}
+          </Text>
+          {tab === 'active' && (
+            <TouchableOpacity
+              style={styles.retryBtn}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.retryText}>Buscar viajes</Text>
+            </TouchableOpacity>
+          )}
         </View>
       ) : (
         <FlatList
@@ -351,6 +385,32 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontFamily: fonts.display,
     fontSize: 22,
+    color: colors.text,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    marginHorizontal: 20,
+    marginBottom: 8,
+    backgroundColor: colors.surfaceContainer,
+    borderRadius: 12,
+    padding: 4,
+    gap: 4,
+  },
+  tabBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 9,
+    alignItems: 'center',
+  },
+  tabBtnActive: {
+    backgroundColor: colors.surfaceHigh,
+  },
+  tabBtnText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.textDim,
+  },
+  tabBtnTextActive: {
     color: colors.text,
   },
   list: {

@@ -206,7 +206,14 @@ export default function ManageRequests() {
           <div className="rounded-xl overflow-hidden h-48 relative">
             {tripData ? (
               <Suspense fallback={<div className="h-full w-full bg-surface-container flex items-center justify-center"><span className="material-symbols-outlined text-on-surface-variant/20 text-[80px]">map</span></div>}>
-                <RouteMap originZone={tripData.originZone} destinationZone={tripData.destinationZone} />
+                <RouteMap
+                  originZone={tripData.originZone}
+                  originLat={tripData.originLat}
+                  originLng={tripData.originLng}
+                  destinationZone={tripData.destinationZone}
+                  destLat={tripData.destLat}
+                  destLng={tripData.destLng}
+                />
               </Suspense>
             ) : (
               <div className="h-full w-full bg-surface-container flex items-center justify-center">

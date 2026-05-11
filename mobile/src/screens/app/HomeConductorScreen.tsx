@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
+import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -124,10 +125,13 @@ function TripCard({
   );
 }
 
+type TabMode = 'active' | 'history';
+
 export default function HomeConductorScreen() {
   const navigation = useNavigation<NavProp>();
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
+  const [tab, setTab] = useState<TabMode>('active');
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['my-trips', user?.id],
@@ -176,6 +180,8 @@ export default function HomeConductorScreen() {
 
   const trips = data?.trips ?? [];
   const activeTrips = trips.filter(t => t.status === 'SCHEDULED' || t.status === 'IN_PROGRESS');
+  const historyTrips = trips.filter(t => t.status === 'COMPLETED');
+  const displayedTrips = tab === 'active' ? activeTrips : historyTrips;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -193,7 +199,7 @@ export default function HomeConductorScreen() {
       </View>
 
       <FlatList
-        data={activeTrips}
+        data={displayedTrips}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -237,8 +243,32 @@ export default function HomeConductorScreen() {
               <Ionicons name="car" size={48} color={colors.surfaceHigh} />
             </View>
 
-            {activeTrips.length > 0 && (
-              <Text style={styles.sectionTitle}>Mis Viajes Activos</Text>
+            {/* Tab selector */}
+            <View style={styles.tabBar}>
+              <TouchableOpacity
+                style={[styles.tabBtn, tab === 'active' && styles.tabBtnActive]}
+                onPress={() => setTab('active')}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.tabBtnText, tab === 'active' && styles.tabBtnTextActive]}>
+                  Activos
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tabBtn, tab === 'history' && styles.tabBtnActive]}
+                onPress={() => setTab('history')}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.tabBtnText, tab === 'history' && styles.tabBtnTextActive]}>
+                  Completados
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {displayedTrips.length > 0 && (
+              <Text style={styles.sectionTitle}>
+                {tab === 'active' ? 'Mis Viajes Activos' : 'Historial de Viajes'}
+              </Text>
             )}
           </View>
         }
@@ -260,9 +290,17 @@ export default function HomeConductorScreen() {
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <Ionicons name="git-branch-outline" size={40} color={colors.textDim} />
-              <Text style={styles.emptyTitle}>Publicar otro viaje</Text>
-              <Text style={styles.emptySub}>Optimiza tu ruta.</Text>
+              <Ionicons
+                name={tab === 'active' ? 'git-branch-outline' : 'checkmark-done-outline'}
+                size={40}
+                color={colors.textDim}
+              />
+              <Text style={styles.emptyTitle}>
+                {tab === 'active' ? 'Sin viajes activos' : 'Sin viajes completados'}
+              </Text>
+              <Text style={styles.emptySub}>
+                {tab === 'active' ? 'Publica tu primer viaje.' : 'Tus viajes completados aparecerán aquí.'}
+              </Text>
             </View>
           )
         }
@@ -357,6 +395,31 @@ const styles = StyleSheet.create({
     fontFamily: fonts.displayMedium,
     fontSize: 17,
     color: colors.primary,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: colors.surfaceContainer,
+    borderRadius: 12,
+    padding: 4,
+    gap: 4,
+    marginBottom: 16,
+  },
+  tabBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 9,
+    alignItems: 'center',
+  },
+  tabBtnActive: {
+    backgroundColor: colors.surfaceHigh,
+  },
+  tabBtnText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.textDim,
+  },
+  tabBtnTextActive: {
+    color: colors.text,
   },
   sectionTitle: {
     fontFamily: fonts.display,

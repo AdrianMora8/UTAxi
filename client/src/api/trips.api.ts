@@ -74,6 +74,15 @@ export const tripsApi = {
   createTrip: (data: CreateTripPayload) =>
     apiClient.post<{ trip: Trip }>('/trips', data),
 
+  getMyTrips: (driverId: string, status?: string) =>
+    apiClient.get<GetTripsResponse>('/trips', { params: { driverId, status, limit: 50 } }),
+
   updateTripStatus: (id: string, status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') =>
     apiClient.patch<{ trip: Trip }>(`/trips/${id}/status`, { status }),
+
+  cancelTrip: (id: string) =>
+    apiClient.delete<{ trip: Trip }>(`/trips/${id}`),
+
+  updateTrip: (id: string, data: Partial<CreateTripPayload>) =>
+    apiClient.patch<{ trip: Trip }>(`/trips/${id}`, data),
 }

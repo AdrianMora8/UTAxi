@@ -57,6 +57,16 @@ export default function Navbar() {
               >
                 Mis Solicitudes
               </Link>
+              <Link
+                to="/my-trips"
+                className={`font-headline tracking-tight transition-colors pb-1 ${
+                  isActive('/my-trips')
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Mis Viajes
+              </Link>
               {isAdmin && (
                 <Link
                   to="/admin"
@@ -136,6 +146,15 @@ export default function Navbar() {
             >
               <span className="material-symbols-outlined text-xl">notifications</span>
               <span className="text-[10px] font-label uppercase tracking-widest">Alertas</span>
+            </Link>
+            <Link
+              to="/my-trips"
+              className={`flex flex-col items-center gap-1 transition-colors ${
+                isActive('/my-trips') ? 'text-primary' : 'text-zinc-500'
+              }`}
+            >
+              <span className="material-symbols-outlined text-xl">directions_car</span>
+              <span className="text-[10px] font-label uppercase tracking-widest">Mis Viajes</span>
             </Link>
             <Link
               to="/profile"

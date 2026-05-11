@@ -52,8 +52,8 @@ export default function MyRequests() {
   })
 
   const requests = data ?? []
-  const active  = requests.filter((r) => r.status === 'PENDING' || r.status === 'ACCEPTED' || r.status === 'COMPLETED')
-  const history = requests.filter((r) => r.status === 'REJECTED' || r.status === 'CANCELLED')
+  const active  = requests.filter((r) => r.status === 'PENDING' || r.status === 'ACCEPTED')
+  const history = requests.filter((r) => r.status === 'COMPLETED')
   const displayed = tab === 'active' ? active : history
 
   return (
@@ -110,12 +110,12 @@ export default function MyRequests() {
                   <span className="material-symbols-outlined text-4xl text-zinc-600">directions_car</span>
                 </div>
                 <h3 className="text-2xl font-headline font-bold text-white mb-2">
-                  {tab === 'active' ? 'No tienes viajes activos' : 'Sin historial'}
+                  {tab === 'active' ? 'No tienes viajes activos' : 'Sin viajes completados'}
                 </h3>
                 <p className="text-on-surface-variant max-w-xs mx-auto mb-8">
                   {tab === 'active'
                     ? '¿Planeando tu próxima clase? Busca un viaje compartido.'
-                    : 'Tus solicitudes pasadas aparecerán aquí.'}
+                    : 'Tus viajes completados aparecerán aquí.'}
                 </p>
                 <Link
                   to="/trips"

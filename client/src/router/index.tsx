@@ -15,6 +15,7 @@ const Profile = lazy(() => import('@/pages/profile/Profile'))
 const CreateTrip = lazy(() => import('@/pages/trips/CreateTrip'))
 const ManageRequests = lazy(() => import('@/pages/trips/ManageRequests'))
 const MyRequests = lazy(() => import('@/pages/requests/MyRequests'))
+const MyTrips = lazy(() => import('@/pages/trips/MyTrips'))
 const Payment = lazy(() => import('@/pages/payments/Payment'))
 const ActiveTrip = lazy(() => import('@/pages/trips/ActiveTrip'))
 const Report = lazy(() => import('@/pages/reports/Report'))
@@ -131,6 +132,14 @@ export const router = createBrowserRouter([
             element: (
               <Suspense fallback={<Loading />}>
                 <MyRequests />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/my-trips',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <MyTrips />
               </Suspense>
             ),
           },

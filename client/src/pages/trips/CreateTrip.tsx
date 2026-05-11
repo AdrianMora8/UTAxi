@@ -7,11 +7,11 @@ import { useMutation } from '@tanstack/react-query'
 import { tripsApi } from '@/api/trips.api'
 import CampusPicker from '@/components/CampusPicker'
 import { type Campus } from '@/constants/campuses'
+import DestinationPickerField, { type DestinationValue } from '@/components/map/DestinationPickerField'
 
 const RouteMap = lazy(() => import('@/components/map/RouteMap'))
 
 const schema = z.object({
-  destinationZone: z.string().min(2, 'Mínimo 2 caracteres').max(100),
   date: z.string().min(1, 'Selecciona una fecha'),
   time: z.string().min(1, 'Selecciona una hora'),
   totalSeats: z.coerce.number().int().min(1, 'Mínimo 1').max(8, 'Máximo 8'),
@@ -28,6 +28,8 @@ export default function CreateTrip() {
   const [serverError, setServerError] = useState('')
   const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null)
   const [campusError, setCampusError] = useState('')
+  const [destination, setDestination] = useState<DestinationValue | null>(null)
+  const [destError, setDestError] = useState('')
 
   const {
     register,
@@ -41,7 +43,6 @@ export default function CreateTrip() {
   })
 
   const seats = watch('totalSeats') ?? 3
-  const destination = watch('destinationZone') ?? ''
 
   const createMut = useMutation({
     mutationFn: (data: FormData) => {
@@ -50,7 +51,9 @@ export default function CreateTrip() {
         originZone: selectedCampus!.label,
         originLat: selectedCampus!.lat,
         originLng: selectedCampus!.lng,
-        destinationZone: data.destinationZone,
+        destinationZone: destination!.address,
+        destLat: destination!.lat,
+        destLng: destination!.lng,
         departureTime,
         totalSeats: data.totalSeats,
         pricePerSeat: data.pricePerSeat,
@@ -85,12 +88,12 @@ export default function CreateTrip() {
 
           <form
             onSubmit={handleSubmit((d) => {
-              if (!selectedCampus) {
-                setCampusError('Selecciona el campus de origen')
-                return
-              }
-              setCampusError('')
-              createMut.mutate(d)
+              let ok = true
+              if (!selectedCampus) { setCampusError('Selecciona el campus de origen'); ok = false }
+              else setCampusError('')
+              if (!destination) { setDestError('Elige el destino en el mapa'); ok = false }
+              else setDestError('')
+              if (ok) createMut.mutate(d)
             })}
             className="space-y-8"
           >
@@ -108,24 +111,15 @@ export default function CreateTrip() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <label className="text-xs font-bold uppercase tracking-widest text-primary-container block">
                   Punto de Llegada
                 </label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-tertiary text-lg">
-                    flag
-                  </span>
-                  <input
-                    {...register('destinationZone')}
-                    type="text"
-                    className="w-full pl-12 pr-4 py-4 bg-surface-container-highest rounded-xl border-none focus:ring-1 focus:ring-primary/40 transition-all text-on-surface placeholder:text-zinc-600 outline-none"
-                    placeholder="Calle, Barrio, Sector..."
-                  />
-                </div>
-                {errors.destinationZone && (
-                  <p className="text-xs text-error">{errors.destinationZone.message}</p>
-                )}
+                <DestinationPickerField
+                  value={destination}
+                  onChange={(val) => { setDestination(val); setDestError('') }}
+                  error={destError}
+                />
               </div>
             </div>
 
@@ -263,8 +257,11 @@ export default function CreateTrip() {
               <Suspense fallback={<div className="h-full w-full flex items-center justify-center"><span className="material-symbols-outlined text-on-surface-variant/10 text-[160px]">map</span></div>}>
                 <RouteMap
                   originZone={selectedCampus?.label ?? ''}
-                  destinationZone={destination}
-                  onDestinationSelect={(address) => setValue('destinationZone', address, { shouldValidate: true })}
+                  originLat={selectedCampus?.lat}
+                  originLng={selectedCampus?.lng}
+                  destinationZone={destination?.address ?? ''}
+                  destLat={destination?.lat}
+                  destLng={destination?.lng}
                 />
               </Suspense>
               {/* Glass overlay */}
@@ -286,7 +283,7 @@ export default function CreateTrip() {
                       {selectedCampus?.label || 'Campus de Origen'}
                     </span>
                     <span className="text-on-surface-variant">
-                      {destination || 'Destino'}
+                      {destination?.address || 'Destino'}
                     </span>
                   </div>
                 </div>

@@ -6,7 +6,11 @@ export class TripsService {
 
   async create(driverId: string, data: {
     originZone: string;
+    originLat?: number;
+    originLng?: number;
     destinationZone: string;
+    destLat?: number;
+    destLng?: number;
     departureTime: Date;
     totalSeats: number;
     pricePerSeat: number;
@@ -150,7 +154,11 @@ export class TripsService {
 
   async update(tripId: string, driverId: string, data: {
     originZone?: string;
+    originLat?: number;
+    originLng?: number;
     destinationZone?: string;
+    destLat?: number;
+    destLng?: number;
     departureTime?: Date;
     totalSeats?: number;
     pricePerSeat?: number;

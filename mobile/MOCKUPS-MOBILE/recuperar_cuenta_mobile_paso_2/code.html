@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Recuperar Cuenta - U-Ride</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary-fixed-variant": "#006a36",
+                        "surface-tint": "#9cff93",
+                        "tertiary": "#8af2ff",
+                        "on-secondary": "#005f30",
+                        "on-primary-fixed": "#00440a",
+                        "inverse-surface": "#fcf8f8",
+                        "surface-container-highest": "#262626",
+                        "tertiary-fixed": "#0eeafd",
+                        "surface-bright": "#2c2c2c",
+                        "secondary-dim": "#7aeb9d",
+                        "on-tertiary-fixed-variant": "#005c64",
+                        "on-primary": "#006413",
+                        "on-secondary-fixed": "#004a24",
+                        "inverse-primary": "#006f16",
+                        "on-surface": "#ffffff",
+                        "primary-fixed": "#00fc40",
+                        "secondary-container": "#006d38",
+                        "tertiary-fixed-dim": "#00dbec",
+                        "surface-container-low": "#131313",
+                        "secondary": "#89faaa",
+                        "error": "#ff7351",
+                        "surface-variant": "#262626",
+                        "primary-container": "#00fc40",
+                        "surface-container": "#1a1919",
+                        "tertiary-dim": "#00dbec",
+                        "surface": "#0e0e0e",
+                        "on-primary-fixed-variant": "#006513",
+                        "tertiary-container": "#0eeafd",
+                        "error-container": "#b92902",
+                        "on-tertiary": "#005b63",
+                        "primary-dim": "#00ec3b",
+                        "on-secondary-container": "#e3ffe5",
+                        "on-error": "#450900",
+                        "surface-container-high": "#201f1f",
+                        "outline": "#777575",
+                        "secondary-fixed-dim": "#7aeb9d",
+                        "on-error-container": "#ffd2c8",
+                        "outline-variant": "#494847",
+                        "secondary-fixed": "#89faaa",
+                        "on-tertiary-fixed": "#003d42",
+                        "primary": "#9cff93",
+                        "background": "#0e0e0e",
+                        "on-background": "#ffffff",
+                        "error-dim": "#d53d18",
+                        "inverse-on-surface": "#565554",
+                        "on-tertiary-container": "#005159",
+                        "surface-dim": "#0e0e0e",
+                        "surface-container-lowest": "#000000",
+                        "on-primary-container": "#005a10",
+                        "primary-fixed-dim": "#00ec3b",
+                        "on-surface-variant": "#adaaaa"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk", "sans-serif"],
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom Gradient for Primary Buttons as per Design System */
+        .bg-kinetic-gradient {
+            background: linear-gradient(135deg, #9cff93 0%, #00fc40 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body min-h-screen flex items-center justify-center p-6 selection:bg-primary selection:text-on-primary">
+<!-- Main Recovery Container -->
+<main class="w-full max-w-[420px] bg-surface-container-low rounded-xl p-8 relative overflow-hidden">
+<!-- Subtle decorative glow behind the form to break the void slightly -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none -z-10 translate-x-1/2 -translate-y-1/2"></div>
+<!-- Header Section -->
+<div class="mb-10 text-center">
+<h1 class="font-headline text-display text-3xl font-bold text-on-surface mb-3 tracking-tight">Ingresa el código</h1>
+<p class="font-body text-on-surface-variant text-sm leading-relaxed">Enviamos un código de 6 dígitos a tu correo institucional</p>
+</div>
+<!-- Form Elements -->
+<form action="#" class="flex flex-col gap-8">
+<!-- OTP Input Section -->
+<div class="flex justify-between gap-2" dir="ltr">
+<input autocomplete="one-time-code" class="w-12 h-14 bg-surface-container-highest text-center text-xl font-headline font-bold text-on-surface rounded-lg border-0 focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all duration-200 outline-none" inputmode="numeric" maxlength="1" placeholder="·" type="text"/>
+<input class="w-12 h-14 bg-surface-container-highest text-center text-xl font-headline font-bold text-on-surface rounded-lg border-0 focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all duration-200 outline-none" inputmode="numeric" maxlength="1" placeholder="·" type="text"/>
+<input class="w-12 h-14 bg-surface-container-highest text-center text-xl font-headline font-bold text-on-surface rounded-lg border-0 focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all duration-200 outline-none" inputmode="numeric" maxlength="1" placeholder="·" type="text"/>
+<input class="w-12 h-14 bg-surface-container-highest text-center text-xl font-headline font-bold text-on-surface rounded-lg border-0 focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all duration-200 outline-none" inputmode="numeric" maxlength="1" placeholder="·" type="text"/>
+<input class="w-12 h-14 bg-surface-container-highest text-center text-xl font-headline font-bold text-on-surface rounded-lg border-0 focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all duration-200 outline-none" inputmode="numeric" maxlength="1" placeholder="·" type="text"/>
+<input class="w-12 h-14 bg-surface-container-highest text-center text-xl font-headline font-bold text-on-surface rounded-lg border-0 focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all duration-200 outline-none" inputmode="numeric" maxlength="1" placeholder="·" type="text"/>
+</div>
+<!-- Password Fields Section -->
+<div class="flex flex-col gap-4">
+<!-- New Password -->
+<div class="group flex items-center bg-surface-container-highest rounded-lg px-4 focus-within:bg-surface-bright focus-within:ring-1 focus-within:ring-primary/40 transition-all duration-200">
+<span class="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary transition-colors text-xl mr-3">lock</span>
+<input class="w-full bg-transparent border-0 text-on-surface placeholder:text-on-surface-variant/60 font-body py-4 px-0 focus:ring-0 outline-none text-base" id="new-password" placeholder="Nueva contraseña" type="password"/>
+<button class="ml-3 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+<!-- Confirm Password -->
+<div class="group flex items-center bg-surface-container-highest rounded-lg px-4 focus-within:bg-surface-bright focus-within:ring-1 focus-within:ring-primary/40 transition-all duration-200">
+<span class="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary transition-colors text-xl mr-3">lock</span>
+<input class="w-full bg-transparent border-0 text-on-surface placeholder:text-on-surface-variant/60 font-body py-4 px-0 focus:ring-0 outline-none text-base" id="confirm-password" placeholder="Confirmar contraseña" type="password"/>
+<button class="ml-3 flex items-center justify-center text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined text-xl">visibility</span>
+</button>
+</div>
+</div>
+<!-- Action Button -->
+<button class="mt-2 w-full bg-kinetic-gradient text-on-primary font-headline font-bold text-lg py-4 rounded-lg flex items-center justify-center gap-2 hover:shadow-[0_0_16px_rgba(156,255,147,0.4)] transition-all duration-300 transform active:scale-[0.98]" type="submit">
+<span>Restablecer Contraseña</span>
+<span class="material-symbols-outlined font-bold text-xl">arrow_forward</span>
+</button>
+</form>
+<!-- Subtle fallback link -->
+<div class="mt-8 text-center">
+<a class="font-body text-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Volver al inicio de sesión</a>
+</div>
+</main>
+</body></html>

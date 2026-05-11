@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>U-Ride - Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-primary": "#006f16",
+                        "on-surface": "#ffffff",
+                        "secondary-fixed-dim": "#7aeb9d",
+                        "tertiary-dim": "#00dbec",
+                        "surface-container-highest": "#262626",
+                        "primary": "#9cff93",
+                        "on-tertiary": "#005b63",
+                        "on-tertiary-fixed-variant": "#005c64",
+                        "surface-container": "#1a1919",
+                        "background": "#0e0e0e",
+                        "on-background": "#ffffff",
+                        "on-tertiary-fixed": "#003d42",
+                        "on-tertiary-container": "#005159",
+                        "surface-container-high": "#201f1f",
+                        "tertiary-fixed": "#0eeafd",
+                        "on-secondary": "#005f30",
+                        "tertiary": "#8af2ff",
+                        "on-secondary-container": "#e3ffe5",
+                        "on-secondary-fixed": "#004a24",
+                        "secondary-dim": "#7aeb9d",
+                        "error": "#ff7351",
+                        "surface-container-lowest": "#000000",
+                        "surface-bright": "#2c2c2c",
+                        "outline-variant": "#494847",
+                        "primary-dim": "#00ec3b",
+                        "surface-tint": "#9cff93",
+                        "surface-container-low": "#131313",
+                        "on-primary-fixed-variant": "#006513",
+                        "primary-fixed-dim": "#00ec3b",
+                        "secondary-fixed": "#89faaa",
+                        "on-error": "#450900",
+                        "on-primary-fixed": "#00440a",
+                        "secondary": "#89faaa",
+                        "on-primary-container": "#005a10",
+                        "surface-variant": "#262626",
+                        "tertiary-fixed-dim": "#00dbec",
+                        "inverse-surface": "#fcf8f8",
+                        "secondary-container": "#006d38",
+                        "outline": "#777575",
+                        "tertiary-container": "#0eeafd",
+                        "on-primary": "#006413",
+                        "primary-fixed": "#00fc40",
+                        "error-container": "#b92902",
+                        "inverse-on-surface": "#565554",
+                        "surface": "#0e0e0e",
+                        "on-surface-variant": "#adaaaa",
+                        "surface-dim": "#0e0e0e",
+                        "on-secondary-fixed-variant": "#006a36",
+                        "on-error-container": "#ffd2c8",
+                        "error-dim": "#d53d18",
+                        "primary-container": "#00fc40"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    fontFamily: {
+                        "headline": ["Space Grotesk"],
+                        "display": ["Space Grotesk"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(19, 19, 19, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #9cff93 0%, #00fc40 100%);
+        }
+        .btn-gradient:hover {
+            box-shadow: 0 0 4px 4px rgba(0, 100, 19, 0.2);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body min-h-screen w-full flex items-center justify-center overflow-hidden selection:bg-primary/30 selection:text-primary">
+<!-- Background Texture/Image -->
+<div class="fixed inset-0 z-0 pointer-events-none opacity-30">
+<img alt="Dark geometric abstract" class="w-full h-full object-cover" data-alt="A dark, abstract geometric composition featuring deep black tones and very subtle structural lines suggesting an urban, kinetic environment. The aesthetic is purely structural and organic brutalist, relying on shadow and tonal shifts rather than distinct shapes. The lighting is low-key, creating a deep, void-like background that enhances the foreground elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9el7HZZ25aNGQC_nzFaw73---teVj1xoIx6hJxSAiWcSlbHrNirg7XtSvZSvZp6I6IoP1n9-e6JW4jMz_78GOcgc0SQhY6NFNox7AENcyZKO0ZNqDWEpjXjyyk05p1C_wlxn_0nz4Ab86NyLajg8m2XCxEKnZTWIU5hEZ0OvKd2jgRfG69l517LTnrSjDhIjOtOoc1XyXXN2dXvXqrqaHb8yDdKAimPJGWXKX0mBLKjHFV7K032sE95jy0a_ofedkrrq0ryjqJUc"/>
+</div>
+<!-- Mobile Container (390x844 approx aspect ratio for preview) -->
+<main class="relative z-10 w-full max-w-[390px] min-h-[884px] md:min-h-[844px] md:rounded-xl md:shadow-[0_0_64px_rgba(156,255,147,0.05)] md:my-8 bg-surface flex flex-col overflow-hidden mx-auto border border-outline-variant/10 md:border-outline-variant/20">
+<!-- Header / Logo -->
+<header class="pt-24 pb-12 px-6 flex flex-col items-center justify-center space-y-4">
+<h1 class="font-display font-black text-5xl tracking-tighter text-on-surface">U-Ride</h1>
+<p class="font-label text-sm text-on-surface-variant uppercase tracking-widest">The Academic Kinetic</p>
+</header>
+<!-- Login Form Container -->
+<section class="flex-1 px-6 pb-12 flex flex-col justify-center">
+<form class="space-y-6 w-full max-w-sm mx-auto" onsubmit="event.preventDefault();">
+<!-- Email Input -->
+<div class="space-y-2">
+<label class="block font-label text-sm font-medium text-on-surface-variant ml-1" for="email">Correo Institucional</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">alternate_email</span>
+<input class="w-full bg-surface-container-highest text-on-surface border-0 rounded-xl py-4 pl-12 pr-4 font-body placeholder:text-on-surface-variant/50 focus:ring-0 focus:bg-surface-bright focus:outline-none focus:border focus:border-primary/40 transition-all" id="email" placeholder="estudiante@universidad.edu" type="email"/>
+</div>
+</div>
+<!-- Password Input -->
+<div class="space-y-2">
+<label class="block font-label text-sm font-medium text-on-surface-variant ml-1" for="password">Contraseña</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">lock</span>
+<input class="w-full bg-surface-container-highest text-on-surface border-0 rounded-xl py-4 pl-12 pr-12 font-body placeholder:text-on-surface-variant/50 focus:ring-0 focus:bg-surface-bright focus:outline-none focus:border focus:border-primary/40 transition-all" id="password" placeholder="••••••••" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Forgot Password Link -->
+<div class="flex justify-end pt-1">
+<a class="font-label text-sm text-primary hover:text-primary-container transition-colors" href="#">Olvidé mi contraseña</a>
+</div>
+<!-- Primary CTA -->
+<div class="pt-8">
+<button class="w-full btn-gradient text-on-primary font-headline font-bold text-lg py-4 rounded-xl flex items-center justify-center gap-2 transition-all" type="submit">
+                        Iniciar Sesión
+                        <span class="material-symbols-outlined" data-weight="fill" style="font-variation-settings: 'FILL' 1;">arrow_forward</span>
+</button>
+</div>
+</form>
+</section>
+<!-- Footer Links -->
+<footer class="mt-auto px-6 py-12 flex flex-col items-center justify-center gap-6 glass-panel border-t border-surface-container">
+<div class="flex items-center gap-2 font-label text-sm">
+<span class="text-on-surface-variant">¿No tienes cuenta?</span>
+<a class="text-primary font-semibold hover:text-primary-container transition-colors border-b border-primary/30 pb-0.5" href="#">Registrarse</a>
+</div>
+<div class="flex gap-4 text-on-surface-variant/50 text-xs font-label uppercase tracking-widest">
+<a class="hover:text-on-surface-variant transition-colors" href="#">Términos</a>
+<span>•</span>
+<a class="hover:text-on-surface-variant transition-colors" href="#">Privacidad</a>
+</div>
+</footer>
+</main>
+</body></html>

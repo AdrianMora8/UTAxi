@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Active Trip - U-Ride</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error-container": "#b92902",
+                      "surface-container-lowest": "#000000",
+                      "surface-tint": "#9cff93",
+                      "primary-fixed": "#00fc40",
+                      "on-primary-fixed-variant": "#006513",
+                      "on-surface-variant": "#adaaaa",
+                      "on-background": "#ffffff",
+                      "primary-dim": "#00ec3b",
+                      "error": "#ff7351",
+                      "on-error-container": "#ffd2c8",
+                      "inverse-primary": "#006f16",
+                      "secondary-fixed-dim": "#7aeb9d",
+                      "inverse-surface": "#fcf8f8",
+                      "on-primary-fixed": "#00440a",
+                      "on-secondary-fixed-variant": "#006a36",
+                      "outline": "#777575",
+                      "on-secondary-fixed": "#004a24",
+                      "primary-container": "#00fc40",
+                      "surface-container-low": "#131313",
+                      "surface": "#0e0e0e",
+                      "surface-dim": "#0e0e0e",
+                      "tertiary-dim": "#00dbec",
+                      "background": "#0e0e0e",
+                      "on-tertiary-fixed-variant": "#005c64",
+                      "on-secondary": "#005f30",
+                      "secondary-dim": "#7aeb9d",
+                      "surface-bright": "#2c2c2c",
+                      "inverse-on-surface": "#565554",
+                      "tertiary-fixed": "#0eeafd",
+                      "primary-fixed-dim": "#00ec3b",
+                      "on-surface": "#ffffff",
+                      "on-primary-container": "#005a10",
+                      "on-error": "#450900",
+                      "error-dim": "#d53d18",
+                      "surface-variant": "#262626",
+                      "surface-container-highest": "#262626",
+                      "surface-container-high": "#201f1f",
+                      "outline-variant": "#494847",
+                      "secondary-container": "#006d38",
+                      "on-secondary-container": "#e3ffe5",
+                      "on-tertiary-container": "#005159",
+                      "tertiary-fixed-dim": "#00dbec",
+                      "on-tertiary-fixed": "#003d42",
+                      "primary": "#9cff93",
+                      "secondary-fixed": "#89faaa",
+                      "secondary": "#89faaa",
+                      "tertiary-container": "#0eeafd",
+                      "tertiary": "#8af2ff",
+                      "on-tertiary": "#005b63",
+                      "surface-container": "#1a1919",
+                      "on-primary": "#006413"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                    "10": "2.5rem",
+                    "12": "3rem",
+                    "16": "4rem",
+                    "24": "6rem"
+              },
+              "fontFamily": {
+                      "headline": [
+                              "Space Grotesk"
+                      ],
+                      "display": [
+                              "Space Grotesk"
+                      ],
+                      "body": [
+                              "Inter"
+                      ],
+                      "label": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {}
+      },
+          },
+        }
+      </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body h-screen w-screen overflow-hidden relative flex flex-col md:flex-row">
+<div class="absolute inset-0 z-0 h-[574px] md:h-full md:w-full">
+<img alt="Map view" class="w-full h-full object-cover" data-alt="A highly detailed, immersive dark mode map view of a modern urban city block at night. The map is rendered in deep charcoal and black tones, with street lines subtly glowing in muted cyan and acid green. A stylized, high-tech glowing marker indicates a specific location on the map, emitting a soft aura. The visual style is premium, cinematic, and tech-forward, matching an organic brutalism UI aesthetic with a focus on neon accents against a void-like background." data-location="City Map" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuXAEzU-HYpbYJUFCqNAjRg55DjzJJVwXiknSZ__nWJX74XEr1XOY_H4HpUlt2BewenQhq6A_MJ8X6_sLEG3hesA6ZhREKcM41BAmlxgez4PR1FGd7lVvLL_z8CgDupRZ4hQ1kxVp7CSw_t4P4eNXV0L9xObIMsZpn5DuAkLKnHLNKV3DNvVm7F4QTwy-dJ1RegHrQZHYi9H_vgCnmqjhKJE_juisDG14fZxeVY8MmJ3Se89XhG_W8C-hT0VZ-0OAkN_cWIe0qgCA"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent pointer-events-none md:hidden z-10"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-surface via-transparent to-transparent pointer-events-none hidden md:block z-10"></div>
+</div>
+<div class="absolute top-[30%] left-[50%] -translate-x-1/2 -translate-y-1/2 z-20 flex flex-col items-center">
+<div class="relative flex items-center justify-center">
+<div class="absolute inset-0 rounded-full bg-tertiary opacity-20 blur-md w-16 h-16 scale-150 animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
+<div class="w-12 h-12 bg-surface-container-highest rounded-full flex items-center justify-center relative z-10 shadow-[0_0_24px_rgba(138,242,255,0.4)] border border-tertiary/30">
+<img alt="Car icon" class="w-8 h-8 object-cover rounded-full" data-alt="A small, stylized, high-contrast photograph of a sleek, modern car seen from a slightly elevated angle. The car is dark metallic grey, contrasting with a subtle neon cyan underglow. It is shot against a completely black background, giving it a premium, object-like isolation. The lighting is dramatic and directional, highlighting the car's geometric lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARjx7zMSq2yFtlkljASCj79TCbqIwdibiqkXF634Og5B2BH8VoBpn71YOw5RMG2hSWhLljIrPbCIIxaVKV35l3VQe6LVpWZxO6rrTdGIUKf1niAKEqbTnhzYfEhKXuRYmYnyh5tHZNtjjgFXcls05vmBixxbJURdb6P5CPUr5dYwJtWmJ8TplkrVDDdrOgimSWkD59Y7zXd2Gmszb9gr3mjmVctZoXwnqYHClxVmDB9Ba7CD4yG1XEuvBDih0S9991IoM_mioxyLY"/>
+</div>
+</div>
+<div class="mt-2 bg-surface-container-highest px-3 py-1 rounded-full text-xs font-label text-on-surface shadow-lg border border-outline-variant/15 flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+            ETA 4 Min
+        </div>
+</div>
+<div class="absolute top-6 left-6 z-30">
+<button class="w-12 h-12 rounded-full bg-surface-container-low/70 backdrop-blur-md flex items-center justify-center text-on-surface shadow-lg hover:bg-surface-variant transition-colors group">
+<span class="material-symbols-outlined text-2xl group-hover:-translate-x-1 transition-transform">arrow_back</span>
+</button>
+</div>
+<div class="absolute bottom-0 w-full md:w-[400px] md:right-8 md:top-1/2 md:-translate-y-1/2 md:bottom-auto z-30">
+<div class="bg-surface-container-low/80 backdrop-blur-[20px] rounded-t-[2rem] md:rounded-[2rem] p-6 pt-2 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] md:shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-t border-outline-variant/15 md:border h-full flex flex-col relative">
+<div class="w-12 h-1.5 bg-surface-variant rounded-full mx-auto my-3 md:hidden"></div>
+<div class="flex justify-between items-end mb-6 mt-4">
+<div>
+<p class="font-label text-on-surface-variant text-sm mb-1 uppercase tracking-wider">En Camino</p>
+<h1 class="font-headline text-3xl font-bold text-on-surface leading-tight tracking-tight">Llegando<br/>en 4 min</h1>
+</div>
+<div class="text-right">
+<p class="font-label text-on-surface-variant text-xs mb-1">Destino</p>
+<p class="font-body font-medium text-on-surface">Campus Central</p>
+</div>
+</div>
+<div class="bg-surface-container rounded-xl p-4 flex items-center gap-4 mb-4 relative overflow-hidden group hover:bg-surface-variant transition-colors cursor-pointer">
+<div class="relative">
+<img alt="Driver" class="w-14 h-14 rounded-full object-cover border-2 border-surface-container" data-alt="A close-up portrait of a young adult male with a neutral, professional expression. He is wearing a dark, textured academic jacket. The lighting is moody and high-contrast, with a subtle acid green rim light catching the edge of his jawline against a pitch-black background. The style is raw, editorial, and urban." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmXVkbd5H6gf4oVJv5JnWCoVdsn2rR1g6_L946QHFzbgXHOUKOKoxl5g-wCJavjAMXRw1iCe2pFIHSIf-RGvdVUW-Cj9jUvUTIfusg7uRMzA7nyzDYDUY0Cucegpf6_6FByyKu2suz3Rl2XWnm3xlEbxYWlnGFJKxDrnTawxcObKW9Cb0ejlstyZ6UAWeW_NnZ7LcbyPoTDtVs392i8l9ZEWhYaGXzCDDXQV0LFhrPxeALALXaYzdnvX6E3napZ-I_P1RIVBpHYfk"/>
+<div class="absolute -bottom-1 -right-1 bg-surface-container-highest px-1.5 py-0.5 rounded-full flex items-center gap-0.5 border border-surface">
+<span class="material-symbols-outlined text-[10px] text-tertiary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-[10px] font-bold text-on-surface">4.9</span>
+</div>
+</div>
+<div class="flex-1">
+<h3 class="font-headline font-bold text-lg text-on-surface">Mateo C.</h3>
+<p class="font-body text-on-surface-variant text-sm">Toyota Corolla \u2022 GRS-241</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-primary group-hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">call</span>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto pr-2 pb-24 md:pb-0 scrollbar-hide space-y-4">
+<div class="bg-surface text-on-surface p-4 rounded-xl relative pl-10 border border-outline-variant/10">
+<div class="absolute left-4 top-4 bottom-4 w-[2px] bg-surface-variant rounded-full"></div>
+<div class="relative flex items-center gap-3 mb-4">
+<div class="absolute -left-[29px] w-4 h-4 rounded-full bg-surface border-2 border-tertiary z-10"></div>
+<div>
+<p class="font-label text-on-surface-variant text-xs">Punto de Recogida</p>
+<p class="font-body font-medium">Biblioteca Norte</p>
+</div>
+<span class="ml-auto text-xs font-bold text-tertiary">08:45 AM</span>
+</div>
+<div class="relative flex items-center gap-3">
+<div class="absolute -left-[29px] w-4 h-4 rounded-full bg-surface border-2 border-primary z-10 flex items-center justify-center">
+<div class="w-1.5 h-1.5 bg-primary rounded-full"></div>
+</div>
+<div>
+<p class="font-label text-on-surface-variant text-xs">Destino Final</p>
+<p class="font-body font-medium">Campus Central</p>
+</div>
+<span class="ml-auto text-xs text-on-surface-variant">09:12 AM</span>
+</div>
+</div>
+<div class="flex gap-3 mt-4">
+<button class="flex-1 bg-surface-container hover:bg-surface-variant text-on-surface font-body font-medium py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">share_location</span>
+                         Compartir Ruta
+                     </button>
+<button class="w-12 h-12 bg-error-container hover:bg-error-dim text-on-error-container rounded-xl flex items-center justify-center transition-colors shrink-0 shadow-[0_0_15px_rgba(185,41,2,0.3)]">
+<span class="material-symbols-outlined">sos</span>
+</button>
+</div>
+</div>
+<div class="absolute bottom-6 left-6 right-6 md:static md:mt-6">
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-lg py-4 rounded-xl shadow-[0_0_32px_rgba(156,255,147,0.15)] hover:shadow-[0_0_20px_rgba(156,255,147,0.3)] transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                    Confirmar Abordaje
+                </button>
+</div>
+</div>
+</div>
+</body></html>

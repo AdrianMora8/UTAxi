@@ -23,11 +23,55 @@ export interface DestinationValue {
   lng: number
 }
 
+interface SearchResult {
+  displayName: string
+  lat: number
+  lng: number
+}
+
 interface NominatimResult {
   place_id: number
   display_name: string
+  name?: string
   lat: string
   lon: string
+  address?: {
+    amenity?: string
+    leisure?: string
+    shop?: string
+    road?: string
+    pedestrian?: string
+    footway?: string
+    suburb?: string
+    neighbourhood?: string
+    quarter?: string
+    city?: string
+    town?: string
+    village?: string
+  }
+}
+
+function nominatimToResult(item: NominatimResult): SearchResult {
+  const a = item.address ?? {}
+  const road = a.road ?? a.pedestrian ?? a.footway
+  const name = item.name ?? a.amenity ?? a.leisure ?? a.shop
+  const parts: string[] = []
+  if (name && name !== road) parts.push(name)
+  if (road) parts.push(road)
+  if (parts.length === 0) { const s = a.suburb ?? a.neighbourhood ?? a.quarter; if (s) parts.push(s) }
+  const city = a.city ?? a.town ?? a.village
+  if (city) parts.push(city)
+  return {
+    displayName: parts.join(', ') || item.display_name,
+    lat: parseFloat(item.lat),
+    lng: parseFloat(item.lon),
+  }
+}
+
+function distKm(la1: number, lo1: number, la2: number, lo2: number): number {
+  const dLa = (la2 - la1) * Math.PI / 180, dLo = (lo2 - lo1) * Math.PI / 180
+  const a = Math.sin(dLa/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 
 interface Props {
@@ -65,7 +109,7 @@ async function reverseGeocode(lat: number, lng: number): Promise<string> {
 
 export default function DestinationPickerField({ value, onChange, error }: Props) {
   const [query, setQuery] = useState('')
-  const [suggestions, setSuggestions] = useState<NominatimResult[]>([])
+  const [suggestions, setSuggestions] = useState<SearchResult[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [pinPos, setPinPos] = useState<[number, number] | null>(
     value ? [value.lat, value.lng] : null,
@@ -74,7 +118,7 @@ export default function DestinationPickerField({ value, onChange, error }: Props
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const markerRef = useRef<L.Marker | null>(null)
 
-  // Debounced Nominatim search
+  // Debounced search (intersection via Overpass, otherwise Nominatim)
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     if (query.trim().length < 3) { setSuggestions([]); return }
@@ -82,10 +126,36 @@ export default function DestinationPickerField({ value, onChange, error }: Props
     debounceRef.current = setTimeout(async () => {
       setLoadingSuggestions(true)
       try {
-        const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&countrycodes=ec&accept-language=es`,
+        const lastWord = (s: string) => {
+          const words = s.trim().replace(/^(avenida|calle|av\.?|pasaje)\s+/i, '').split(/\s+/)
+          return words[words.length - 1] || s.trim()
+        }
+        const intMatch = query.match(/^(.+?)\s*(?:,\s*(?:y\s+)?|\s+y\s+)(.+)$/i)
+        if (intMatch) {
+          const s1 = intMatch[1].trim(), s2 = intMatch[2].trim()
+          if (s1.length >= 2 && s2.length >= 2) {
+            const k1 = lastWord(s1), k2 = lastWord(s2)
+            const bbox = '-1.45,-78.85,-1.10,-78.35'
+            const oq = `[out:json][timeout:20];way["name"~"${k1}",i]["highway"](${bbox})->.a;way["name"~"${k2}",i]["highway"](${bbox})->.b;node(w.b)->.bn;(node(w.a)(w.b);node(w.a)(around.bn:20););out;`
+            const ores = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(oq)}`)
+            const odata = await ores.json()
+            const nodes: Array<{ lat: number; lon: number }> = odata.elements ?? []
+            if (nodes.length > 0) {
+              setSuggestions([{ displayName: `${s1} y ${s2}, Ambato`, lat: nodes[0].lat, lng: nodes[0].lon }])
+              return
+            }
+          }
+        }
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ' Ambato Ecuador')}`
+          + `&format=json&limit=7&accept-language=es&addressdetails=1`
+        const res = await fetch(url)
+        const data: NominatimResult[] = await res.json()
+        setSuggestions(
+          (data ?? [])
+            .sort((a, b) => distKm(AMBATO[0], AMBATO[1], parseFloat(a.lat), parseFloat(a.lon))
+              - distKm(AMBATO[0], AMBATO[1], parseFloat(b.lat), parseFloat(b.lon)))
+            .map(nominatimToResult)
         )
-        setSuggestions(await res.json())
       } catch {
         setSuggestions([])
       } finally {
@@ -96,15 +166,13 @@ export default function DestinationPickerField({ value, onChange, error }: Props
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
   }, [query])
 
-  const selectSuggestion = useCallback((item: NominatimResult) => {
-    const lat = parseFloat(item.lat)
-    const lng = parseFloat(item.lon)
-    const pos: [number, number] = [lat, lng]
+  const selectSuggestion = useCallback((item: SearchResult) => {
+    const pos: [number, number] = [item.lat, item.lng]
     setPinPos(pos)
     setFlyTo(pos)
     setSuggestions([])
     setQuery('')
-    onChange({ address: item.display_name, lat, lng })
+    onChange({ address: item.displayName, lat: item.lat, lng: item.lng })
   }, [onChange])
 
   const handleMapClick = useCallback(async (lat: number, lng: number) => {
@@ -155,16 +223,16 @@ export default function DestinationPickerField({ value, onChange, error }: Props
         {/* Suggestions dropdown */}
         {suggestions.length > 0 && (
           <ul className="absolute top-full left-0 right-0 z-[9999] mt-1 bg-surface-container rounded-xl border border-white/5 overflow-hidden shadow-2xl">
-            {suggestions.map((s) => (
+            {suggestions.map((s, i) => (
               <li
-                key={s.place_id}
+                key={i}
                 onClick={() => selectSuggestion(s)}
                 className="px-4 py-3 text-sm text-on-surface-variant hover:bg-surface-container-high cursor-pointer border-b border-white/5 last:border-0 leading-snug"
               >
                 <span className="material-symbols-outlined text-sm text-tertiary align-middle mr-2">
                   location_on
                 </span>
-                {s.display_name}
+                {s.displayName}
               </li>
             ))}
           </ul>

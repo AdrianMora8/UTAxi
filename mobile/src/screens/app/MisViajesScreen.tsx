@@ -51,6 +51,7 @@ function TripRequestCard({
   onRate,
   onRetry,
   retrying,
+  onPay,
 }: {
   item: TripRequest;
   onCancel: (id: string) => void;
@@ -58,6 +59,7 @@ function TripRequestCard({
   onRate: (requestId: string, driverName: string) => void;
   onRetry: (tripId: string) => void;
   retrying: boolean;
+  onPay: (requestId: string) => void;
 }) {
   const isCompleted = item.status === 'COMPLETED';
   const isRejected = item.status === 'REJECTED';
@@ -67,6 +69,11 @@ function TripRequestCard({
   const isAccepted = item.status === 'ACCEPTED';
   const canRate = isCompleted && !item.rating;
   const canRetry = isRejected && (item.rejectionCount ?? 0) < MAX_REJECTIONS;
+
+  const tripInProgress = item.trip?.status === 'IN_PROGRESS';
+  const alreadyPaid = !!item.payment;
+  const canPayBefore = isAccepted && !tripInProgress && !alreadyPaid;
+  const canPayDuring = isAccepted && tripInProgress && !alreadyPaid;
 
   const trip = item.trip;
   const driver = trip?.driver;
@@ -148,7 +155,7 @@ function TripRequestCard({
             {trip?.departureTime ? formatDateTime(trip.departureTime) : '—'}
           </Text>
           <Text style={[styles.priceText, isDimmed && styles.priceStrike]}>
-            ${trip?.pricePerSeat?.toFixed(2) ?? '0.00'}
+            ${trip?.pricePerSeat != null ? parseFloat(String(trip.pricePerSeat)).toFixed(2) : '0.00'}
           </Text>
         </View>
 
@@ -207,6 +214,27 @@ function TripRequestCard({
             <Ionicons name="ban-outline" size={14} color="#ff6b4a" />
             <Text style={styles.blockedText}>Bloqueado</Text>
           </View>
+        )}
+
+        {alreadyPaid && isAccepted && (
+          <View style={styles.paidBadge}>
+            <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
+            <Text style={styles.paidText}>PAGADO</Text>
+          </View>
+        )}
+
+        {canPayBefore && (
+          <TouchableOpacity style={styles.payBeforeBtn} onPress={() => onPay(item.id)}>
+            <Ionicons name="card-outline" size={14} color="#1a1a1a" />
+            <Text style={styles.payBeforeText}>Pagar reserva</Text>
+          </TouchableOpacity>
+        )}
+
+        {canPayDuring && (
+          <TouchableOpacity style={styles.payNowBtn} onPress={() => onPay(item.id)}>
+            <Ionicons name="card" size={14} color={colors.primaryDark} />
+            <Text style={styles.payNowText}>Pagar ahora</Text>
+          </TouchableOpacity>
         )}
       </View>
     </View>
@@ -346,6 +374,7 @@ export default function MisViajesScreen({ navigation }: Props) {
               onRate={(requestId, driverName) => setRatingTarget({ requestId, driverName })}
               onRetry={retryRequest}
               retrying={retryingTripId === item.trip?.id}
+              onPay={() => Alert.alert('Pago próximamente', 'La funcionalidad de pago estará disponible muy pronto.')}
             />
           )}
           contentContainerStyle={styles.list}
@@ -647,5 +676,48 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
     color: '#ff6b4a',
+  },
+  paidBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#1a3322',
+  },
+  paidText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
+    color: colors.primary,
+    letterSpacing: 0.5,
+  },
+  payBeforeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#f5c518',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  payBeforeText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: '#1a1a1a',
+  },
+  payNowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  payNowText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDark,
   },
 });

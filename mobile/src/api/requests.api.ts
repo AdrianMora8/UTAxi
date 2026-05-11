@@ -20,13 +20,18 @@ export interface TripRequest {
   trip?: {
     id: string;
     originZone: string;
+    originLat?: number | null;
+    originLng?: number | null;
     destinationZone: string;
+    destLat?: number | null;
+    destLng?: number | null;
     departureTime: string;
     pricePerSeat: number;
     status: string;
     driver?: { id: string; fullName: string; reputationScore: number };
   };
   rating?: { id: string; score: number; comment?: string | null } | null;
+  payment?: { id: string; amount: number; status: string } | null;
 }
 
 export const requestsApi = {

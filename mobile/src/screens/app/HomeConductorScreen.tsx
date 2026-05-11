@@ -7,8 +7,9 @@ import {
   ActivityIndicator,
   RefreshControl,
   Alert,
+  Animated,
 } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -19,6 +20,7 @@ import { colors, fonts } from '../../theme';
 import { tripsApi, Trip } from '../../api/trips.api';
 import { useAuthStore } from '../../store/authStore';
 import type { PublicarStackParamList } from '../../navigation/MainTabs';
+import { useLocationTracking } from '../../hooks/useLocationTracking';
 
 type NavProp = NativeStackNavigationProp<PublicarStackParamList, 'HomeConductor'>;
 
@@ -45,6 +47,33 @@ function statusConfig(status: Trip['status']) {
   }
 }
 
+function PulsingDot() {
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.2, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 800, useNativeDriver: true }),
+      ])
+    );
+    anim.start();
+    return () => anim.stop();
+  }, [opacity]);
+
+  return <Animated.View style={[styles.pulsingDot, { opacity }]} />;
+}
+
+function ActiveTripTracker({ tripId }: { tripId: string }) {
+  useLocationTracking(tripId);
+  return (
+    <View style={styles.trackingBanner}>
+      <PulsingDot />
+      <Text style={styles.trackingText}>Transmitiendo ubicación</Text>
+    </View>
+  );
+}
+
 function TripCard({
   trip,
   onManage,
@@ -52,6 +81,7 @@ function TripCard({
   onComplete,
   onEdit,
   onCancel,
+  onViewMap,
 }: {
   trip: Trip;
   onManage: () => void;
@@ -59,6 +89,7 @@ function TripCard({
   onComplete: () => void;
   onEdit: () => void;
   onCancel: () => void;
+  onViewMap: () => void;
 }) {
   const cfg = statusConfig(trip.status);
   const accepted = trip.totalSeats - trip.availableSeats;
@@ -91,11 +122,19 @@ function TripCard({
         </Text>
       </View>
 
+      {isInProgress && <ActiveTripTracker tripId={trip.id} />}
+
       <View style={styles.cardActions}>
         {isScheduled && (
           <TouchableOpacity style={styles.actionBtnGreen} onPress={onStart}>
             <Ionicons name="play" size={14} color={colors.primaryDark} />
             <Text style={styles.actionBtnGreenText}>Iniciar</Text>
+          </TouchableOpacity>
+        )}
+        {isInProgress && (
+          <TouchableOpacity style={styles.actionBtnMap} onPress={onViewMap}>
+            <Ionicons name="navigate-outline" size={14} color={colors.primaryDark} />
+            <Text style={styles.actionBtnMapText}>Ver mapa</Text>
           </TouchableOpacity>
         )}
         {isInProgress && (
@@ -280,6 +319,14 @@ export default function HomeConductorScreen() {
             onComplete={() => handleComplete(item.id)}
             onEdit={() => navigation.navigate('EditTrip', { tripId: item.id })}
             onCancel={() => handleCancel(item.id)}
+            onViewMap={() => navigation.navigate('TripTracking', {
+              tripId: item.id,
+              driverName: user?.fullName ?? 'Conductor',
+              destZone: item.destinationZone,
+              destLat: item.destLat ?? undefined,
+              destLng: item.destLng ?? undefined,
+              isDriver: true,
+            })}
           />
         )}
         contentContainerStyle={styles.list}
@@ -539,6 +586,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  actionBtnMap: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    height: 36,
+  },
+  actionBtnMapText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDark,
+  },
   actionBtnComplete: {
     flex: 1,
     flexDirection: 'row',
@@ -573,5 +635,25 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 13,
     color: colors.textDim,
+  },
+  trackingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#1a3322',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+  },
+  pulsingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.primary,
+  },
+  trackingText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.primary,
   },
 });

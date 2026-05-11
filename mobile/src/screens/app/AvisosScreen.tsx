@@ -12,6 +12,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState } from 'react';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { AvisosStackParamList } from '../../navigation/MainTabs';
 import { colors, fonts } from '../../theme';
 import { requestsApi, TripRequest } from '../../api/requests.api';
 
@@ -48,16 +50,25 @@ function RequestCard({
   item,
   onCancel,
   cancelling,
+  onTrack,
+  onPay,
 }: {
   item: TripRequest;
   onCancel: (id: string) => void;
   cancelling: boolean;
+  onTrack: (item: TripRequest) => void;
+  onPay: (requestId: string) => void;
 }) {
   const trip = item.trip;
   const driver = trip?.driver;
   const badge = STATUS_CONFIG[item.status] ?? STATUS_CONFIG.PENDING;
   const isPending = item.status === 'PENDING';
   const isCancelled = item.status === 'CANCELLED' || item.status === 'REJECTED';
+  const isAccepted = item.status === 'ACCEPTED';
+  const canTrack = isAccepted && trip?.status === 'IN_PROGRESS';
+  const alreadyPaid = !!item.payment;
+  const canPayBefore = isAccepted && trip?.status !== 'IN_PROGRESS' && !alreadyPaid;
+  const canPayDuring = isAccepted && trip?.status === 'IN_PROGRESS' && !alreadyPaid;
 
   function handleCancel() {
     Alert.alert(
@@ -133,29 +144,61 @@ function RequestCard({
             {trip?.departureTime ? formatDateTime(trip.departureTime) : '—'}
           </Text>
           <Text style={[styles.priceText, isCancelled && styles.priceStrike]}>
-            ${trip?.pricePerSeat?.toFixed(2) ?? '0.00'}
+            ${trip?.pricePerSeat != null ? parseFloat(String(trip.pricePerSeat)).toFixed(2) : '0.00'}
           </Text>
         </View>
 
-        {isPending && (
-          <TouchableOpacity
-            style={styles.cancelBtn}
-            onPress={handleCancel}
-            disabled={cancelling}
-          >
-            {cancelling ? (
-              <ActivityIndicator size="small" color="#ff6b4a" />
-            ) : (
-              <Text style={styles.cancelBtnText}>Cancelar</Text>
-            )}
-          </TouchableOpacity>
-        )}
+        <View style={styles.actionsCol}>
+          {canTrack && (
+            <TouchableOpacity style={styles.trackBtn} onPress={() => onTrack(item)}>
+              <Ionicons name="navigate-outline" size={14} color={colors.primaryDark} />
+              <Text style={styles.trackBtnText}>Ver en mapa</Text>
+            </TouchableOpacity>
+          )}
+
+          {canPayDuring && (
+            <TouchableOpacity style={styles.payNowBtn} onPress={() => onPay(item.id)}>
+              <Ionicons name="card" size={14} color={colors.primaryDark} />
+              <Text style={styles.payNowText}>Pagar ahora</Text>
+            </TouchableOpacity>
+          )}
+
+          {canPayBefore && (
+            <TouchableOpacity style={styles.payBeforeBtn} onPress={() => onPay(item.id)}>
+              <Ionicons name="card-outline" size={14} color="#1a1a1a" />
+              <Text style={styles.payBeforeText}>Pagar reserva</Text>
+            </TouchableOpacity>
+          )}
+
+          {alreadyPaid && isAccepted && (
+            <View style={styles.paidBadge}>
+              <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
+              <Text style={styles.paidText}>PAGADO</Text>
+            </View>
+          )}
+
+          {isPending && (
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={handleCancel}
+              disabled={cancelling}
+            >
+              {cancelling ? (
+                <ActivityIndicator size="small" color="#ff6b4a" />
+              ) : (
+                <Text style={styles.cancelBtnText}>Cancelar</Text>
+              )}
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     </View>
   );
 }
 
-export default function AvisosScreen() {
+type Props = NativeStackScreenProps<AvisosStackParamList, 'Avisos'>;
+
+export default function AvisosScreen({ navigation }: Props) {
   const [tab, setTab] = useState<Tab>('activas');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -242,6 +285,14 @@ export default function AvisosScreen() {
               item={item}
               onCancel={cancelRequest}
               cancelling={cancellingId === item.id}
+              onPay={() => Alert.alert('Pago próximamente', 'La funcionalidad de pago estará disponible muy pronto.')}
+              onTrack={(req) => navigation.navigate('TripTracking', {
+                tripId: req.trip!.id,
+                driverName: req.trip?.driver?.fullName ?? 'Conductor',
+                destZone: req.trip?.destinationZone ?? '',
+                destLat: req.trip?.destLat ?? undefined,
+                destLng: req.trip?.destLng ?? undefined,
+              })}
             />
           )}
           ListEmptyComponent={
@@ -519,5 +570,66 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemiBold,
     fontSize: 13,
     color: '#ff6b4a',
+  },
+  trackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  trackBtnText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDark,
+  },
+  actionsCol: {
+    gap: 6,
+    alignItems: 'flex-end',
+  },
+  paidBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#1a3322',
+  },
+  paidText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
+    color: colors.primary,
+    letterSpacing: 0.5,
+  },
+  payBeforeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#f5c518',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  payBeforeText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: '#1a1a1a',
+  },
+  payNowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  payNowText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDark,
   },
 });

@@ -17,6 +17,7 @@ import VehicleScreen from '../screens/app/VehicleScreen';
 import SolicitudesScreen from '../screens/app/SolicitudesScreen';
 import EditTripScreen from '../screens/app/EditTripScreen';
 import LocationPickerScreen from '../screens/app/LocationPickerScreen';
+import TripTrackingScreen from '../screens/app/TripTrackingScreen';
 
 export type BuscarStackParamList = {
   HomePasajero: undefined;
@@ -29,6 +30,14 @@ export type PublicarStackParamList = {
   EditTrip: { tripId: string };
   Solicitudes: { tripId: string };
   LocationPicker: undefined;
+  TripTracking: {
+    tripId: string;
+    driverName: string;
+    destZone: string;
+    destLat?: number;
+    destLng?: number;
+    isDriver?: boolean;
+  };
 };
 
 export type PerfilStackParamList = {
@@ -38,9 +47,22 @@ export type PerfilStackParamList = {
   Vehicle: undefined;
 };
 
+export type AvisosStackParamList = {
+  Avisos: undefined;
+  TripTracking: {
+    tripId: string;
+    driverName: string;
+    destZone: string;
+    destLat?: number;
+    destLng?: number;
+    isDriver?: boolean;
+  };
+};
+
 const BuscarStack = createNativeStackNavigator<BuscarStackParamList>();
 const PublicarStack = createNativeStackNavigator<PublicarStackParamList>();
 const PerfilStack = createNativeStackNavigator<PerfilStackParamList>();
+const AvisosStack = createNativeStackNavigator<AvisosStackParamList>();
 const Tab = createBottomTabNavigator();
 
 function BuscarNavigator() {
@@ -64,6 +86,7 @@ function PublicarNavigator() {
         component={LocationPickerScreen}
         options={{ animation: 'slide_from_bottom' }}
       />
+      <PublicarStack.Screen name="TripTracking" component={TripTrackingScreen} />
     </PublicarStack.Navigator>
   );
 }
@@ -76,6 +99,15 @@ function PerfilNavigator() {
       <PerfilStack.Screen name="EditProfile" component={EditProfileScreen} />
       <PerfilStack.Screen name="Vehicle" component={VehicleScreen} />
     </PerfilStack.Navigator>
+  );
+}
+
+function AvisosNavigator() {
+  return (
+    <AvisosStack.Navigator screenOptions={{ headerShown: false }}>
+      <AvisosStack.Screen name="Avisos" component={AvisosScreen} />
+      <AvisosStack.Screen name="TripTracking" component={TripTrackingScreen} />
+    </AvisosStack.Navigator>
   );
 }
 
@@ -123,7 +155,7 @@ export default function MainTabs() {
       {hasVehicle && (
         <Tab.Screen name="Publicar" component={PublicarNavigator} />
       )}
-      <Tab.Screen name="Avisos"   component={AvisosScreen} />
+      <Tab.Screen name="Avisos"   component={AvisosNavigator} />
       <Tab.Screen name="Perfil"   component={PerfilNavigator} />
     </Tab.Navigator>
   );

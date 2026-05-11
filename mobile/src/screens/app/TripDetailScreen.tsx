@@ -218,7 +218,7 @@ export default function TripDetailScreen({ navigation, route }: Props) {
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
               <Ionicons name="cash-outline" size={22} color={colors.primary} />
-              <Text style={styles.statValue}>${data.pricePerSeat.toFixed(2)}</Text>
+              <Text style={styles.statValue}>${parseFloat(String(data.pricePerSeat)).toFixed(2)}</Text>
               <Text style={styles.statLabel}>Aporte sugerido</Text>
             </View>
             <View style={styles.statDivider} />

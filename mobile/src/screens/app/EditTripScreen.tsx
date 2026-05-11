@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,13 +15,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, fonts } from '../../theme';
 import { tripsApi } from '../../api/trips.api';
 import type { PublicarStackParamList } from '../../navigation/MainTabs';
 import CampusPicker from '../../components/CampusPicker';
 import { type Campus, findCampusByLabel, CAMPUSES } from '../../constants/campuses';
+import { useLocationPickerStore } from '../../store/locationPickerStore';
 
 type NavProp = NativeStackNavigationProp<PublicarStackParamList, 'EditTrip'>;
 type RouteProp = NativeStackScreenProps<PublicarStackParamList, 'EditTrip'>['route'];
@@ -43,6 +44,8 @@ export default function EditTripScreen() {
 
   const [campus, setCampus] = useState<Campus | null>(null);
   const [destination, setDestination] = useState('');
+  const [destLat, setDestLat] = useState<number | undefined>();
+  const [destLng, setDestLng] = useState<number | undefined>();
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
   const [showDate, setShowDate] = useState(false);
@@ -50,6 +53,20 @@ export default function EditTripScreen() {
   const [seats, setSeats] = useState(3);
   const [price, setPrice] = useState('');
   const [ready, setReady] = useState(false);
+
+  const locationResult = useLocationPickerStore((s) => s.result);
+  const clearLocation = useLocationPickerStore((s) => s.clear);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (locationResult) {
+        setDestination(locationResult.address);
+        setDestLat(locationResult.lat);
+        setDestLng(locationResult.lng);
+        clearLocation();
+      }
+    }, [locationResult])
+  );
 
   const { data: tripData } = useQuery({
     queryKey: ['trip', tripId],
@@ -62,6 +79,8 @@ export default function EditTripScreen() {
       const matched = findCampusByLabel(tripData.originZone) ?? CAMPUSES[0];
       setCampus(matched);
       setDestination(tripData.destinationZone);
+      if (tripData.destLat) setDestLat(tripData.destLat);
+      if (tripData.destLng) setDestLng(tripData.destLng);
       const d = new Date(tripData.departureTime);
       setDate(d);
       setTime(d);
@@ -80,6 +99,8 @@ export default function EditTripScreen() {
         originLat: campus!.lat,
         originLng: campus!.lng,
         destinationZone: destination.trim(),
+        destLat,
+        destLng,
         departureTime: departure.toISOString(),
         totalSeats: seats,
         pricePerSeat: parseFloat(price) || 0,
@@ -153,16 +174,24 @@ export default function EditTripScreen() {
         {/* Destino */}
         <View style={styles.fieldBlock}>
           <SectionLabel icon="location-outline" label="DESTINO" />
-          <View style={styles.inputRow}>
-            <TextInput
-              style={styles.input}
-              placeholder="Calle, Barrio, Sector..."
-              placeholderTextColor={colors.textDim}
-              value={destination}
-              onChangeText={setDestination}
-              autoCapitalize="words"
+          <TouchableOpacity
+            style={[styles.inputRow, styles.destinationBtn]}
+            onPress={() => navigation.navigate('LocationPicker')}
+            activeOpacity={0.75}
+          >
+            <Ionicons
+              name={destination ? 'location' : 'location-outline'}
+              size={18}
+              color={destination ? colors.primary : colors.textDim}
             />
-          </View>
+            <Text
+              style={[styles.input, !destination && { color: colors.textDim }]}
+              numberOfLines={1}
+            >
+              {destination || 'Toca para elegir en el mapa...'}
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.textDim} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.rowFields}>
@@ -355,6 +384,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
   },
+  destinationBtn: { paddingHorizontal: 14, height: 52 },
   priceCard: { backgroundColor: colors.surfaceContainer, borderRadius: 12 },
   priceCurrency: {
     fontFamily: fonts.display,

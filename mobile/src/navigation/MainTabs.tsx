@@ -16,6 +16,7 @@ import EditProfileScreen from '../screens/app/EditProfileScreen';
 import VehicleScreen from '../screens/app/VehicleScreen';
 import SolicitudesScreen from '../screens/app/SolicitudesScreen';
 import EditTripScreen from '../screens/app/EditTripScreen';
+import LocationPickerScreen from '../screens/app/LocationPickerScreen';
 
 export type BuscarStackParamList = {
   HomePasajero: undefined;
@@ -27,6 +28,7 @@ export type PublicarStackParamList = {
   CreateTrip: undefined;
   EditTrip: { tripId: string };
   Solicitudes: { tripId: string };
+  LocationPicker: undefined;
 };
 
 export type PerfilStackParamList = {
@@ -57,6 +59,11 @@ function PublicarNavigator() {
       <PublicarStack.Screen name="CreateTrip" component={CreateTripScreen} />
       <PublicarStack.Screen name="EditTrip" component={EditTripScreen} />
       <PublicarStack.Screen name="Solicitudes" component={SolicitudesScreen} />
+      <PublicarStack.Screen
+        name="LocationPicker"
+        component={LocationPickerScreen}
+        options={{ animation: 'slide_from_bottom' }}
+      />
     </PublicarStack.Navigator>
   );
 }

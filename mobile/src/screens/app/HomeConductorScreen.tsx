@@ -6,10 +6,11 @@ import {
   FlatList,
   ActivityIndicator,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -43,14 +44,30 @@ function statusConfig(status: Trip['status']) {
   }
 }
 
-function TripCard({ trip, onManage }: { trip: Trip; onManage: () => void }) {
+function TripCard({
+  trip,
+  onManage,
+  onStart,
+  onComplete,
+  onEdit,
+  onCancel,
+}: {
+  trip: Trip;
+  onManage: () => void;
+  onStart: () => void;
+  onComplete: () => void;
+  onEdit: () => void;
+  onCancel: () => void;
+}) {
   const cfg = statusConfig(trip.status);
-  const accepted = (trip.totalSeats - trip.availableSeats);
+  const accepted = trip.totalSeats - trip.availableSeats;
+  const isScheduled = trip.status === 'SCHEDULED';
+  const isInProgress = trip.status === 'IN_PROGRESS';
 
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
-        <View style={[styles.tripIcon, { backgroundColor: trip.status === 'IN_PROGRESS' ? '#1a3322' : colors.surfaceHigh }]}>
+        <View style={[styles.tripIcon, { backgroundColor: isInProgress ? '#1a3322' : colors.surfaceHigh }]}>
           <Ionicons name={cfg.icon} size={20} color={cfg.color} />
         </View>
         <View style={[styles.badge, { backgroundColor: cfg.bg }]}>
@@ -66,16 +83,42 @@ function TripCard({ trip, onManage }: { trip: Trip; onManage: () => void }) {
         <Text style={styles.timeText}>{minutesUntil(trip.departureTime)}</Text>
       </View>
 
-      <View style={styles.cardFooter}>
-        <View style={styles.passengersRow}>
-          <Ionicons name="people-outline" size={16} color={colors.textMuted} />
-          <Text style={styles.passengersText}>
-            {accepted}/{trip.totalSeats} Pasajeros
-          </Text>
-        </View>
-        <TouchableOpacity onPress={onManage}>
-          <Text style={styles.manageText}>Gestionar</Text>
-        </TouchableOpacity>
+      <View style={styles.passengersRow}>
+        <Ionicons name="people-outline" size={16} color={colors.textMuted} />
+        <Text style={styles.passengersText}>
+          {accepted}/{trip.totalSeats} Pasajeros
+        </Text>
+      </View>
+
+      <View style={styles.cardActions}>
+        {isScheduled && (
+          <TouchableOpacity style={styles.actionBtnGreen} onPress={onStart}>
+            <Ionicons name="play" size={14} color={colors.primaryDark} />
+            <Text style={styles.actionBtnGreenText}>Iniciar</Text>
+          </TouchableOpacity>
+        )}
+        {isInProgress && (
+          <TouchableOpacity style={styles.actionBtnComplete} onPress={onComplete}>
+            <Ionicons name="checkmark-circle" size={14} color="#fff" />
+            <Text style={styles.actionBtnCompleteText}>Completar</Text>
+          </TouchableOpacity>
+        )}
+        {isScheduled && (
+          <TouchableOpacity style={styles.actionBtnOutline} onPress={onManage}>
+            <Ionicons name="people-outline" size={14} color={colors.primary} />
+            <Text style={styles.actionBtnOutlineText}>Solicitudes</Text>
+          </TouchableOpacity>
+        )}
+        {isScheduled && (
+          <TouchableOpacity style={styles.actionBtnGhost} onPress={onEdit}>
+            <Ionicons name="create-outline" size={14} color={colors.textMuted} />
+          </TouchableOpacity>
+        )}
+        {isScheduled && (
+          <TouchableOpacity style={styles.actionBtnDanger} onPress={onCancel}>
+            <Ionicons name="trash-outline" size={14} color="#ff6b4a" />
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -84,12 +127,52 @@ function TripCard({ trip, onManage }: { trip: Trip; onManage: () => void }) {
 export default function HomeConductorScreen() {
   const navigation = useNavigation<NavProp>();
   const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['my-trips', user?.id],
     queryFn: () => tripsApi.getMyTrips(user!.id).then(r => r.data),
     enabled: !!user?.id,
   });
+
+  const { mutate: startTrip } = useMutation({
+    mutationFn: (id: string) => tripsApi.updateTripStatus(id, 'IN_PROGRESS'),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-trips'] }),
+    onError: (err: any) => Alert.alert('Error', err?.response?.data?.error || 'No se pudo iniciar el viaje'),
+  });
+
+  const { mutate: cancelTrip } = useMutation({
+    mutationFn: (id: string) => tripsApi.cancelTrip(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-trips'] }),
+    onError: (err: any) => Alert.alert('Error', err?.response?.data?.error || 'No se pudo cancelar el viaje'),
+  });
+
+  const { mutate: completeTrip } = useMutation({
+    mutationFn: (id: string) => tripsApi.updateTripStatus(id, 'COMPLETED'),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-trips'] }),
+    onError: (err: any) => Alert.alert('Error', err?.response?.data?.error || 'No se pudo completar el viaje'),
+  });
+
+  function handleStart(id: string) {
+    Alert.alert('Iniciar viaje', '¿Estás listo para iniciar este viaje?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Iniciar', onPress: () => startTrip(id) },
+    ]);
+  }
+
+  function handleCancel(id: string) {
+    Alert.alert('Cancelar viaje', '¿Seguro que quieres cancelar este viaje? Esta acción notificará a los pasajeros.', [
+      { text: 'No', style: 'cancel' },
+      { text: 'Sí, cancelar', style: 'destructive', onPress: () => cancelTrip(id) },
+    ]);
+  }
+
+  function handleComplete(id: string) {
+    Alert.alert('Completar viaje', '¿Confirmas que el viaje ha finalizado?', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Sí, completar', onPress: () => completeTrip(id) },
+    ]);
+  }
 
   const trips = data?.trips ?? [];
   const activeTrips = trips.filter(t => t.status === 'SCHEDULED' || t.status === 'IN_PROGRESS');
@@ -163,6 +246,10 @@ export default function HomeConductorScreen() {
           <TripCard
             trip={item}
             onManage={() => navigation.navigate('Solicitudes', { tripId: item.id })}
+            onStart={() => handleStart(item.id)}
+            onComplete={() => handleComplete(item.id)}
+            onEdit={() => navigation.navigate('EditTrip', { tripId: item.id })}
+            onCancel={() => handleCancel(item.id)}
           />
         )}
         contentContainerStyle={styles.list}
@@ -324,15 +411,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textMuted,
   },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: colors.surfaceHigh,
-    paddingTop: 10,
-    marginTop: 2,
-  },
   passengersRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -343,10 +421,75 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textMuted,
   },
-  manageText: {
+  cardActions: {
+    flexDirection: 'row',
+    gap: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceHigh,
+    paddingTop: 10,
+    marginTop: 2,
+  },
+  actionBtnGreen: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    height: 36,
+  },
+  actionBtnGreenText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDark,
+  },
+  actionBtnOutline: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 10,
+    height: 36,
+  },
+  actionBtnOutlineText: {
     fontFamily: fonts.bodySemiBold,
     fontSize: 13,
     color: colors.primary,
+  },
+  actionBtnGhost: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceHigh,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionBtnDanger: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#2a1a15',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionBtnComplete: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    backgroundColor: '#1a5c3a',
+    borderRadius: 10,
+    height: 36,
+  },
+  actionBtnCompleteText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: '#9cff93',
   },
   centered: {
     paddingTop: 40,

@@ -118,6 +118,7 @@ export default function HomePasajeroScreen() {
   const trips = (data?.trips ?? []).filter(t =>
     t.status === 'SCHEDULED' &&
     t.availableSeats > 0 &&
+    t.driverId !== user?.id &&
     (search === '' ||
       t.originZone.toLowerCase().includes(search.toLowerCase()) ||
       t.destinationZone.toLowerCase().includes(search.toLowerCase()))

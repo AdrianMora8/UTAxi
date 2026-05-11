@@ -50,6 +50,19 @@ export async function updateVehicle(req: Request, res: Response) {
   res.json({ vehicle });
 }
 
+export async function uploadVehiclePhoto(req: Request, res: Response) {
+  if (!req.file) throw new Error('No se recibió ninguna imagen');
+
+  const photoUrl = (req.file as any).secure_url ?? (req.file as any).path;
+  const vehicle = await svc.updateVehiclePhoto(req.user!.id, photoUrl);
+  res.json({ vehicle });
+}
+
+export async function deleteVehicle(req: Request, res: Response) {
+  await svc.deleteVehicle(req.user!.id);
+  res.json({ message: 'Vehículo eliminado correctamente' });
+}
+
 export async function getPublicProfile(req: Request, res: Response) {
   const user = await svc.getPublicProfile(String(req.params.id));
   res.json({ user });

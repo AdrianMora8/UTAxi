@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { requestsApi } from '@/api/requests.api'
 import RatingModal from '@/components/ratings/RatingModal'
+import { useNotifications, type RequestUpdatePayload } from '@/hooks/useNotifications'
 
 type TabMode = 'active' | 'history'
 
@@ -17,8 +18,22 @@ const STATUS_LABEL: Record<string, { text: string; className: string }> = {
 export default function MyRequests() {
   const [tab, setTab] = useState<TabMode>('active')
   const [ratingTarget, setRatingTarget] = useState<{ requestId: string; driverName: string } | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
   const navigate = useNavigate()
   const qc = useQueryClient()
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 4000)
+  }, [])
+
+  useNotifications({
+    onRequestUpdate: useCallback((payload: RequestUpdatePayload) => {
+      qc.invalidateQueries({ queryKey: ['my-requests'] })
+      if (payload.status === 'ACCEPTED') showToast('¡Tu solicitud fue aceptada!')
+      else if (payload.status === 'REJECTED') showToast(`Solicitud rechazada (${payload.rejectionCount}/3 intentos)`)
+    }, [qc, showToast]),
+  })
 
   const { data, isLoading } = useQuery({
     queryKey: ['my-requests'],
@@ -28,6 +43,11 @@ export default function MyRequests() {
 
   const cancelMut = useMutation({
     mutationFn: (id: string) => requestsApi.cancelRequest(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['my-requests'] }),
+  })
+
+  const retryMut = useMutation({
+    mutationFn: (tripId: string) => requestsApi.createRequest(tripId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['my-requests'] }),
   })
 
@@ -122,6 +142,8 @@ export default function MyRequests() {
                 const isCompleted = req.status === 'COMPLETED'
                 const hasRating   = !!req.rating
                 const isPaid      = req.payment?.status === 'CONFIRMED'
+                const rejCount    = req.rejectionCount ?? 0
+                const canRetry    = isRejected && rejCount < 3
 
                 return (
                   <div
@@ -230,6 +252,29 @@ export default function MyRequests() {
                             </button>
                           )}
 
+                          {isRejected && (
+                            <div className="flex flex-col items-end gap-2">
+                              <span className="text-xs text-on-surface-variant">
+                                Intentos: {rejCount}/3
+                              </span>
+                              {canRetry ? (
+                                <button
+                                  onClick={() => retryMut.mutate(trip.id)}
+                                  disabled={retryMut.isPending}
+                                  className="flex items-center gap-1.5 bg-gradient-primary text-on-primary font-headline font-bold py-2 px-4 rounded-lg text-xs uppercase tracking-wider hover:shadow-[0_0_16px_rgba(156,255,147,0.3)] transition-all active:scale-95 disabled:opacity-50"
+                                >
+                                  <span className="material-symbols-outlined text-sm">refresh</span>
+                                  Reintentar
+                                </button>
+                              ) : (
+                                <div className="flex items-center gap-1.5 text-error text-xs font-bold border border-error/20 rounded-lg py-2 px-3 bg-error/5">
+                                  <span className="material-symbols-outlined text-sm">block</span>
+                                  Bloqueado
+                                </div>
+                              )}
+                            </div>
+                          )}
+
                           {isCompleted && !hasRating && (
                             <button
                               onClick={() => setRatingTarget({ requestId: req.id, driverName: driver?.fullName ?? 'Conductor' })}
@@ -296,6 +341,14 @@ export default function MyRequests() {
           </div>
         </div>
       </main>
+
+      {/* Toast de notificación en tiempo real */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-surface-container-highest border border-primary/30 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-fade-in">
+          <span className="material-symbols-outlined text-primary text-lg">notifications</span>
+          <span className="text-sm font-bold">{toast}</span>
+        </div>
+      )}
 
       {ratingTarget && (
         <RatingModal

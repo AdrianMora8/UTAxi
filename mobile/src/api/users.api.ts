@@ -7,6 +7,7 @@ export interface Vehicle {
   year: number;
   plateNumber: string;
   color: string;
+  photoUrl?: string | null;
 }
 
 export interface UserProfile {
@@ -53,4 +54,19 @@ export const usersApi = {
 
   updateVehicle: (data: Partial<VehiclePayload>) =>
     apiClient.patch<{ vehicle: Vehicle }>('/users/me/vehicle', data),
+
+  deleteVehicle: () =>
+    apiClient.delete('/users/me/vehicle'),
+
+  uploadVehiclePhoto: (uri: string) => {
+    const form = new FormData();
+    form.append('photo', {
+      uri,
+      type: 'image/jpeg',
+      name: 'vehicle.jpg',
+    } as any);
+    return apiClient.post<{ vehicle: Vehicle }>('/users/me/vehicle/photo', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };

@@ -35,6 +35,9 @@ export function registerTrackingHandlers(io: Server) {
   io.on('connection', (socket: AuthenticatedSocket) => {
     console.log(`[Socket] Conectado: ${socket.data.userId} (${socket.id})`);
 
+    // Cada usuario se une automáticamente a su sala personal para notificaciones
+    socket.join(`user:${socket.data.userId}`);
+
     // ─── Unirse a la sala de un viaje ──────────────────────────────────────
     socket.on('join:trip', async ({ tripId }: { tripId: string }) => {
       if (!tripId) return socket.emit('error', { message: 'tripId requerido' });
@@ -104,4 +107,8 @@ export function setIo(io: Server) {
 
 export function emitToTrip(tripId: string, event: string, data: object) {
   _io?.to(`trip:${tripId}`).emit(event, data);
+}
+
+export function emitToUser(userId: string, event: string, data: object) {
+  _io?.to(`user:${userId}`).emit(event, data);
 }

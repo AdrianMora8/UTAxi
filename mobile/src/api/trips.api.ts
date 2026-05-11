@@ -65,6 +65,12 @@ export const tripsApi = {
   createTrip: (data: CreateTripPayload) =>
     apiClient.post<{ trip: Trip }>('/trips', data),
 
+  updateTrip: (id: string, data: Partial<CreateTripPayload>) =>
+    apiClient.patch<{ trip: Trip }>(`/trips/${id}`, data),
+
+  cancelTrip: (id: string) =>
+    apiClient.delete<{ message: string }>(`/trips/${id}`),
+
   updateTripStatus: (id: string, status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') =>
     apiClient.patch<{ trip: Trip }>(`/trips/${id}/status`, { status }),
 

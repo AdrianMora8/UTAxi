@@ -16,6 +16,7 @@ import type { PerfilStackParamList } from '../../navigation/MainTabs';
 import { colors, fonts } from '../../theme';
 import { requestsApi, TripRequest } from '../../api/requests.api';
 import RatingModal from '../../components/RatingModal';
+import { useNotifications } from '../../hooks/useNotifications';
 
 type Props = NativeStackScreenProps<PerfilStackParamList, 'MisViajes'>;
 
@@ -41,56 +42,66 @@ function Initials({ name, size = 40 }: { name: string; size?: number }) {
   );
 }
 
+const MAX_REJECTIONS = 3;
+
 function TripRequestCard({
   item,
   onCancel,
   cancelling,
   onRate,
+  onRetry,
+  retrying,
 }: {
   item: TripRequest;
   onCancel: (id: string) => void;
   cancelling: boolean;
   onRate: (requestId: string, driverName: string) => void;
+  onRetry: (tripId: string) => void;
+  retrying: boolean;
 }) {
   const isCompleted = item.status === 'COMPLETED';
-  const isCancelled = item.status === 'CANCELLED' || item.status === 'REJECTED';
+  const isRejected = item.status === 'REJECTED';
+  const isCancelled = item.status === 'CANCELLED';
+  const isDimmed = isCancelled || isRejected;
   const isPending = item.status === 'PENDING';
   const isAccepted = item.status === 'ACCEPTED';
   const canRate = isCompleted && !item.rating;
+  const canRetry = isRejected && (item.rejectionCount ?? 0) < MAX_REJECTIONS;
 
   const trip = item.trip;
   const driver = trip?.driver;
 
   function statusBadge() {
-    if (isCompleted) return { label: 'COMPLETADO', color: colors.primary, bg: '#1a3322' };
-    if (isCancelled) return { label: 'CANCELADO', color: '#ff6b4a', bg: '#2a1a15' };
-    if (isPending)   return { label: 'PENDIENTE', color: '#f5c518', bg: '#2a2510' };
-    if (isAccepted)  return { label: 'ACEPTADO', color: colors.primary, bg: '#1a3322' };
+    if (isCompleted)  return { label: 'COMPLETADO', color: colors.primary, bg: '#1a3322' };
+    if (isRejected)   return { label: 'RECHAZADO',  color: '#ff6b4a', bg: '#2a1a15' };
+    if (isCancelled)  return { label: 'CANCELADO',  color: '#ff6b4a', bg: '#2a1a15' };
+    if (isPending)    return { label: 'PENDIENTE',  color: '#f5c518', bg: '#2a2510' };
+    if (isAccepted)   return { label: 'ACEPTADO',   color: colors.primary, bg: '#1a3322' };
     return { label: item.status, color: colors.textMuted, bg: colors.surfaceHigh };
   }
 
   const badge = statusBadge();
 
   return (
-    <View style={[styles.card, isCancelled && styles.cardDimmed]}>
+    <View style={[styles.card, isDimmed && styles.cardDimmed]}>
       {/* Ruta + badge */}
       <View style={styles.cardTop}>
         <View style={styles.routeBlock}>
           <View style={styles.routeRow}>
-            <View style={[styles.dot, isCancelled && styles.dotDim]} />
+            <View style={[styles.dot, isDimmed && styles.dotDim]} />
             <View>
-              <Text style={[styles.routeLabel, isCancelled && styles.textDim]}>Origen</Text>
-              <Text style={[styles.routeZone, isCancelled && styles.textDim]}>
+              <Text style={[styles.routeLabel, isDimmed && styles.textDim]}>Origen</Text>
+              <Text style={[styles.routeZone, isDimmed && styles.textDim]}>
                 {trip?.originZone ?? '—'}
               </Text>
             </View>
           </View>
           <View style={styles.routeLine} />
           <View style={styles.routeRow}>
-            <View style={[styles.dot, styles.dotGreen, isCancelled && styles.dotDim]} />
+            <View style={[styles.dot, styles.dotGreen, isDimmed && styles.dotDim]} />
             <View>
-              <Text style={[styles.routeLabel, isCancelled && styles.textDim]}>Destino</Text>
-              <Text style={[styles.routeZone, isCancelled && styles.textDim]}>
+              <Text style={[styles.routeLabel, isDimmed && styles.textDim]}>Destino</Text>
+              <Text style={[styles.routeZone, isDimmed && styles.textDim]}>
                 {trip?.destinationZone ?? '—'}
               </Text>
             </View>
@@ -112,8 +123,8 @@ function TripRequestCard({
             <Ionicons name="person-outline" size={18} color={colors.textDim} />
           </View>
         )}
-        <View>
-          <Text style={[styles.driverName, isCancelled && styles.textDim]}>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.driverName, isDimmed && styles.textDim]}>
             {driver ? driver.fullName.split(' ')[0] + ' ' + driver.fullName.split(' ').slice(-1)[0][0] + '.' : 'Conductor'}
           </Text>
           {driver && (
@@ -123,15 +134,20 @@ function TripRequestCard({
             </View>
           )}
         </View>
+        {isRejected && (
+          <Text style={styles.rejectionCount}>
+            {item.rejectionCount ?? 0}/{MAX_REJECTIONS} rechazos
+          </Text>
+        )}
       </View>
 
-      {/* Footer: fecha + precio + calificar */}
+      {/* Footer: fecha + precio + acciones */}
       <View style={styles.cardFooter}>
         <View>
-          <Text style={[styles.dateText, isCancelled && styles.textDim]}>
+          <Text style={[styles.dateText, isDimmed && styles.textDim]}>
             {trip?.departureTime ? formatDateTime(trip.departureTime) : '—'}
           </Text>
-          <Text style={[styles.priceText, isCancelled && styles.priceStrike]}>
+          <Text style={[styles.priceText, isDimmed && styles.priceStrike]}>
             ${trip?.pricePerSeat?.toFixed(2) ?? '0.00'}
           </Text>
         </View>
@@ -168,6 +184,30 @@ function TripRequestCard({
             <Text style={styles.rateBtnText}>Calificar</Text>
           </TouchableOpacity>
         )}
+
+        {canRetry && item.trip && (
+          <TouchableOpacity
+            style={styles.retryTripBtn}
+            disabled={retrying}
+            onPress={() => onRetry(item.trip!.id)}
+          >
+            {retrying ? (
+              <ActivityIndicator size="small" color={colors.primaryDark} />
+            ) : (
+              <>
+                <Ionicons name="refresh-outline" size={14} color={colors.primaryDark} />
+                <Text style={styles.retryTripText}>Reintentar</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
+        {isRejected && !canRetry && (
+          <View style={styles.blockedBadge}>
+            <Ionicons name="ban-outline" size={14} color="#ff6b4a" />
+            <Text style={styles.blockedText}>Bloqueado</Text>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -175,8 +215,25 @@ function TripRequestCard({
 
 export default function MisViajesScreen({ navigation }: Props) {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [retryingTripId, setRetryingTripId] = useState<string | null>(null);
   const [ratingTarget, setRatingTarget] = useState<{ requestId: string; driverName: string } | null>(null);
   const queryClient = useQueryClient();
+
+  useNotifications({
+    onRequestUpdate: (payload) => {
+      queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+      if (payload.status === 'ACCEPTED') {
+        Alert.alert('¡Solicitud aceptada!', 'El conductor aceptó tu solicitud. Ya puedes ver los detalles del viaje.');
+      } else if (payload.status === 'REJECTED') {
+        const intentosRestantes = 3 - payload.rejectionCount;
+        if (intentosRestantes > 0) {
+          Alert.alert('Solicitud rechazada', `Te quedan ${intentosRestantes} intento(s) para este viaje.`);
+        } else {
+          Alert.alert('Solicitud rechazada', 'Has alcanzado el límite de intentos para este viaje.');
+        }
+      }
+    },
+  });
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['my-requests'],
@@ -189,6 +246,20 @@ export default function MisViajesScreen({ navigation }: Props) {
     onSettled: () => setCancellingId(null),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-requests'] }),
     onError: () => Alert.alert('Error', 'No se pudo cancelar la solicitud'),
+  });
+
+  const { mutate: retryRequest } = useMutation({
+    mutationFn: (tripId: string) => requestsApi.createRequest(tripId),
+    onMutate: (tripId) => setRetryingTripId(tripId),
+    onSettled: () => setRetryingTripId(null),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+      Alert.alert('Solicitud enviada', 'Tu solicitud fue reenviada al conductor.');
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.error || 'No se pudo reenviar la solicitud';
+      Alert.alert('Error', msg);
+    },
   });
 
   const requests = data ?? [];
@@ -239,6 +310,8 @@ export default function MisViajesScreen({ navigation }: Props) {
               onCancel={cancelRequest}
               cancelling={cancellingId === item.id}
               onRate={(requestId, driverName) => setRatingTarget({ requestId, driverName })}
+              onRetry={retryRequest}
+              retrying={retryingTripId === item.trip?.id}
             />
           )}
           contentContainerStyle={styles.list}
@@ -249,7 +322,8 @@ export default function MisViajesScreen({ navigation }: Props) {
       {ratingTarget && (
         <RatingModal
           tripRequestId={ratingTarget.requestId}
-          driverName={ratingTarget.driverName}
+          targetName={ratingTarget.driverName}
+          raterRole="passenger"
           onClose={() => setRatingTarget(null)}
         />
       )}
@@ -476,6 +550,41 @@ const styles = StyleSheet.create({
   },
   cancelBtnText: {
     fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: '#ff6b4a',
+  },
+  rejectionCount: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: '#ff6b4a',
+  },
+  retryTripBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    minWidth: 100,
+    justifyContent: 'center',
+  },
+  retryTripText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDark,
+  },
+  blockedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#2a1a15',
+  },
+  blockedText: {
+    fontFamily: fonts.bodyMedium,
     fontSize: 13,
     color: '#ff6b4a',
   },

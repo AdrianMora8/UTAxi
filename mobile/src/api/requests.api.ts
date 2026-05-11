@@ -6,12 +6,16 @@ export interface TripRequest {
   passengerId: string;
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED';
   message?: string | null;
+  rejectionCount: number;
+  arrivedAt?: string | null;
   createdAt: string;
   passenger?: {
     id: string;
     fullName: string;
     career: string | null;
     reputationScore: number;
+    totalTrips?: number;
+    neighborhood?: string | null;
   };
   trip?: {
     id: string;
@@ -34,6 +38,9 @@ export const requestsApi = {
 
   respondToRequest: (id: string, action: 'ACCEPT' | 'REJECT') =>
     apiClient.patch<{ request: TripRequest }>(`/requests/${id}/respond`, { action }),
+
+  markArrival: (id: string, arrived: boolean) =>
+    apiClient.patch<{ request: TripRequest }>(`/requests/${id}/arrival`, { arrived }),
 
   cancelRequest: (id: string) =>
     apiClient.delete(`/requests/${id}`),

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -13,10 +15,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, fonts } from '../../theme';
 import { requestsApi, TripRequest } from '../../api/requests.api';
+import { ratingsApi } from '../../api/ratings.api';
 import { tripsApi } from '../../api/trips.api';
+import RatingModal from '../../components/RatingModal';
 import type { PublicarStackParamList } from '../../navigation/MainTabs';
+import { useNotifications } from '../../hooks/useNotifications';
 
 type Props = NativeStackScreenProps<PublicarStackParamList, 'Solicitudes'>;
+
+const MAX_REJECTIONS = 3;
 
 function minutesUntil(dateStr: string): string {
   const diff = Math.round((new Date(dateStr).getTime() - Date.now()) / 60000);
@@ -25,7 +32,7 @@ function minutesUntil(dateStr: string): string {
   return `Salida en ${Math.floor(diff / 60)}h`;
 }
 
-function Initials({ name, size = 48 }: { name: string; size?: number }) {
+function Initials({ name, size = 44 }: { name: string; size?: number }) {
   const parts = name.trim().split(' ');
   const initials = parts.length >= 2
     ? `${parts[0][0]}${parts[parts.length - 1][0]}`
@@ -39,7 +46,46 @@ function Initials({ name, size = 48 }: { name: string; size?: number }) {
   );
 }
 
-function RequestCard({
+function SectionHeader({ title, count }: { title: string; count: number }) {
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      {count > 0 && (
+        <View style={styles.sectionBadge}>
+          <Text style={styles.sectionBadgeText}>{count}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function PassengerHeader({ request }: { request: TripRequest }) {
+  const p = request.passenger!;
+  const firstName = p.fullName.split(' ')[0];
+  const lastName = p.fullName.split(' ').slice(-1)[0];
+  const shortName = `${firstName} ${lastName[0]}.`;
+
+  return (
+    <View style={styles.cardHeader}>
+      <Initials name={p.fullName} />
+      <View style={styles.passengerInfo}>
+        <View style={styles.nameRow}>
+          <Text style={styles.passengerName}>{shortName}</Text>
+          <View style={styles.ratingRow}>
+            <Ionicons name="star" size={13} color={colors.primary} />
+            <Text style={styles.ratingText}>{p.reputationScore.toFixed(1)}</Text>
+          </View>
+        </View>
+        {p.career && <Text style={styles.careerText}>{p.career}</Text>}
+        {p.totalTrips !== undefined && (
+          <Text style={styles.tripsText}>{p.totalTrips} viajes completados</Text>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function PendingCard({
   request,
   onAccept,
   onReject,
@@ -50,35 +96,21 @@ function RequestCard({
   onReject: () => void;
   loading: boolean;
 }) {
-  const p = request.passenger;
-  if (!p) return null;
-
-  const firstName = p.fullName.split(' ')[0];
-  const lastName = p.fullName.split(' ').slice(-1)[0];
-  const shortName = `${firstName} ${lastName[0]}.`;
-
+  if (!request.passenger) return null;
   return (
     <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <Initials name={p.fullName} />
-        <View style={styles.passengerInfo}>
-          <View style={styles.nameRow}>
-            <Text style={styles.passengerName}>{shortName}</Text>
-            <View style={styles.ratingRow}>
-              <Ionicons name="star" size={13} color={colors.primary} />
-              <Text style={styles.ratingText}>{p.reputationScore.toFixed(1)}</Text>
-            </View>
-          </View>
-          {p.career && (
-            <Text style={styles.careerText}>{p.career}</Text>
-          )}
+      <PassengerHeader request={request} />
+      {request.rejectionCount > 0 && (
+        <View style={styles.retryBanner}>
+          <Ionicons name="refresh-circle-outline" size={14} color="#f59e0b" />
+          <Text style={styles.retryText}>
+            Reenvío · {request.rejectionCount}/{MAX_REJECTIONS} rechazos anteriores
+          </Text>
         </View>
-      </View>
-
+      )}
       {request.message && (
         <Text style={styles.message}>"{request.message}"</Text>
       )}
-
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.rejectBtn}
@@ -88,7 +120,6 @@ function RequestCard({
         >
           <Text style={styles.rejectText}>Rechazar</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={styles.acceptBtn}
           onPress={onAccept}
@@ -105,9 +136,108 @@ function RequestCard({
   );
 }
 
+function AcceptedCard({
+  request,
+  onToggleArrival,
+  onRate,
+  arrivalLoading,
+}: {
+  request: TripRequest;
+  onToggleArrival: () => void;
+  onRate: () => void;
+  arrivalLoading: boolean;
+}) {
+  if (!request.passenger) return null;
+  const arrived = !!request.arrivedAt;
+
+  return (
+    <View style={[styles.card, arrived && styles.cardArrived]}>
+      <PassengerHeader request={request} />
+      <View style={styles.acceptedFooter}>
+        <TouchableOpacity
+          style={[styles.arrivalBtn, arrived && styles.arrivalBtnActive]}
+          onPress={onToggleArrival}
+          disabled={arrivalLoading}
+          activeOpacity={0.7}
+        >
+          {arrivalLoading ? (
+            <ActivityIndicator size="small" color={arrived ? colors.primaryDark : colors.primary} />
+          ) : (
+            <>
+              <Ionicons
+                name={arrived ? 'checkmark-circle' : 'ellipse-outline'}
+                size={18}
+                color={arrived ? colors.primaryDark : colors.primary}
+              />
+              <Text style={[styles.arrivalText, arrived && styles.arrivalTextActive]}>
+                {arrived ? 'Llegó' : 'Marcar llegada'}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {!request.rating ? (
+          <TouchableOpacity style={styles.rateBtn} onPress={onRate} activeOpacity={0.7}>
+            <Ionicons name="star-outline" size={16} color={colors.primary} />
+            <Text style={styles.rateBtnText}>Calificar</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.ratedBadge}>
+            <Ionicons name="star" size={14} color={colors.primary} />
+            <Text style={styles.ratedText}>{request.rating.score}/5</Text>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function HistoryCard({ request }: { request: TripRequest }) {
+  if (!request.passenger) return null;
+  const statusLabel = request.status === 'REJECTED' ? 'Rechazado' : 'Cancelado';
+  const statusColor = request.status === 'REJECTED' ? '#ff6b4a' : colors.textDim;
+  const p = request.passenger;
+  const firstName = p.fullName.split(' ')[0];
+  const lastName = p.fullName.split(' ').slice(-1)[0];
+
+  return (
+    <View style={[styles.card, styles.cardMuted]}>
+      <View style={styles.cardHeader}>
+        <Initials name={p.fullName} size={38} />
+        <View style={styles.passengerInfo}>
+          <Text style={[styles.passengerName, { color: colors.textMuted }]}>
+            {firstName} {lastName[0]}.
+          </Text>
+          {p.career && <Text style={styles.careerText}>{p.career}</Text>}
+        </View>
+        <View style={[styles.historyBadge, { borderColor: statusColor }]}>
+          <Text style={[styles.historyBadgeText, { color: statusColor }]}>{statusLabel}</Text>
+        </View>
+      </View>
+      {request.status === 'REJECTED' && (
+        <Text style={styles.rejectionNote}>
+          Intentos: {request.rejectionCount}/{MAX_REJECTIONS}
+          {request.rejectionCount >= MAX_REJECTIONS && ' · Bloqueado'}
+        </Text>
+      )}
+    </View>
+  );
+}
+
 export default function SolicitudesScreen({ navigation, route }: Props) {
   const { tripId } = route.params;
   const queryClient = useQueryClient();
+  const [ratingTarget, setRatingTarget] = useState<TripRequest | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  useNotifications({
+    onRequestNew: (payload) => {
+      if (payload.tripId !== tripId) return;
+      queryClient.invalidateQueries({ queryKey: ['requests', tripId] });
+      queryClient.invalidateQueries({ queryKey: ['my-trips'] });
+      Alert.alert('Nueva solicitud', `${payload.passengerName} quiere unirse a tu viaje.`);
+    },
+  });
 
   const { data: tripData } = useQuery({
     queryKey: ['trip', tripId],
@@ -120,7 +250,7 @@ export default function SolicitudesScreen({ navigation, route }: Props) {
     refetchInterval: 15000,
   });
 
-  const { mutate: respond, variables: respondingId } = useMutation({
+  const { mutate: respond, variables: respondingVars, isPending: isResponding } = useMutation({
     mutationFn: ({ id, action }: { id: string; action: 'ACCEPT' | 'REJECT' }) =>
       requestsApi.respondToRequest(id, action),
     onSuccess: (_, { action }) => {
@@ -132,85 +262,132 @@ export default function SolicitudesScreen({ navigation, route }: Props) {
         : 'La solicitud fue rechazada.');
     },
     onError: (err: any) => {
-      const msg = err?.response?.data?.error || 'No se pudo procesar la solicitud';
-      Alert.alert('Error', msg);
+      Alert.alert('Error', err?.response?.data?.error || 'No se pudo procesar la solicitud');
     },
+  });
+
+  const { mutate: toggleArrival } = useMutation({
+    mutationFn: ({ id, arrived }: { id: string; arrived: boolean }) =>
+      requestsApi.markArrival(id, arrived),
+    onMutate: ({ id }) => setTogglingId(id),
+    onSettled: () => setTogglingId(null),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['requests', tripId] }),
+    onError: (err: any) => Alert.alert('Error', err?.response?.data?.error || 'No se pudo actualizar'),
   });
 
   function handleRespond(id: string, action: 'ACCEPT' | 'REJECT') {
     const label = action === 'ACCEPT' ? 'aceptar' : 'rechazar';
-    Alert.alert(
-      `¿Confirmas ${label} esta solicitud?`,
-      undefined,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: action === 'ACCEPT' ? 'Aceptar' : 'Rechazar', onPress: () => respond({ id, action }) },
-      ]
-    );
+    Alert.alert(`¿Confirmas ${label} esta solicitud?`, undefined, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: action === 'ACCEPT' ? 'Aceptar' : 'Rechazar', onPress: () => respond({ id, action }) },
+    ]);
   }
 
-  const pending = (data ?? []).filter(r => r.status === 'PENDING');
+  const all = data ?? [];
+  const pending = all.filter(r => r.status === 'PENDING');
+  const accepted = all.filter(r => r.status === 'ACCEPTED');
+  const history = all.filter(r => r.status === 'REJECTED' || r.status === 'CANCELLED');
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={colors.text} />
         </TouchableOpacity>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Solicitudes</Text>
-          <Text style={styles.headerSub}>
-            {pending.length} pendiente{pending.length !== 1 ? 's' : ''}
-          </Text>
-        </View>
-        <View style={[styles.statusDot, { opacity: pending.length > 0 ? 1 : 0.3 }]} />
-      </View>
-
-      {/* Info del viaje */}
-      {tripData && (
-        <View style={styles.tripInfo}>
-          <Text style={styles.tripTitle}>
-            Próximo Viaje: {tripData.destinationZone}
-          </Text>
-          <View style={styles.tripTimeRow}>
-            <Ionicons name="time-outline" size={14} color={colors.textMuted} />
-            <Text style={styles.tripTimeText}>
-              {minutesUntil(tripData.departureTime)}
+          {tripData && (
+            <Text style={styles.headerSub}>
+              {tripData.originZone} → {tripData.destinationZone} · {minutesUntil(tripData.departureTime)}
             </Text>
-          </View>
+          )}
         </View>
-      )}
+        {pending.length > 0 && (
+          <View style={styles.pendingBadge}>
+            <Text style={styles.pendingBadgeText}>{pending.length}</Text>
+          </View>
+        )}
+      </View>
 
       {isLoading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
-      ) : pending.length === 0 ? (
-        <View style={styles.centered}>
-          <Ionicons name="checkmark-circle-outline" size={56} color={colors.textDim} />
-          <Text style={styles.emptyTitle}>Sin solicitudes pendientes</Text>
-          <Text style={styles.emptySub}>
-            Las nuevas solicitudes aparecerán aquí automáticamente
-          </Text>
-          <TouchableOpacity style={styles.refreshBtn} onPress={() => refetch()}>
-            <Text style={styles.refreshText}>Actualizar</Text>
-          </TouchableOpacity>
-        </View>
       ) : (
-        <FlatList
-          data={pending}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <RequestCard
-              request={item}
-              loading={respondingId?.id === item.id}
-              onAccept={() => handleRespond(item.id, 'ACCEPT')}
-              onReject={() => handleRespond(item.id, 'REJECT')}
-            />
-          )}
-          contentContainerStyle={styles.list}
+        <ScrollView
+          contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
+        >
+          {/* — Pendientes — */}
+          <SectionHeader title="PENDIENTES" count={pending.length} />
+          {pending.length === 0 ? (
+            <View style={styles.emptySection}>
+              <Ionicons name="checkmark-circle-outline" size={28} color={colors.textDim} />
+              <Text style={styles.emptySectionText}>Sin solicitudes pendientes</Text>
+              <TouchableOpacity onPress={() => refetch()}>
+                <Text style={styles.refreshText}>Actualizar</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            pending.map(item => (
+              <PendingCard
+                key={item.id}
+                request={item}
+                loading={isResponding && respondingVars?.id === item.id}
+                onAccept={() => handleRespond(item.id, 'ACCEPT')}
+                onReject={() => handleRespond(item.id, 'REJECT')}
+              />
+            ))
+          )}
+
+          {/* — Aceptados — */}
+          {accepted.length > 0 && (
+            <>
+              <SectionHeader title="PASAJEROS ACEPTADOS" count={accepted.length} />
+              {accepted.map(item => (
+                <AcceptedCard
+                  key={item.id}
+                  request={item}
+                  arrivalLoading={togglingId === item.id}
+                  onToggleArrival={() =>
+                    toggleArrival({ id: item.id, arrived: !item.arrivedAt })
+                  }
+                  onRate={() => setRatingTarget(item)}
+                />
+              ))}
+            </>
+          )}
+
+          {/* — Historial — */}
+          {history.length > 0 && (
+            <>
+              <SectionHeader title="HISTORIAL" count={history.length} />
+              {history.map(item => (
+                <HistoryCard key={item.id} request={item} />
+              ))}
+            </>
+          )}
+
+          {all.length === 0 && (
+            <View style={styles.centered}>
+              <Ionicons name="people-outline" size={56} color={colors.textDim} />
+              <Text style={styles.emptyTitle}>Aún no hay solicitudes</Text>
+              <Text style={styles.emptySub}>Las solicitudes de pasajeros aparecerán aquí</Text>
+            </View>
+          )}
+        </ScrollView>
+      )}
+
+      {ratingTarget && (
+        <RatingModal
+          tripRequestId={ratingTarget.id}
+          targetName={ratingTarget.passenger?.fullName ?? ''}
+          raterRole="driver"
+          onClose={() => setRatingTarget(null)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['requests', tripId] });
+            setRatingTarget(null);
+          }}
         />
       )}
     </SafeAreaView>
@@ -218,10 +395,7 @@ export default function SolicitudesScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  root: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -229,11 +403,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 12,
   },
-  backBtn: {
-    width: 38,
-    height: 38,
-    justifyContent: 'center',
-  },
+  backBtn: { width: 38, height: 38, justifyContent: 'center' },
   headerTitle: {
     fontFamily: fonts.display,
     fontSize: 20,
@@ -243,39 +413,68 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 12,
     color: colors.textMuted,
-    marginTop: 1,
+    marginTop: 2,
   },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  pendingBadge: {
     backgroundColor: colors.primary,
-    marginLeft: 'auto',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
-  tripInfo: {
+  pendingBadgeText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDark,
+  },
+  scroll: {
     paddingHorizontal: 20,
-    paddingBottom: 16,
-    gap: 6,
+    paddingBottom: 32,
+    gap: 10,
   },
-  tripTitle: {
-    fontFamily: fonts.display,
-    fontSize: 22,
-    color: colors.text,
-  },
-  tripTimeRow: {
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+    marginBottom: 2,
+  },
+  sectionTitle: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 11,
+    color: colors.textMuted,
+    letterSpacing: 2,
+  },
+  sectionBadge: {
+    backgroundColor: colors.surfaceHigh,
+    borderRadius: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  sectionBadgeText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 11,
+    color: colors.textMuted,
+  },
+  emptySection: {
+    alignItems: 'center',
+    paddingVertical: 20,
     gap: 6,
   },
-  tripTimeText: {
+  emptySectionText: {
     fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textDim,
+  },
+  refreshText: {
+    fontFamily: fonts.bodyMedium,
     fontSize: 13,
-    color: colors.textMuted,
+    color: colors.primary,
+    marginTop: 4,
   },
   centered: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 10,
     padding: 40,
   },
@@ -292,28 +491,18 @@ const styles = StyleSheet.create({
     color: colors.textDim,
     textAlign: 'center',
   },
-  refreshBtn: {
-    marginTop: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: colors.surfaceContainer,
-  },
-  refreshText: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 14,
-    color: colors.primary,
-  },
-  list: {
-    paddingHorizontal: 20,
-    paddingBottom: 24,
-    gap: 12,
-  },
   card: {
     backgroundColor: colors.surfaceContainer,
     borderRadius: 16,
     padding: 16,
-    gap: 14,
+    gap: 12,
+  },
+  cardArrived: {
+    borderWidth: 1,
+    borderColor: colors.primary + '44',
+  },
+  cardMuted: {
+    opacity: 0.7,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -331,10 +520,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemiBold,
     color: colors.primary,
   },
-  passengerInfo: {
-    flex: 1,
-    gap: 4,
-  },
+  passengerInfo: { flex: 1, gap: 3 },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -345,11 +531,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: colors.text,
   },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
+  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   ratingText: {
     fontFamily: fonts.bodySemiBold,
     fontSize: 13,
@@ -360,6 +542,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textMuted,
   },
+  tripsText: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textDim,
+  },
   message: {
     fontFamily: fonts.body,
     fontSize: 13,
@@ -368,10 +555,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     paddingHorizontal: 4,
   },
-  actions: {
-    flexDirection: 'row',
-    gap: 10,
-  },
+  actions: { flexDirection: 'row', gap: 10 },
   rejectBtn: {
     flex: 1,
     height: 46,
@@ -399,5 +583,96 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemiBold,
     fontSize: 14,
     color: colors.primaryDark,
+  },
+  acceptedFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.surfaceHigh,
+    paddingTop: 10,
+  },
+  arrivalBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 40,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  arrivalBtnActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  arrivalText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.primary,
+  },
+  arrivalTextActive: {
+    color: colors.primaryDark,
+  },
+  rateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceHigh,
+  },
+  rateBtnText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.primary,
+  },
+  ratedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceHigh,
+  },
+  ratedText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primary,
+  },
+  historyBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  historyBadgeText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+  },
+  rejectionNote: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textDim,
+    paddingHorizontal: 4,
+  },
+  retryBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#f59e0b18',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#f59e0b44',
+  },
+  retryText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: '#f59e0b',
   },
 });

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   View,
   Text,
@@ -10,17 +10,36 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PerfilStackParamList } from '../../navigation/MainTabs';
 import { colors, fonts } from '../../theme';
-import { usersApi, Vehicle } from '../../api/users.api';
+import { usersApi } from '../../api/users.api';
 import { useAuthStore } from '../../store/authStore';
 
 type Props = NativeStackScreenProps<PerfilStackParamList, 'EditProfile'>;
+
+const CARRERAS = [
+  'Ingeniería en Sistemas',
+  'Ingeniería Civil',
+  'Ingeniería Industrial',
+  'Ingeniería Eléctrica',
+  'Ingeniería Mecánica',
+  'Telecomunicaciones',
+  'Diseño Industrial',
+  'Arquitectura',
+  'Medicina',
+  'Psicología',
+  'Derecho',
+  'Administración de Empresas',
+  'Contabilidad y Auditoría',
+  'Otra',
+];
 
 function Field({
   label,
@@ -55,40 +74,13 @@ function Field({
 
 export default function EditProfileScreen({ navigation }: Props) {
   const { user, updateUser } = useAuthStore();
-  const queryClient = useQueryClient();
 
-  // Datos personales
   const [fullName, setFullName] = useState(user?.fullName ?? '');
   const [career, setCareer] = useState(user?.career ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
   const [neighborhood, setNeighborhood] = useState(user?.neighborhood ?? '');
+  const [showCareerPicker, setShowCareerPicker] = useState(false);
 
-  // Vehículo
-  const [brand, setBrand] = useState('');
-  const [model, setModel] = useState('');
-  const [year, setYear] = useState('');
-  const [plateNumber, setPlateNumber] = useState('');
-  const [color, setColor] = useState('');
-  const [existingVehicle, setExistingVehicle] = useState<Vehicle | null>(null);
-
-  const { data: profileData } = useQuery({
-    queryKey: ['me'],
-    queryFn: () => usersApi.getMe().then(r => r.data.user),
-  });
-
-  useEffect(() => {
-    if (profileData?.vehicle) {
-      const v = profileData.vehicle;
-      setExistingVehicle(v);
-      setBrand(v.brand);
-      setModel(v.model);
-      setYear(String(v.year));
-      setPlateNumber(v.plateNumber);
-      setColor(v.color);
-    }
-  }, [profileData]);
-
-  // Mutación perfil
   const { mutate: saveProfile, isPending: savingProfile } = useMutation({
     mutationFn: () =>
       usersApi.updateMe({
@@ -108,31 +100,6 @@ export default function EditProfileScreen({ navigation }: Props) {
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.error || 'No se pudo guardar los cambios';
-      Alert.alert('Error', msg);
-    },
-  });
-
-  // Mutación vehículo
-  const { mutate: saveVehicle, isPending: savingVehicle } = useMutation({
-    mutationFn: () => {
-      const payload = {
-        brand: brand.trim(),
-        model: model.trim(),
-        year: parseInt(year, 10),
-        plateNumber: plateNumber.trim().toUpperCase(),
-        color: color.trim(),
-      };
-      return existingVehicle
-        ? usersApi.updateVehicle(payload)
-        : usersApi.createVehicle(payload);
-    },
-    onSuccess: ({ data }) => {
-      setExistingVehicle(data.vehicle);
-      queryClient.invalidateQueries({ queryKey: ['me'] });
-      Alert.alert('Listo', existingVehicle ? 'Vehículo actualizado' : 'Vehículo registrado');
-    },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.error || 'No se pudo guardar el vehículo';
       Alert.alert('Error', msg);
     },
   });
@@ -192,7 +159,18 @@ export default function EditProfileScreen({ navigation }: Props) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Datos personales</Text>
             <Field label="Nombre completo" value={fullName} onChangeText={setFullName} placeholder="Tu nombre completo" />
-            <Field label="Carrera" value={career} onChangeText={setCareer} placeholder="Ej: Ingeniería en Sistemas" />
+
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Carrera</Text>
+              <TouchableOpacity style={styles.pickerBtn} onPress={() => setShowCareerPicker(true)}>
+                <Ionicons name="book-outline" size={16} color={colors.textMuted} />
+                <Text style={[styles.pickerBtnText, !career && { color: colors.textDim }]}>
+                  {career || 'Selecciona tu carrera'}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
             <Field label="Teléfono" value={phone} onChangeText={setPhone} placeholder="Ej: 0987654321" keyboardType="phone-pad" autoCapitalize="none" />
             <Field label="Barrio / Sector" value={neighborhood} onChangeText={setNeighborhood} placeholder="Ej: Huachi Loreto" />
 
@@ -210,48 +188,36 @@ export default function EditProfileScreen({ navigation }: Props) {
             </TouchableOpacity>
           </View>
 
-          {/* Sección vehículo */}
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Vehículo</Text>
-              {existingVehicle && (
-                <View style={styles.registeredBadge}>
-                  <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
-                  <Text style={styles.registeredText}>Registrado</Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.sectionHint}>
-              {existingVehicle
-                ? 'Actualiza los datos de tu vehículo'
-                : 'Registra tu vehículo para publicar viajes'}
-            </Text>
-
-            <Field label="Marca" value={brand} onChangeText={setBrand} placeholder="Ej: Chevrolet" />
-            <Field label="Modelo" value={model} onChangeText={setModel} placeholder="Ej: Sail" />
-            <Field label="Año" value={year} onChangeText={setYear} placeholder="Ej: 2018" keyboardType="numeric" autoCapitalize="none" />
-            <Field label="Placa" value={plateNumber} onChangeText={setPlateNumber} placeholder="Ej: ABC-1234" autoCapitalize="characters" />
-            <Field label="Color" value={color} onChangeText={setColor} placeholder="Ej: Blanco" />
-
-            <TouchableOpacity
-              style={[styles.sectionBtn, savingVehicle && styles.btnDisabled]}
-              onPress={handleSaveVehicle}
-              disabled={savingVehicle}
-              activeOpacity={0.85}
-            >
-              {savingVehicle ? (
-                <ActivityIndicator color={colors.primaryDark} />
-              ) : (
-                <Text style={styles.sectionBtnText}>
-                  {existingVehicle ? 'Actualizar vehículo' : 'Registrar vehículo'}
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-
           <View style={{ height: 20 }} />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal visible={showCareerPicker} transparent animationType="slide">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          onPress={() => setShowCareerPicker(false)}
+          activeOpacity={1}
+        >
+          <View style={styles.pickerSheet}>
+            <Text style={styles.pickerTitle}>Selecciona tu carrera</Text>
+            <FlatList
+              data={CARRERAS}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.pickerItem}
+                  onPress={() => { setCareer(item); setShowCareerPicker(false); }}
+                >
+                  <Text style={[styles.pickerItemText, career === item && { color: colors.primary }]}>
+                    {item}
+                  </Text>
+                  {career === item && <Ionicons name="checkmark" size={18} color={colors.primary} />}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -314,32 +280,11 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 14,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
   sectionTitle: {
     fontFamily: fonts.displayMedium,
     fontSize: 15,
     color: colors.textMuted,
     letterSpacing: 0.5,
-  },
-  sectionHint: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.textDim,
-    marginTop: -6,
-  },
-  registeredBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  registeredText: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 12,
-    color: colors.primary,
   },
   fieldGroup: {
     gap: 6,
@@ -355,6 +300,54 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 12,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.text,
+  },
+  pickerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: colors.surfaceHigh,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  pickerBtnText: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.text,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  pickerSheet: {
+    backgroundColor: colors.surfaceHigh,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    maxHeight: '60%',
+  },
+  pickerTitle: {
+    fontFamily: fonts.displayMedium,
+    fontSize: 16,
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 24,
+  },
+  pickerItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  pickerItemText: {
     fontFamily: fonts.body,
     fontSize: 15,
     color: colors.text,

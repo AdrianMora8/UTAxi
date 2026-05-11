@@ -70,23 +70,6 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {profile?.vehicle && (
-        <View style={styles.vehicleCard}>
-          <Ionicons name="car-sport-outline" size={20} color={colors.primary} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.vehicleName}>
-              {profile.vehicle.brand} {profile.vehicle.model}
-            </Text>
-            <Text style={styles.vehicleSub}>
-              {profile.vehicle.color} · {profile.vehicle.year}
-            </Text>
-          </View>
-          <View style={styles.plateBadge}>
-            <Text style={styles.plateText}>{profile.vehicle.plateNumber}</Text>
-          </View>
-        </View>
-      )}
-
       <View style={styles.menu}>
         <TouchableOpacity
           style={styles.menuItem}
@@ -94,6 +77,22 @@ export default function ProfileScreen() {
         >
           <Ionicons name="time-outline" size={20} color={colors.primary} />
           <Text style={styles.menuText}>Historial</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Vehicle')}
+        >
+          <Ionicons name="car-sport-outline" size={20} color={colors.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.menuText}>Mi Vehículo</Text>
+            {profile?.vehicle && (
+              <Text style={styles.menuSub}>
+                {profile.vehicle.brand} {profile.vehicle.model} · {profile.vehicle.plateNumber}
+              </Text>
+            )}
+          </View>
           <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
         </TouchableOpacity>
 
@@ -204,41 +203,6 @@ const styles = StyleSheet.create({
     width: 1,
     backgroundColor: colors.surfaceHigh,
   },
-  vehicleCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    backgroundColor: colors.surfaceContainer,
-    borderRadius: 14,
-    padding: 14,
-  },
-  vehicleName: {
-    fontFamily: fonts.bodySemiBold,
-    fontSize: 14,
-    color: colors.text,
-  },
-  vehicleSub: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.textMuted,
-    marginTop: 2,
-  },
-  plateBadge: {
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  plateText: {
-    fontFamily: fonts.display,
-    fontSize: 12,
-    color: colors.primary,
-    letterSpacing: 1,
-  },
   menu: {
     paddingHorizontal: 20,
     gap: 10,
@@ -252,10 +216,15 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   menuText: {
-    flex: 1,
     fontFamily: fonts.bodyMedium,
     fontSize: 15,
     color: colors.text,
+  },
+  menuSub: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 2,
   },
   logoutBtn: {
     flexDirection: 'row',

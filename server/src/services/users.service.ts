@@ -29,6 +29,7 @@ export class UsersService {
             year: true,
             plateNumber: true,
             color: true,
+            photoUrl: true,
           },
         },
       },
@@ -108,6 +109,24 @@ export class UsersService {
       data,
     });
     return vehicle;
+  }
+
+  async updateVehiclePhoto(userId: string, photoUrl: string) {
+    const existing = await this.prisma.vehicle.findUnique({ where: { userId } });
+    if (!existing) throw new AppError(404, 'No tienes vehículo registrado');
+
+    const vehicle = await this.prisma.vehicle.update({
+      where: { userId },
+      data: { photoUrl },
+    });
+    return vehicle;
+  }
+
+  async deleteVehicle(userId: string) {
+    const existing = await this.prisma.vehicle.findUnique({ where: { userId } });
+    if (!existing) throw new AppError(404, 'No tienes vehículo registrado');
+
+    await this.prisma.vehicle.delete({ where: { userId } });
   }
 
   async getPublicProfile(targetId: string) {

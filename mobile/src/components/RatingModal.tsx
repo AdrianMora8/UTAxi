@@ -18,11 +18,25 @@ import { ratingsApi } from '../api/ratings.api';
 
 interface Props {
   tripRequestId: string;
-  driverName: string;
+  /** Nombre completo de quien se califica */
+  targetName: string;
+  /** 'driver' | 'passenger' — usado sólo para el texto del modal */
+  raterRole?: 'driver' | 'passenger';
   onClose: () => void;
+  onSuccess?: () => void;
+  /** @deprecated Use targetName */
+  driverName?: string;
 }
 
-export default function RatingModal({ tripRequestId, driverName, onClose }: Props) {
+export default function RatingModal({
+  tripRequestId,
+  targetName,
+  raterRole = 'passenger',
+  onClose,
+  onSuccess,
+  driverName,
+}: Props) {
+  const resolvedName = targetName || driverName || '';
   const [score, setScore] = useState(0);
   const [comment, setComment] = useState('');
   const queryClient = useQueryClient();
@@ -31,6 +45,7 @@ export default function RatingModal({ tripRequestId, driverName, onClose }: Prop
     mutationFn: () => ratingsApi.createRating({ tripRequestId, score, comment: comment.trim() || undefined }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+      onSuccess?.();
       onClose();
     },
     onError: (err: any) => {
@@ -41,13 +56,14 @@ export default function RatingModal({ tripRequestId, driverName, onClose }: Prop
 
   function handleSubmit() {
     if (score === 0) {
-      Alert.alert('Selecciona una puntuación', 'Toca las estrellas para calificar al conductor');
+      const who = raterRole === 'driver' ? 'al pasajero' : 'al conductor';
+      Alert.alert('Selecciona una puntuación', `Toca las estrellas para calificar ${who}`);
       return;
     }
     submitRating();
   }
 
-  const firstName = driverName.split(' ')[0];
+  const firstName = resolvedName.split(' ')[0];
 
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
@@ -63,7 +79,11 @@ export default function RatingModal({ tripRequestId, driverName, onClose }: Prop
 
           {/* Título */}
           <Text style={styles.title}>Calificar viaje</Text>
-          <Text style={styles.subtitle}>¿Cómo fue tu experiencia con {firstName}?</Text>
+          <Text style={styles.subtitle}>
+            {raterRole === 'driver'
+              ? `¿Cómo fue el comportamiento de ${firstName}?`
+              : `¿Cómo fue tu experiencia con ${firstName}?`}
+          </Text>
 
           {/* Estrellas */}
           <View style={styles.starsRow}>

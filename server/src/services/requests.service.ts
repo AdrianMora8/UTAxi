@@ -14,7 +14,25 @@ export class RequestsService {
     const existing = await this.prisma.tripRequest.findUnique({
       where: { tripId_passengerId: { tripId, passengerId } },
     });
-    if (existing) throw new AppError(400, 'Ya enviaste una solicitud para este viaje');
+
+    if (existing) {
+      if (existing.status === 'REJECTED') {
+        if (existing.rejectionCount >= 3) {
+          throw new AppError(400, 'Has alcanzado el límite de 3 rechazos para este viaje. Ya no puedes solicitar unirte.');
+        }
+        // Allow re-request: reset to PENDING (conflict checks below still apply)
+        const updated = await this.prisma.tripRequest.update({
+          where: { id: existing.id },
+          data: { status: 'PENDING', message: message ?? existing.message },
+          include: {
+            passenger: { select: { id: true, fullName: true, career: true, reputationScore: true } },
+            trip: { select: { id: true, originZone: true, destinationZone: true, departureTime: true } },
+          },
+        });
+        return updated;
+      }
+      throw new AppError(400, 'Ya enviaste una solicitud para este viaje');
+    }
 
     const bufferHours = 2;
     const bufferStart = new Date(trip.departureTime);
@@ -87,6 +105,7 @@ export class RequestsService {
             totalTrips: true,
           },
         },
+        rating: { select: { id: true, score: true } },
       },
     });
     return requests;
@@ -123,7 +142,10 @@ export class RequestsService {
 
     return this.prisma.tripRequest.update({
       where: { id: requestId },
-      data: { status: RequestStatus.REJECTED },
+      data: {
+        status: RequestStatus.REJECTED,
+        rejectionCount: { increment: 1 },
+      },
       include: {
         passenger: { select: { id: true, fullName: true } },
       },
@@ -157,6 +179,22 @@ export class RequestsService {
       data: { status: RequestStatus.CANCELLED },
     });
     return { message: 'Solicitud cancelada' };
+  }
+
+  async markArrival(requestId: string, driverId: string, arrived: boolean) {
+    const request = await this.prisma.tripRequest.findUnique({
+      where: { id: requestId },
+      include: { trip: true },
+    });
+    if (!request) throw new AppError(404, 'Solicitud no encontrada');
+    if (request.trip.driverId !== driverId) throw new AppError(403, 'Solo el conductor puede registrar llegadas');
+    if (request.status !== 'ACCEPTED') throw new AppError(400, 'Solo se puede registrar llegada de pasajeros aceptados');
+
+    const updated = await this.prisma.tripRequest.update({
+      where: { id: requestId },
+      data: { arrivedAt: arrived ? new Date() : null },
+    });
+    return updated;
   }
 
   async getMyRequests(passengerId: string) {

@@ -3,8 +3,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useQuery } from '@tanstack/react-query';
 import { colors, fonts } from '../../theme';
 import { useAuthStore } from '../../store/authStore';
+import { requestsApi } from '../../api/requests.api';
+import { usersApi } from '../../api/users.api';
 import type { PerfilStackParamList } from '../../navigation/MainTabs';
 
 type NavProp = NativeStackNavigationProp<PerfilStackParamList, 'Profile'>;
@@ -13,10 +16,26 @@ export default function ProfileScreen() {
   const navigation = useNavigation<NavProp>();
   const { user, clearAuth } = useAuthStore();
 
+  const { data: requests } = useQuery({
+    queryKey: ['my-requests'],
+    queryFn: () => requestsApi.getMyRequests().then(r => r.data.requests),
+  });
+
+  const { data: profile } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => usersApi.getMe().then(r => r.data.user),
+  });
+  const totalViajes = (requests ?? []).filter(
+    r => r.status === 'ACCEPTED' || r.status === 'COMPLETED'
+  ).length;
+
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.logo}>U-RIDE</Text>
+        <TouchableOpacity style={styles.editBtn} onPress={() => navigation.navigate('EditProfile')}>
+          <Ionicons name="pencil-outline" size={18} color={colors.textMuted} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.avatarBlock}>
@@ -30,11 +49,19 @@ export default function ProfileScreen() {
 
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
+            <Ionicons name="star" size={14} color={colors.primary} style={{ marginBottom: 2 }} />
             <Text style={styles.statValue}>{user?.reputationScore?.toFixed(1) ?? '—'}</Text>
             <Text style={styles.statLabel}>PUNTUACIÓN</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
+            <Ionicons name="swap-horizontal-outline" size={14} color={colors.textMuted} style={{ marginBottom: 2 }} />
+            <Text style={[styles.statValue, { color: colors.text }]}>{totalViajes}</Text>
+            <Text style={styles.statLabel}>VIAJES</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Ionicons name="shield-checkmark-outline" size={14} color={colors.textMuted} style={{ marginBottom: 2 }} />
             <Text style={[styles.statValue, { color: colors.text }]}>
               {user?.status === 'ACTIVE' ? 'Activo' : user?.status ?? '—'}
             </Text>
@@ -43,13 +70,30 @@ export default function ProfileScreen() {
         </View>
       </View>
 
+      {profile?.vehicle && (
+        <View style={styles.vehicleCard}>
+          <Ionicons name="car-sport-outline" size={20} color={colors.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.vehicleName}>
+              {profile.vehicle.brand} {profile.vehicle.model}
+            </Text>
+            <Text style={styles.vehicleSub}>
+              {profile.vehicle.color} · {profile.vehicle.year}
+            </Text>
+          </View>
+          <View style={styles.plateBadge}>
+            <Text style={styles.plateText}>{profile.vehicle.plateNumber}</Text>
+          </View>
+        </View>
+      )}
+
       <View style={styles.menu}>
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => navigation.navigate('MisViajes')}
         >
           <Ionicons name="time-outline" size={20} color={colors.primary} />
-          <Text style={styles.menuText}>Mis Viajes</Text>
+          <Text style={styles.menuText}>Historial</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
         </TouchableOpacity>
 
@@ -80,6 +124,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 4,
@@ -89,6 +136,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: colors.text,
     letterSpacing: 1,
+  },
+  editBtn: {
+    width: 38,
+    height: 38,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
   },
   avatarBlock: {
     alignItems: 'center',
@@ -150,6 +203,41 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     backgroundColor: colors.surfaceHigh,
+  },
+  vehicleCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    backgroundColor: colors.surfaceContainer,
+    borderRadius: 14,
+    padding: 14,
+  },
+  vehicleName: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: colors.text,
+  },
+  vehicleSub: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  plateBadge: {
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  plateText: {
+    fontFamily: fonts.display,
+    fontSize: 12,
+    color: colors.primary,
+    letterSpacing: 1,
   },
   menu: {
     paddingHorizontal: 20,

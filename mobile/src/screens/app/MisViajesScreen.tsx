@@ -5,14 +5,17 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PerfilStackParamList } from '../../navigation/MainTabs';
 import { colors, fonts } from '../../theme';
 import { requestsApi, TripRequest } from '../../api/requests.api';
+import RatingModal from '../../components/RatingModal';
 
 type Props = NativeStackScreenProps<PerfilStackParamList, 'MisViajes'>;
 
@@ -38,7 +41,17 @@ function Initials({ name, size = 40 }: { name: string; size?: number }) {
   );
 }
 
-function TripRequestCard({ item }: { item: TripRequest }) {
+function TripRequestCard({
+  item,
+  onCancel,
+  cancelling,
+  onRate,
+}: {
+  item: TripRequest;
+  onCancel: (id: string) => void;
+  cancelling: boolean;
+  onRate: (requestId: string, driverName: string) => void;
+}) {
   const isCompleted = item.status === 'COMPLETED';
   const isCancelled = item.status === 'CANCELLED' || item.status === 'REJECTED';
   const isPending = item.status === 'PENDING';
@@ -123,8 +136,34 @@ function TripRequestCard({ item }: { item: TripRequest }) {
           </Text>
         </View>
 
+        {isPending && (
+          <TouchableOpacity
+            style={styles.cancelBtn}
+            disabled={cancelling}
+            onPress={() =>
+              Alert.alert(
+                'Cancelar solicitud',
+                '¿Seguro que quieres cancelar esta solicitud?',
+                [
+                  { text: 'No', style: 'cancel' },
+                  { text: 'Sí, cancelar', style: 'destructive', onPress: () => onCancel(item.id) },
+                ]
+              )
+            }
+          >
+            {cancelling ? (
+              <ActivityIndicator size="small" color="#ff6b4a" />
+            ) : (
+              <Text style={styles.cancelBtnText}>Cancelar</Text>
+            )}
+          </TouchableOpacity>
+        )}
+
         {canRate && (
-          <TouchableOpacity style={styles.rateBtn}>
+          <TouchableOpacity
+            style={styles.rateBtn}
+            onPress={() => onRate(item.id, driver?.fullName ?? 'Conductor')}
+          >
             <Ionicons name="star-outline" size={14} color={colors.text} />
             <Text style={styles.rateBtnText}>Calificar</Text>
           </TouchableOpacity>
@@ -135,9 +174,21 @@ function TripRequestCard({ item }: { item: TripRequest }) {
 }
 
 export default function MisViajesScreen({ navigation }: Props) {
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [ratingTarget, setRatingTarget] = useState<{ requestId: string; driverName: string } | null>(null);
+  const queryClient = useQueryClient();
+
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['my-requests'],
     queryFn: () => requestsApi.getMyRequests().then(r => r.data.requests),
+  });
+
+  const { mutate: cancelRequest } = useMutation({
+    mutationFn: (id: string) => requestsApi.cancelRequest(id),
+    onMutate: (id) => setCancellingId(id),
+    onSettled: () => setCancellingId(null),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-requests'] }),
+    onError: () => Alert.alert('Error', 'No se pudo cancelar la solicitud'),
   });
 
   const requests = data ?? [];
@@ -182,9 +233,24 @@ export default function MisViajesScreen({ navigation }: Props) {
         <FlatList
           data={requests}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <TripRequestCard item={item} />}
+          renderItem={({ item }) => (
+            <TripRequestCard
+              item={item}
+              onCancel={cancelRequest}
+              cancelling={cancellingId === item.id}
+              onRate={(requestId, driverName) => setRatingTarget({ requestId, driverName })}
+            />
+          )}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+        />
+      )}
+
+      {ratingTarget && (
+        <RatingModal
+          tripRequestId={ratingTarget.requestId}
+          driverName={ratingTarget.driverName}
+          onClose={() => setRatingTarget(null)}
         />
       )}
     </SafeAreaView>
@@ -398,5 +464,19 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
     color: colors.text,
+  },
+  cancelBtn: {
+    borderWidth: 1.5,
+    borderColor: '#ff6b4a',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: '#ff6b4a',
   },
 });

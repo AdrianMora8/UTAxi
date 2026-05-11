@@ -32,12 +32,13 @@ export async function createTrip(req: Request, res: Response) {
 }
 
 export async function getTrips(req: Request, res: Response) {
-  const { destinationZone, departureDate, minSeats, status, page, limit } = req.query;
+  const { destinationZone, departureDate, minSeats, status, driverId, page, limit } = req.query;
   const result = await svc.findMany({
     destinationZone: destinationZone as string,
     departureDate: departureDate as string,
     minSeats: minSeats ? Number(minSeats) : undefined,
     status: status as TripStatus,
+    driverId: driverId as string,
     page: page ? Number(page) : 1,
     limit: limit ? Number(limit) : 10,
   });

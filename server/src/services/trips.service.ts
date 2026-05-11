@@ -71,6 +71,7 @@ export class TripsService {
     departureDate?: string;
     minSeats?: number;
     status?: TripStatus;
+    driverId?: string;
     page?: number;
     limit?: number;
   }) {
@@ -92,8 +93,15 @@ export class TripsService {
     if (filters.minSeats) {
       where.availableSeats = { gte: Number(filters.minSeats) };
     }
+    if (filters.driverId) {
+      where.driverId = filters.driverId;
+    }
 
-    where.status = filters.status ?? TripStatus.SCHEDULED;
+    if (filters.status) {
+      where.status = filters.status;
+    } else if (!filters.driverId) {
+      where.status = TripStatus.SCHEDULED;
+    }
 
     const [trips, total] = await this.prisma.$transaction([
       this.prisma.trip.findMany({

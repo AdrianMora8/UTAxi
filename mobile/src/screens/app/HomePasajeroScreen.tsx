@@ -137,7 +137,7 @@ export default function HomePasajeroScreen() {
       <View style={styles.header}>
         <Text style={styles.logo}>U-RIDE</Text>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.iconBtn}>
+          <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.getParent()?.navigate('Avisos')}>
             <Ionicons name="notifications-outline" size={22} color={colors.text} />
           </TouchableOpacity>
           <View style={styles.avatarSmall}>

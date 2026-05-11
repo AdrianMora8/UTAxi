@@ -6,9 +6,12 @@ import { colors, fonts } from '../theme';
 import HomePasajeroScreen from '../screens/app/HomePasajeroScreen';
 import TripDetailScreen from '../screens/app/TripDetailScreen';
 import HomeConductorScreen from '../screens/app/HomeConductorScreen';
+import CreateTripScreen from '../screens/app/CreateTripScreen';
 import AvisosScreen from '../screens/app/AvisosScreen';
 import ProfileScreen from '../screens/app/ProfileScreen';
 import MisViajesScreen from '../screens/app/MisViajesScreen';
+import EditProfileScreen from '../screens/app/EditProfileScreen';
+import SolicitudesScreen from '../screens/app/SolicitudesScreen';
 
 export type BuscarStackParamList = {
   HomePasajero: undefined;
@@ -24,6 +27,7 @@ export type PublicarStackParamList = {
 export type PerfilStackParamList = {
   Profile: undefined;
   MisViajes: undefined;
+  EditProfile: undefined;
 };
 
 const BuscarStack = createNativeStackNavigator<BuscarStackParamList>();
@@ -44,6 +48,8 @@ function PublicarNavigator() {
   return (
     <PublicarStack.Navigator screenOptions={{ headerShown: false }}>
       <PublicarStack.Screen name="HomeConductor" component={HomeConductorScreen} />
+      <PublicarStack.Screen name="CreateTrip" component={CreateTripScreen} />
+      <PublicarStack.Screen name="Solicitudes" component={SolicitudesScreen} />
     </PublicarStack.Navigator>
   );
 }
@@ -53,6 +59,7 @@ function PerfilNavigator() {
     <PerfilStack.Navigator screenOptions={{ headerShown: false }}>
       <PerfilStack.Screen name="Profile" component={ProfileScreen} />
       <PerfilStack.Screen name="MisViajes" component={MisViajesScreen} />
+      <PerfilStack.Screen name="EditProfile" component={EditProfileScreen} />
     </PerfilStack.Navigator>
   );
 }

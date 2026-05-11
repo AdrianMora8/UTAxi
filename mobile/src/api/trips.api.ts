@@ -32,6 +32,8 @@ export interface Trip {
 
 export interface GetTripsFilters {
   destinationZone?: string;
+  driverId?: string;
+  status?: string;
   page?: number;
   limit?: number;
 }
@@ -66,6 +68,6 @@ export const tripsApi = {
   updateTripStatus: (id: string, status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') =>
     apiClient.patch<{ trip: Trip }>(`/trips/${id}/status`, { status }),
 
-  getMyTrips: () =>
-    apiClient.get<{ trips: Trip[] }>('/trips/my-trips'),
+  getMyTrips: (driverId: string) =>
+    apiClient.get<GetTripsResponse>('/trips', { params: { driverId, limit: 20 } }),
 };

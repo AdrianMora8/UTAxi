@@ -19,20 +19,43 @@ export interface RequestNewPayload {
   passengerName: string;
 }
 
+export interface TripCompletedPassengerPayload {
+  tripId: string;
+  requestId: string;
+  driverName: string;
+  originZone: string;
+  destinationZone: string;
+}
+
+export interface TripCompletedDriverPayload {
+  tripId: string;
+  passengers: { requestId: string; name: string }[];
+}
+
 interface UseNotificationsOptions {
   onRequestUpdate?: (payload: RequestUpdatePayload) => void;
   onRequestNew?: (payload: RequestNewPayload) => void;
+  onTripCompletedPassenger?: (payload: TripCompletedPassengerPayload) => void;
+  onTripCompletedDriver?: (payload: TripCompletedDriverPayload) => void;
 }
 
-export function useNotifications({ onRequestUpdate, onRequestNew }: UseNotificationsOptions = {}) {
+export function useNotifications({
+  onRequestUpdate,
+  onRequestNew,
+  onTripCompletedPassenger,
+  onTripCompletedDriver,
+}: UseNotificationsOptions = {}) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const socketRef = useRef<Socket | null>(null);
 
-  // Use stable refs to avoid reconnecting when callbacks change
   const onUpdateRef = useRef(onRequestUpdate);
   const onNewRef = useRef(onRequestNew);
+  const onTripCompletedPassengerRef = useRef(onTripCompletedPassenger);
+  const onTripCompletedDriverRef = useRef(onTripCompletedDriver);
   onUpdateRef.current = onRequestUpdate;
   onNewRef.current = onRequestNew;
+  onTripCompletedPassengerRef.current = onTripCompletedPassenger;
+  onTripCompletedDriverRef.current = onTripCompletedDriver;
 
   useEffect(() => {
     if (!accessToken) return;
@@ -49,6 +72,14 @@ export function useNotifications({ onRequestUpdate, onRequestNew }: UseNotificat
 
     socket.on('request:new', (payload: RequestNewPayload) => {
       onNewRef.current?.(payload);
+    });
+
+    socket.on('trip:completed', (payload: TripCompletedPassengerPayload | TripCompletedDriverPayload) => {
+      if ('passengers' in payload) {
+        onTripCompletedDriverRef.current?.(payload as TripCompletedDriverPayload);
+      } else {
+        onTripCompletedPassengerRef.current?.(payload as TripCompletedPassengerPayload);
+      }
     });
 
     return () => {

@@ -15,6 +15,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { PerfilStackParamList } from '../../navigation/MainTabs';
 import { colors, fonts } from '../../theme';
 import { requestsApi, TripRequest } from '../../api/requests.api';
+import { paymentsApi } from '../../api/payments.api';
 import RatingModal from '../../components/RatingModal';
 import { useNotifications } from '../../hooks/useNotifications';
 
@@ -52,6 +53,7 @@ function TripRequestCard({
   onRetry,
   retrying,
   onPay,
+  paying,
 }: {
   item: TripRequest;
   onCancel: (id: string) => void;
@@ -60,6 +62,7 @@ function TripRequestCard({
   onRetry: (tripId: string) => void;
   retrying: boolean;
   onPay: (requestId: string) => void;
+  paying: boolean;
 }) {
   const isCompleted = item.status === 'COMPLETED';
   const isRejected = item.status === 'REJECTED';
@@ -71,12 +74,36 @@ function TripRequestCard({
   const canRetry = isRejected && (item.rejectionCount ?? 0) < MAX_REJECTIONS;
 
   const tripInProgress = item.trip?.status === 'IN_PROGRESS';
-  const alreadyPaid = !!item.payment;
+  const alreadyPaid = !!item.payment && item.payment.status === 'CONFIRMED';
   const canPayBefore = isAccepted && !tripInProgress && !alreadyPaid;
   const canPayDuring = isAccepted && tripInProgress && !alreadyPaid;
+  const canCancel = isAccepted && item.trip?.status === 'SCHEDULED';
 
   const trip = item.trip;
   const driver = trip?.driver;
+
+  function buildCancelDialog() {
+    if (!alreadyPaid) {
+      return {
+        title: 'Cancelar reserva',
+        message: 'Se devolverá tu cupo al viaje. ¿Confirmas?',
+      };
+    }
+    const minsLeft = trip?.departureTime
+      ? (new Date(trip.departureTime).getTime() - Date.now()) / 60_000
+      : 999;
+    const amount = item.payment!.amount.toFixed(2);
+    if (minsLeft >= 10) {
+      return {
+        title: 'Cancelar reserva',
+        message: `Se reembolsarán $${amount} a tu U-Wallet. ¿Confirmas la cancelación?`,
+      };
+    }
+    return {
+      title: 'Cancelar sin reembolso',
+      message: `Faltan menos de 10 minutos para el viaje. No se realizará ningún reembolso. ¿Confirmas la cancelación?`,
+    };
+  }
 
   function statusBadge() {
     if (isCompleted)  return { label: 'COMPLETADO', color: colors.primary, bg: '#1a3322' };
@@ -182,6 +209,26 @@ function TripRequestCard({
           </TouchableOpacity>
         )}
 
+        {canCancel && (
+          <TouchableOpacity
+            style={styles.cancelBtn}
+            disabled={cancelling}
+            onPress={() => {
+              const { title, message } = buildCancelDialog();
+              Alert.alert(title, message, [
+                { text: 'No', style: 'cancel' },
+                { text: 'Sí, cancelar', style: 'destructive', onPress: () => onCancel(item.id) },
+              ]);
+            }}
+          >
+            {cancelling ? (
+              <ActivityIndicator size="small" color="#ff6b4a" />
+            ) : (
+              <Text style={styles.cancelBtnText}>Cancelar reserva</Text>
+            )}
+          </TouchableOpacity>
+        )}
+
         {canRate && (
           <TouchableOpacity
             style={styles.rateBtn}
@@ -224,16 +271,28 @@ function TripRequestCard({
         )}
 
         {canPayBefore && (
-          <TouchableOpacity style={styles.payBeforeBtn} onPress={() => onPay(item.id)}>
-            <Ionicons name="card-outline" size={14} color="#1a1a1a" />
-            <Text style={styles.payBeforeText}>Pagar reserva</Text>
+          <TouchableOpacity
+            style={styles.payBeforeBtn}
+            onPress={() => onPay(item.id)}
+            disabled={paying}
+          >
+            {paying
+              ? <ActivityIndicator size="small" color="#1a1a1a" />
+              : <><Ionicons name="card-outline" size={14} color="#1a1a1a" /><Text style={styles.payBeforeText}>Pagar reserva</Text></>
+            }
           </TouchableOpacity>
         )}
 
         {canPayDuring && (
-          <TouchableOpacity style={styles.payNowBtn} onPress={() => onPay(item.id)}>
-            <Ionicons name="card" size={14} color={colors.primaryDark} />
-            <Text style={styles.payNowText}>Pagar ahora</Text>
+          <TouchableOpacity
+            style={styles.payNowBtn}
+            onPress={() => onPay(item.id)}
+            disabled={paying}
+          >
+            {paying
+              ? <ActivityIndicator size="small" color={colors.primaryDark} />
+              : <><Ionicons name="card" size={14} color={colors.primaryDark} /><Text style={styles.payNowText}>Pagar ahora</Text></>
+            }
           </TouchableOpacity>
         )}
       </View>
@@ -247,6 +306,7 @@ export default function MisViajesScreen({ navigation }: Props) {
   const [tab, setTab] = useState<TabMode>('active');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [retryingTripId, setRetryingTripId] = useState<string | null>(null);
+  const [payingId, setPayingId] = useState<string | null>(null);
   const [ratingTarget, setRatingTarget] = useState<{ requestId: string; driverName: string } | null>(null);
   const queryClient = useQueryClient();
 
@@ -275,7 +335,13 @@ export default function MisViajesScreen({ navigation }: Props) {
     mutationFn: (id: string) => requestsApi.cancelRequest(id),
     onMutate: (id) => setCancellingId(id),
     onSettled: () => setCancellingId(null),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-requests'] }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet'] });
+      if (data.data.refunded) {
+        Alert.alert('Reserva cancelada', data.data.message);
+      }
+    },
     onError: () => Alert.alert('Error', 'No se pudo cancelar la solicitud'),
   });
 
@@ -290,6 +356,21 @@ export default function MisViajesScreen({ navigation }: Props) {
     onError: (err: any) => {
       const msg = err?.response?.data?.error || 'No se pudo reenviar la solicitud';
       Alert.alert('Error', msg);
+    },
+  });
+
+  const { mutate: payRequest } = useMutation({
+    mutationFn: (requestId: string) => paymentsApi.payWithWallet(requestId),
+    onMutate: (id) => setPayingId(id),
+    onSettled: () => setPayingId(null),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet'] });
+      Alert.alert('Pago exitoso', `Se descontaron $${data.data.amount.toFixed(2)} de tu U-Wallet.`);
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.error || 'No se pudo procesar el pago';
+      Alert.alert('Error al pagar', msg);
     },
   });
 
@@ -374,7 +455,8 @@ export default function MisViajesScreen({ navigation }: Props) {
               onRate={(requestId, driverName) => setRatingTarget({ requestId, driverName })}
               onRetry={retryRequest}
               retrying={retryingTripId === item.trip?.id}
-              onPay={() => Alert.alert('Pago próximamente', 'La funcionalidad de pago estará disponible muy pronto.')}
+              onPay={payRequest}
+              paying={payingId === item.id}
             />
           )}
           contentContainerStyle={styles.list}

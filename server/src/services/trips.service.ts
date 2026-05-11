@@ -1,5 +1,6 @@
-import { PrismaClient, TripStatus } from '@prisma/client';
+import { PrismaClient, TripStatus, PaymentStatus, TransactionType, TransactionConcept, RequestStatus } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
+import { emitToUser } from '../socket/tracking.gateway';
 
 export class TripsService {
   constructor(private readonly prisma: PrismaClient) {}
@@ -189,7 +190,10 @@ export class TripsService {
   }
 
   async updateStatus(tripId: string, driverId: string, status: TripStatus) {
-    const trip = await this.prisma.trip.findUnique({ where: { id: tripId } });
+    const trip = await this.prisma.trip.findUnique({
+      where: { id: tripId },
+      include: { driver: { select: { fullName: true } } },
+    });
     if (!trip) throw new AppError(404, 'Viaje no encontrado');
     if (trip.driverId !== driverId) throw new AppError(403, 'No tienes permiso para modificar este viaje');
 
@@ -203,7 +207,78 @@ export class TripsService {
       throw new AppError(400, `No se puede pasar de ${trip.status} a ${status}`);
     }
 
-    return this.prisma.trip.update({ where: { id: tripId }, data: { status } });
+    if (status !== TripStatus.COMPLETED) {
+      return this.prisma.trip.update({ where: { id: tripId }, data: { status } });
+    }
+
+    // Al completar: flush de escrow → walletBalance del conductor
+    const acceptedRequests = await this.prisma.tripRequest.findMany({
+      where: { tripId, status: 'ACCEPTED' },
+      include: {
+        payment: true,
+        passenger: { select: { id: true, fullName: true } },
+      },
+    });
+
+    const paidRequests = acceptedRequests.filter(r => r.payment?.status === PaymentStatus.CONFIRMED);
+
+    const totalEarned = paidRequests.reduce(
+      (sum, r) => sum + Number(r.payment!.amount),
+      0,
+    );
+
+    await this.prisma.$transaction([
+      this.prisma.trip.update({ where: { id: tripId }, data: { status } }),
+      // Marcar todas las solicitudes aceptadas como COMPLETED
+      this.prisma.tripRequest.updateMany({
+        where: { tripId, status: RequestStatus.ACCEPTED },
+        data: { status: RequestStatus.COMPLETED },
+      }),
+      this.prisma.user.update({
+        where: { id: driverId },
+        data: {
+          pendingBalance: { decrement: totalEarned },
+          walletBalance: { increment: totalEarned },
+          totalTrips: { increment: 1 },
+        },
+      }),
+      ...paidRequests.map(r =>
+        this.prisma.walletTransaction.create({
+          data: {
+            userId: driverId,
+            amount: r.payment!.amount,
+            type: TransactionType.CREDIT,
+            concept: TransactionConcept.TRIP_EARNING,
+            description: `${trip.originZone} → ${trip.destinationZone}`,
+            relatedRequestId: r.id,
+          },
+        }),
+      ),
+    ]);
+
+    const completedTrip = await this.prisma.trip.findUnique({ where: { id: tripId } });
+
+    // Notificar a cada pasajero para que califiquen al conductor
+    for (const req of acceptedRequests) {
+      emitToUser(req.passenger.id, 'trip:completed', {
+        tripId,
+        requestId: req.id,
+        driverName: trip.driver.fullName,
+        originZone: trip.originZone,
+        destinationZone: trip.destinationZone,
+      });
+    }
+
+    // Notificar al conductor con la lista de pasajeros a calificar
+    emitToUser(driverId, 'trip:completed', {
+      tripId,
+      passengers: acceptedRequests.map(r => ({
+        requestId: r.id,
+        name: r.passenger.fullName,
+      })),
+    });
+
+    return completedTrip;
   }
 
   async safetyAck(tripId: string, userId: string) {

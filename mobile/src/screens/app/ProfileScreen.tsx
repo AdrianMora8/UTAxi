@@ -8,6 +8,7 @@ import { colors, fonts } from '../../theme';
 import { useAuthStore } from '../../store/authStore';
 import { requestsApi } from '../../api/requests.api';
 import { usersApi } from '../../api/users.api';
+import { paymentsApi } from '../../api/payments.api';
 import type { PerfilStackParamList } from '../../navigation/MainTabs';
 
 type NavProp = NativeStackNavigationProp<PerfilStackParamList, 'Profile'>;
@@ -25,9 +26,14 @@ export default function ProfileScreen() {
     queryKey: ['me'],
     queryFn: () => usersApi.getMe().then(r => r.data.user),
   });
-  const totalViajes = (requests ?? []).filter(
-    r => r.status === 'ACCEPTED' || r.status === 'COMPLETED'
-  ).length;
+
+  const { data: wallet } = useQuery({
+    queryKey: ['wallet'],
+    queryFn: () => paymentsApi.getWallet().then(r => r.data),
+  });
+  const hasVehicle = !!profile?.vehicle;
+  const viajesPasajero = (requests ?? []).filter(r => r.status === 'COMPLETED').length;
+  const viajesConductor = profile?.totalTrips ?? 0;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -50,27 +56,45 @@ export default function ProfileScreen() {
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Ionicons name="star" size={14} color={colors.primary} style={{ marginBottom: 2 }} />
-            <Text style={styles.statValue}>{user?.reputationScore?.toFixed(1) ?? '—'}</Text>
+            <Text style={styles.statValue}>{profile?.reputationScore?.toFixed(1) ?? user?.reputationScore?.toFixed(1) ?? '—'}</Text>
             <Text style={styles.statLabel}>PUNTUACIÓN</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Ionicons name="swap-horizontal-outline" size={14} color={colors.textMuted} style={{ marginBottom: 2 }} />
-            <Text style={[styles.statValue, { color: colors.text }]}>{totalViajes}</Text>
-            <Text style={styles.statLabel}>VIAJES</Text>
+            <Ionicons name="person-outline" size={14} color={colors.textMuted} style={{ marginBottom: 2 }} />
+            <Text style={[styles.statValue, { color: colors.text }]}>{viajesPasajero}</Text>
+            <Text style={styles.statLabel}>PASAJERO</Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Ionicons name="shield-checkmark-outline" size={14} color={colors.textMuted} style={{ marginBottom: 2 }} />
-            <Text style={[styles.statValue, { color: colors.text }]}>
-              {user?.status === 'ACTIVE' ? 'Activo' : user?.status ?? '—'}
-            </Text>
-            <Text style={styles.statLabel}>ESTADO</Text>
-          </View>
+          {hasVehicle && (
+            <>
+              <View style={styles.statDivider} />
+              <View style={styles.statItem}>
+                <Ionicons name="car-outline" size={14} color={colors.textMuted} style={{ marginBottom: 2 }} />
+                <Text style={[styles.statValue, { color: colors.text }]}>{viajesConductor}</Text>
+                <Text style={styles.statLabel}>CONDUCTOR</Text>
+              </View>
+            </>
+          )}
         </View>
       </View>
 
       <View style={styles.menu}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Wallet')}
+        >
+          <Ionicons name="wallet-outline" size={20} color={colors.primary} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.menuText}>U-Wallet</Text>
+            {wallet != null && (
+              <Text style={styles.menuSub}>
+                Saldo: ${wallet.walletBalance.toFixed(2)}
+              </Text>
+            )}
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.menuItem}
           onPress={() => navigation.navigate('MisViajes')}
@@ -93,12 +117,6 @@ export default function ProfileScreen() {
               </Text>
             )}
           </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <Ionicons name="settings-outline" size={20} color={colors.primary} />
-          <Text style={styles.menuText}>Configuración</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
         </TouchableOpacity>
 

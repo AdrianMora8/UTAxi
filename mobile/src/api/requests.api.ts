@@ -48,7 +48,7 @@ export const requestsApi = {
     apiClient.patch<{ request: TripRequest }>(`/requests/${id}/arrival`, { arrived }),
 
   cancelRequest: (id: string) =>
-    apiClient.delete(`/requests/${id}`),
+    apiClient.delete<{ refunded: boolean; amount?: number; message: string }>(`/requests/${id}`),
 
   getMyRequests: () =>
     apiClient.get<{ requests: TripRequest[] }>('/requests/my'),

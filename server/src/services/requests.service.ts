@@ -1,4 +1,4 @@
-import { PrismaClient, RequestStatus, TripStatus } from '@prisma/client';
+import { PrismaClient, RequestStatus, TripStatus, PaymentStatus, TransactionType, TransactionConcept } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 
 export class RequestsService {
@@ -105,10 +105,15 @@ export class RequestsService {
             totalTrips: true,
           },
         },
-        rating: { select: { id: true, score: true } },
+        ratings: { select: { id: true, score: true, raterId: true } },
       },
     });
-    return requests;
+
+    // Exponer solo el rating que hizo el conductor (para saber si ya calificó al pasajero)
+    return requests.map(r => ({
+      ...r,
+      rating: r.ratings.find(rt => rt.raterId === driverId) ?? null,
+    }));
   }
 
   async respond(requestId: string, driverId: string, action: 'ACCEPT' | 'REJECT') {
@@ -155,12 +160,26 @@ export class RequestsService {
   async cancelRequest(requestId: string, passengerId: string) {
     const request = await this.prisma.tripRequest.findUnique({
       where: { id: requestId },
-      include: { trip: true },
+      include: { trip: true, payment: true },
     });
+
     if (!request) throw new AppError(404, 'Solicitud no encontrada');
     if (request.passengerId !== passengerId) throw new AppError(403, 'No puedes cancelar una solicitud que no es tuya');
-    if (request.status === RequestStatus.ACCEPTED) {
-      // Devolver el cupo al viaje
+    if (request.status === RequestStatus.CANCELLED) throw new AppError(400, 'La solicitud ya fue cancelada');
+    if (request.trip.status === TripStatus.IN_PROGRESS) throw new AppError(400, 'No puedes cancelar mientras el viaje está en curso');
+    if (request.trip.status === TripStatus.COMPLETED) throw new AppError(400, 'El viaje ya fue completado');
+
+    // PENDING: cancelación simple sin cupo ni pago involucrado
+    if (request.status === RequestStatus.PENDING) {
+      await this.prisma.tripRequest.update({
+        where: { id: requestId },
+        data: { status: RequestStatus.CANCELLED },
+      });
+      return { refunded: false, message: 'Solicitud cancelada' };
+    }
+
+    // ACCEPTED sin pago: devolver cupo y listo
+    if (!request.payment || request.payment.status !== PaymentStatus.CONFIRMED) {
       await this.prisma.$transaction([
         this.prisma.tripRequest.update({
           where: { id: requestId },
@@ -171,14 +190,87 @@ export class RequestsService {
           data: { availableSeats: { increment: 1 } },
         }),
       ]);
-      return { message: 'Solicitud cancelada y cupo devuelto al viaje' };
+      return { refunded: false, message: 'Reserva cancelada y cupo devuelto al viaje' };
     }
 
-    await this.prisma.tripRequest.update({
-      where: { id: requestId },
-      data: { status: RequestStatus.CANCELLED },
-    });
-    return { message: 'Solicitud cancelada' };
+    // ACCEPTED con pago confirmado: aplicar política de 10 minutos
+    const minutesUntilDeparture = (new Date(request.trip.departureTime).getTime() - Date.now()) / 60_000;
+    const amount = request.payment.amount;
+    const driverId = request.trip.driverId;
+
+    if (minutesUntilDeparture >= 10) {
+      // Dentro del plazo: reembolso total al wallet del pasajero
+      await this.prisma.$transaction([
+        this.prisma.tripRequest.update({
+          where: { id: requestId },
+          data: { status: RequestStatus.CANCELLED },
+        }),
+        this.prisma.trip.update({
+          where: { id: request.tripId },
+          data: { availableSeats: { increment: 1 } },
+        }),
+        this.prisma.payment.update({
+          where: { id: request.payment.id },
+          data: { status: PaymentStatus.REFUNDED },
+        }),
+        this.prisma.user.update({
+          where: { id: passengerId },
+          data: { walletBalance: { increment: amount } },
+        }),
+        this.prisma.user.update({
+          where: { id: driverId },
+          data: { pendingBalance: { decrement: amount } },
+        }),
+        this.prisma.walletTransaction.create({
+          data: {
+            userId: passengerId,
+            amount,
+            type: TransactionType.CREDIT,
+            concept: TransactionConcept.REFUND,
+            description: `${request.trip.originZone} → ${request.trip.destinationZone}`,
+            relatedRequestId: requestId,
+          },
+        }),
+      ]);
+      return {
+        refunded: true,
+        amount: Number(amount),
+        message: `Se reembolsaron $${Number(amount).toFixed(2)} a tu U-Wallet`,
+      };
+    }
+
+    // Fuera del plazo: el conductor se queda con el dinero como compensación
+    await this.prisma.$transaction([
+      this.prisma.tripRequest.update({
+        where: { id: requestId },
+        data: { status: RequestStatus.CANCELLED },
+      }),
+      this.prisma.trip.update({
+        where: { id: request.tripId },
+        data: { availableSeats: { increment: 1 } },
+      }),
+      this.prisma.user.update({
+        where: { id: driverId },
+        data: {
+          pendingBalance: { decrement: amount },
+          walletBalance: { increment: amount },
+        },
+      }),
+      this.prisma.walletTransaction.create({
+        data: {
+          userId: driverId,
+          amount,
+          type: TransactionType.CREDIT,
+          concept: TransactionConcept.CANCELLATION_FEE,
+          description: `${request.trip.originZone} → ${request.trip.destinationZone}`,
+          relatedRequestId: requestId,
+        },
+      }),
+    ]);
+    return {
+      refunded: false,
+      message: 'Cancelación fuera del plazo permitido. No se realizó reembolso.',
+    };
   }
 
   async markArrival(requestId: string, driverId: string, arrived: boolean) {
@@ -207,10 +299,16 @@ export class RequestsService {
             driver: { select: { id: true, fullName: true, reputationScore: true } },
           },
         },
-        rating: { select: { id: true, score: true, comment: true } },
-        payment: { select: { id: true, status: true, confirmedAt: true } },
+        ratings: { select: { id: true, score: true, comment: true, raterId: true } },
+        payment: { select: { id: true, amount: true, status: true, confirmedAt: true } },
       },
     });
-    return requests;
+
+    return requests.map(r => ({
+      ...r,
+      // Exponer solo el rating que hizo el propio pasajero (para saber si ya calificó al conductor)
+      rating: r.ratings.find(rt => rt.raterId === passengerId) ?? null,
+      payment: r.payment ? { ...r.payment, amount: Number(r.payment.amount) } : null,
+    }));
   }
 }

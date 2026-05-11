@@ -1,4 +1,4 @@
-import { PrismaClient, RequestStatus, PaymentStatus } from '@prisma/client';
+import { PrismaClient, RequestStatus, PaymentStatus, TransactionType, TransactionConcept } from '@prisma/client';
 import Stripe from 'stripe';
 import { AppError } from '../middleware/errorHandler';
 
@@ -133,5 +133,110 @@ export class PaymentsService {
     if (payment.payerId !== userId) throw new AppError(403, 'No tienes acceso a este pago');
 
     return payment;
+  }
+
+  async payWithWallet(tripRequestId: string, payerId: string) {
+    const tripRequest = await this.prisma.tripRequest.findUnique({
+      where: { id: tripRequestId },
+      include: { trip: true, payment: true },
+    });
+
+    if (!tripRequest) throw new AppError(404, 'Solicitud no encontrada');
+    if (tripRequest.passengerId !== payerId) throw new AppError(403, 'Solo el pasajero puede pagar su solicitud');
+    if (tripRequest.status !== RequestStatus.ACCEPTED) throw new AppError(400, 'Solo se puede pagar una solicitud aceptada');
+    if (tripRequest.payment?.status === PaymentStatus.CONFIRMED) throw new AppError(409, 'Esta solicitud ya fue pagada');
+
+    const amount = tripRequest.trip.pricePerSeat;
+    const driverId = tripRequest.trip.driverId;
+
+    const payer = await this.prisma.user.findUnique({ where: { id: payerId }, select: { walletBalance: true } });
+    if (!payer) throw new AppError(404, 'Usuario no encontrado');
+    if (Number(payer.walletBalance) < Number(amount)) throw new AppError(400, 'Saldo insuficiente en U-Wallet');
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: payerId },
+        data: { walletBalance: { decrement: amount } },
+      }),
+      this.prisma.user.update({
+        where: { id: driverId },
+        data: { pendingBalance: { increment: amount } },
+      }),
+      this.prisma.walletTransaction.create({
+        data: {
+          userId: payerId,
+          amount,
+          type: TransactionType.DEBIT,
+          concept: TransactionConcept.PAYMENT,
+          description: `${tripRequest.trip.originZone} → ${tripRequest.trip.destinationZone}`,
+          relatedRequestId: tripRequestId,
+        },
+      }),
+      this.prisma.payment.upsert({
+        where: { tripRequestId },
+        create: {
+          tripRequestId,
+          tripId: tripRequest.tripId,
+          payerId,
+          amount,
+          status: PaymentStatus.CONFIRMED,
+          confirmedAt: new Date(),
+        },
+        update: {
+          status: PaymentStatus.CONFIRMED,
+          confirmedAt: new Date(),
+          stripePaymentId: null,
+        },
+      }),
+    ]);
+
+    return { amount: Number(amount) };
+  }
+
+  async getWallet(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { walletBalance: true, pendingBalance: true },
+    });
+    if (!user) throw new AppError(404, 'Usuario no encontrado');
+
+    const transactions = await this.prisma.walletTransaction.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+
+    return {
+      walletBalance: Number(user.walletBalance),
+      pendingBalance: Number(user.pendingBalance),
+      transactions: transactions.map(t => ({ ...t, amount: Number(t.amount) })),
+    };
+  }
+
+  async topUpWallet(userId: string, amount: number) {
+    if (amount <= 0 || amount > 500) throw new AppError(400, 'El monto debe estar entre $0.01 y $500');
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { walletBalance: { increment: amount } },
+      }),
+      this.prisma.walletTransaction.create({
+        data: {
+          userId,
+          amount,
+          type: TransactionType.CREDIT,
+          concept: TransactionConcept.TOPUP,
+          description: 'Recarga manual',
+        },
+      }),
+    ]);
+
+    const updated = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { walletBalance: true },
+    });
+
+    return { walletBalance: Number(updated!.walletBalance) };
   }
 }

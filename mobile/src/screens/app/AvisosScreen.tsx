@@ -16,8 +16,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AvisosStackParamList } from '../../navigation/MainTabs';
 import { colors, fonts } from '../../theme';
 import { requestsApi, TripRequest } from '../../api/requests.api';
-
-type Tab = 'activas' | 'historial';
+import { paymentsApi } from '../../api/payments.api';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   PENDING:   { label: 'PENDIENTE',  color: '#f5c518', bg: '#2a2510' },
@@ -52,12 +51,14 @@ function RequestCard({
   cancelling,
   onTrack,
   onPay,
+  paying,
 }: {
   item: TripRequest;
   onCancel: (id: string) => void;
   cancelling: boolean;
   onTrack: (item: TripRequest) => void;
   onPay: (requestId: string) => void;
+  paying: boolean;
 }) {
   const trip = item.trip;
   const driver = trip?.driver;
@@ -66,9 +67,30 @@ function RequestCard({
   const isCancelled = item.status === 'CANCELLED' || item.status === 'REJECTED';
   const isAccepted = item.status === 'ACCEPTED';
   const canTrack = isAccepted && trip?.status === 'IN_PROGRESS';
-  const alreadyPaid = !!item.payment;
+  const alreadyPaid = !!item.payment && item.payment.status === 'CONFIRMED';
   const canPayBefore = isAccepted && trip?.status !== 'IN_PROGRESS' && !alreadyPaid;
   const canPayDuring = isAccepted && trip?.status === 'IN_PROGRESS' && !alreadyPaid;
+  const canCancel = isAccepted && trip?.status === 'SCHEDULED';
+
+  function buildCancelDialog() {
+    if (!alreadyPaid) {
+      return { title: 'Cancelar reserva', message: 'Se devolverá tu cupo al viaje. ¿Confirmas?' };
+    }
+    const minsLeft = trip?.departureTime
+      ? (new Date(trip.departureTime).getTime() - Date.now()) / 60_000
+      : 999;
+    const amount = item.payment!.amount.toFixed(2);
+    if (minsLeft >= 10) {
+      return {
+        title: 'Cancelar reserva',
+        message: `Se reembolsarán $${amount} a tu U-Wallet. ¿Confirmas la cancelación?`,
+      };
+    }
+    return {
+      title: 'Cancelar sin reembolso',
+      message: `Faltan menos de 10 minutos para el viaje. No se realizará ningún reembolso. ¿Confirmas?`,
+    };
+  }
 
   function handleCancel() {
     Alert.alert(
@@ -157,16 +179,28 @@ function RequestCard({
           )}
 
           {canPayDuring && (
-            <TouchableOpacity style={styles.payNowBtn} onPress={() => onPay(item.id)}>
-              <Ionicons name="card" size={14} color={colors.primaryDark} />
-              <Text style={styles.payNowText}>Pagar ahora</Text>
+            <TouchableOpacity
+              style={styles.payNowBtn}
+              onPress={() => onPay(item.id)}
+              disabled={paying}
+            >
+              {paying
+                ? <ActivityIndicator size="small" color={colors.primaryDark} />
+                : <><Ionicons name="card" size={14} color={colors.primaryDark} /><Text style={styles.payNowText}>Pagar ahora</Text></>
+              }
             </TouchableOpacity>
           )}
 
           {canPayBefore && (
-            <TouchableOpacity style={styles.payBeforeBtn} onPress={() => onPay(item.id)}>
-              <Ionicons name="card-outline" size={14} color="#1a1a1a" />
-              <Text style={styles.payBeforeText}>Pagar reserva</Text>
+            <TouchableOpacity
+              style={styles.payBeforeBtn}
+              onPress={() => onPay(item.id)}
+              disabled={paying}
+            >
+              {paying
+                ? <ActivityIndicator size="small" color="#1a1a1a" />
+                : <><Ionicons name="card-outline" size={14} color="#1a1a1a" /><Text style={styles.payBeforeText}>Pagar reserva</Text></>
+              }
             </TouchableOpacity>
           )}
 
@@ -190,17 +224,37 @@ function RequestCard({
               )}
             </TouchableOpacity>
           )}
+
+          {canCancel && (
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              disabled={cancelling}
+              onPress={() => {
+                const { title, message } = buildCancelDialog();
+                Alert.alert(title, message, [
+                  { text: 'No', style: 'cancel' },
+                  { text: 'Sí, cancelar', style: 'destructive', onPress: () => onCancel(item.id) },
+                ]);
+              }}
+            >
+              {cancelling ? (
+                <ActivityIndicator size="small" color="#ff6b4a" />
+              ) : (
+                <Text style={styles.cancelBtnText}>Cancelar reserva</Text>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
   );
 }
 
-type Props = NativeStackScreenProps<AvisosStackParamList, 'Avisos'>;
+type Props = NativeStackScreenProps<AvisosStackParamList, 'AvisosMain'>;
 
 export default function AvisosScreen({ navigation }: Props) {
-  const [tab, setTab] = useState<Tab>('activas');
   const [cancellingId, setCancellingId] = useState<string | null>(null);
+  const [payingId, setPayingId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError, refetch, isRefetching } = useQuery({
@@ -213,20 +267,33 @@ export default function AvisosScreen({ navigation }: Props) {
     mutationFn: (id: string) => requestsApi.cancelRequest(id),
     onMutate: (id) => setCancellingId(id),
     onSettled: () => setCancellingId(null),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-requests'] }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet'] });
+      if (data.data.refunded) {
+        Alert.alert('Reserva cancelada', data.data.message);
+      }
+    },
     onError: () => Alert.alert('Error', 'No se pudo cancelar la solicitud'),
+  });
+
+  const { mutate: payRequest } = useMutation({
+    mutationFn: (requestId: string) => paymentsApi.payWithWallet(requestId),
+    onMutate: (id) => setPayingId(id),
+    onSettled: () => setPayingId(null),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet'] });
+      Alert.alert('Pago exitoso', `Se descontaron $${data.data.amount.toFixed(2)} de tu U-Wallet.`);
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.error || 'No se pudo procesar el pago';
+      Alert.alert('Error al pagar', msg);
+    },
   });
 
   const requests = data ?? [];
   const activas = requests.filter(r => r.status === 'PENDING' || r.status === 'ACCEPTED');
-  const historial = requests.filter(r =>
-    r.status === 'COMPLETED' || r.status === 'REJECTED' || r.status === 'CANCELLED'
-  );
-  const displayed = tab === 'activas' ? activas : historial;
-
-  const emptyMessage = tab === 'activas'
-    ? { title: 'Sin solicitudes activas', sub: 'Busca un viaje y solicita unirte' }
-    : { title: 'Sin historial aún', sub: 'Tus viajes completados aparecerán aquí' };
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -234,33 +301,6 @@ export default function AvisosScreen({ navigation }: Props) {
       <View style={styles.header}>
         <Text style={styles.logo}>U-RIDE</Text>
         <Text style={styles.pageTitle}>Mis Solicitudes</Text>
-      </View>
-
-      {/* Tab switcher */}
-      <View style={styles.tabRow}>
-        <TouchableOpacity
-          style={[styles.tabBtn, tab === 'activas' && styles.tabBtnActive]}
-          onPress={() => setTab('activas')}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.tabText, tab === 'activas' && styles.tabTextActive]}>
-            Activas
-          </Text>
-          {activas.length > 0 && (
-            <View style={styles.badge2}>
-              <Text style={styles.badge2Text}>{activas.length}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tabBtn, tab === 'historial' && styles.tabBtnActive]}
-          onPress={() => setTab('historial')}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.tabText, tab === 'historial' && styles.tabTextActive]}>
-            Historial
-          </Text>
-        </TouchableOpacity>
       </View>
 
       {/* Contenido */}
@@ -278,14 +318,15 @@ export default function AvisosScreen({ navigation }: Props) {
         </View>
       ) : (
         <FlatList
-          data={displayed}
+          data={activas}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <RequestCard
               item={item}
               onCancel={cancelRequest}
               cancelling={cancellingId === item.id}
-              onPay={() => Alert.alert('Pago próximamente', 'La funcionalidad de pago estará disponible muy pronto.')}
+              onPay={payRequest}
+              paying={payingId === item.id}
               onTrack={(req) => navigation.navigate('TripTracking', {
                 tripId: req.trip!.id,
                 driverName: req.trip?.driver?.fullName ?? 'Conductor',
@@ -298,8 +339,8 @@ export default function AvisosScreen({ navigation }: Props) {
           ListEmptyComponent={
             <View style={styles.centered}>
               <Ionicons name="car-outline" size={56} color={colors.textDim} />
-              <Text style={styles.emptyTitle}>{emptyMessage.title}</Text>
-              <Text style={styles.emptySubtext}>{emptyMessage.sub}</Text>
+              <Text style={styles.emptyTitle}>Sin solicitudes activas</Text>
+              <Text style={styles.emptySubtext}>Busca un viaje y solicita unirte</Text>
             </View>
           }
           contentContainerStyle={styles.list}
@@ -314,6 +355,7 @@ export default function AvisosScreen({ navigation }: Props) {
           }
         />
       )}
+
     </SafeAreaView>
   );
 }
@@ -340,50 +382,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     color: colors.text,
     marginTop: 4,
-    marginBottom: 16,
-  },
-  tabRow: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 16,
-    backgroundColor: colors.surfaceContainer,
-    borderRadius: 12,
-    padding: 4,
-    gap: 4,
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: 9,
-    borderRadius: 9,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  tabBtnActive: {
-    backgroundColor: colors.surfaceHigh,
-  },
-  tabText: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 14,
-    color: colors.textMuted,
-  },
-  tabTextActive: {
-    color: colors.text,
-  },
-  badge2: {
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-    minWidth: 18,
-    height: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 4,
-  },
-  badge2Text: {
-    fontFamily: fonts.bodySemiBold,
-    fontSize: 10,
-    color: colors.primaryDark,
+    marginBottom: 8,
   },
   list: {
     paddingHorizontal: 20,

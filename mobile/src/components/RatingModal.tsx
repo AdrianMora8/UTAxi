@@ -18,12 +18,12 @@ import { ratingsApi } from '../api/ratings.api';
 
 interface Props {
   tripRequestId: string;
-  /** Nombre completo de quien se califica */
   targetName: string;
-  /** 'driver' | 'passenger' — usado sólo para el texto del modal */
   raterRole?: 'driver' | 'passenger';
   onClose: () => void;
   onSuccess?: () => void;
+  /** Si es true, no se puede cerrar sin calificar primero */
+  mandatory?: boolean;
   /** @deprecated Use targetName */
   driverName?: string;
 }
@@ -34,6 +34,7 @@ export default function RatingModal({
   raterRole = 'passenger',
   onClose,
   onSuccess,
+  mandatory = false,
   driverName,
 }: Props) {
   const resolvedName = targetName || driverName || '';
@@ -45,6 +46,7 @@ export default function RatingModal({
     mutationFn: () => ratingsApi.createRating({ tripRequestId, score, comment: comment.trim() || undefined }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['me'] });
       onSuccess?.();
       onClose();
     },
@@ -66,12 +68,15 @@ export default function RatingModal({
   const firstName = resolvedName.split(' ')[0];
 
   return (
-    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible transparent animationType="fade" onRequestClose={mandatory ? undefined : onClose}>
       <KeyboardAvoidingView
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+        {!mandatory && (
+          <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+        )}
+        {mandatory && <View style={styles.backdrop} />}
 
         <View style={styles.sheet}>
           {/* Handle */}
@@ -116,11 +121,17 @@ export default function RatingModal({
             returnKeyType="done"
           />
 
+          {mandatory && (
+            <Text style={styles.mandatoryNote}>Califica el viaje para continuar</Text>
+          )}
+
           {/* Botones */}
           <View style={styles.btnRow}>
-            <TouchableOpacity style={styles.btnCancel} onPress={onClose} disabled={isPending}>
-              <Text style={styles.btnCancelText}>Cancelar</Text>
-            </TouchableOpacity>
+            {!mandatory && (
+              <TouchableOpacity style={styles.btnCancel} onPress={onClose} disabled={isPending}>
+                <Text style={styles.btnCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={[styles.btnSubmit, score === 0 && styles.btnSubmitDisabled]}
               onPress={handleSubmit}
@@ -231,5 +242,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemiBold,
     fontSize: 15,
     color: colors.primaryDark,
+  },
+  mandatoryNote: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
+    color: colors.primary,
+    textAlign: 'center',
+    letterSpacing: 0.3,
+    marginTop: -6,
   },
 });

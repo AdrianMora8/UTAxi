@@ -15,6 +15,14 @@ const simulateSchema = z.object({
   tripRequestId: z.string().min(1),
 });
 
+const payWithWalletSchema = z.object({
+  tripRequestId: z.string().min(1),
+});
+
+const topUpSchema = z.object({
+  amount: z.number().positive().max(500),
+});
+
 export async function createIntent(req: Request, res: Response) {
   const { tripRequestId } = createIntentSchema.parse(req.body);
   const result = await svc.createIntent(tripRequestId, req.user!.id);
@@ -36,4 +44,21 @@ export async function simulateConfirm(req: Request, res: Response) {
   const { tripRequestId } = simulateSchema.parse(req.body);
   const result = await svc.simulateConfirm(tripRequestId, req.user!.id);
   res.status(201).json(result);
+}
+
+export async function payWithWallet(req: Request, res: Response) {
+  const { tripRequestId } = payWithWalletSchema.parse(req.body);
+  const result = await svc.payWithWallet(tripRequestId, req.user!.id);
+  res.status(201).json(result);
+}
+
+export async function getWallet(req: Request, res: Response) {
+  const result = await svc.getWallet(req.user!.id);
+  res.json(result);
+}
+
+export async function topUpWallet(req: Request, res: Response) {
+  const { amount } = topUpSchema.parse(req.body);
+  const result = await svc.topUpWallet(req.user!.id, amount);
+  res.json(result);
 }

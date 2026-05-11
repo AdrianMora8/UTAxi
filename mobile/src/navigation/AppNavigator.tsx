@@ -1,10 +1,12 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '../store/authStore';
 import { colors } from '../theme';
 import AuthStack from './AuthStack';
 import MainTabs from './MainTabs';
+
+export const navigationRef = createNavigationContainerRef();
 
 export default function AppNavigator() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -25,7 +27,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {isAuthenticated ? <MainTabs /> : <AuthStack />}
     </NavigationContainer>
   );

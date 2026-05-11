@@ -17,6 +17,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts } from '../../theme';
 import { tripsApi, Trip } from '../../api/trips.api';
+import { requestsApi } from '../../api/requests.api';
 import { useAuthStore } from '../../store/authStore';
 import type { BuscarStackParamList } from '../../navigation/MainTabs';
 
@@ -45,11 +46,52 @@ function Initials({ name, size = 42 }: { name: string; size?: number }) {
   );
 }
 
-function TripCard({ trip, onPress }: { trip: Trip; onPress: () => void }) {
+type MyRequestStatus = 'PENDING' | 'ACCEPTED' | null;
+
+function TripCard({
+  trip,
+  onPress,
+  myRequestStatus,
+}: {
+  trip: Trip;
+  onPress: () => void;
+  myRequestStatus: MyRequestStatus;
+}) {
   const seatsLeft = trip.availableSeats;
   const firstName = trip.driver.fullName.split(' ')[0];
   const lastName = trip.driver.fullName.split(' ').slice(-1)[0];
   const shortName = `${firstName} ${lastName[0]}.`;
+
+  function renderButton() {
+    if (myRequestStatus === 'ACCEPTED') {
+      return (
+        <TouchableOpacity style={styles.btnReserved} onPress={onPress} activeOpacity={0.8}>
+          <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
+          <Text style={styles.btnReservedText}>Reservado</Text>
+        </TouchableOpacity>
+      );
+    }
+    if (myRequestStatus === 'PENDING') {
+      return (
+        <TouchableOpacity style={styles.btnPending} onPress={onPress} activeOpacity={0.8}>
+          <Ionicons name="time-outline" size={14} color="#f5c518" />
+          <Text style={styles.btnPendingText}>Solicitud pendiente</Text>
+        </TouchableOpacity>
+      );
+    }
+    if (seatsLeft <= 1) {
+      return (
+        <TouchableOpacity style={styles.btnOutline} onPress={onPress} activeOpacity={0.8}>
+          <Text style={styles.btnOutlineText}>Ver Detalles</Text>
+        </TouchableOpacity>
+      );
+    }
+    return (
+      <TouchableOpacity style={styles.btnPrimary} onPress={onPress} activeOpacity={0.8}>
+        <Text style={styles.btnPrimaryText}>Reservar</Text>
+      </TouchableOpacity>
+    );
+  }
 
   return (
     <View style={styles.card}>
@@ -88,15 +130,7 @@ function TripCard({ trip, onPress }: { trip: Trip; onPress: () => void }) {
           <Ionicons name="time-outline" size={14} color={colors.textMuted} />
           <Text style={styles.timeText}>{minutesUntil(trip.departureTime)}</Text>
         </View>
-        <TouchableOpacity
-          style={seatsLeft <= 1 ? styles.btnOutline : styles.btnPrimary}
-          onPress={onPress}
-          activeOpacity={0.8}
-        >
-          <Text style={seatsLeft <= 1 ? styles.btnOutlineText : styles.btnPrimaryText}>
-            {seatsLeft <= 1 ? 'Ver Detalles' : 'Reservar'}
-          </Text>
-        </TouchableOpacity>
+        {renderButton()}
       </View>
     </View>
   );
@@ -114,6 +148,17 @@ export default function HomePasajeroScreen() {
     queryKey: ['trips', destinationZone],
     queryFn: () => tripsApi.getTrips({ destinationZone, limit: 20 }).then(r => r.data),
   });
+
+  const { data: myRequestsData } = useQuery({
+    queryKey: ['my-requests'],
+    queryFn: () => requestsApi.getMyRequests().then(r => r.data.requests),
+  });
+
+  const myRequestMap = new Map<string, MyRequestStatus>(
+    (myRequestsData ?? [])
+      .filter(r => r.status === 'PENDING' || r.status === 'ACCEPTED')
+      .map(r => [r.tripId, r.status as MyRequestStatus])
+  );
 
   const trips = (data?.trips ?? []).filter(t =>
     t.status === 'SCHEDULED' &&
@@ -211,6 +256,7 @@ export default function HomePasajeroScreen() {
             <TripCard
               trip={item}
               onPress={() => navigation.navigate('TripDetail', { tripId: item.id })}
+              myRequestStatus={myRequestMap.get(item.id) ?? null}
             />
           )}
           ListEmptyComponent={renderEmpty}
@@ -491,5 +537,33 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemiBold,
     fontSize: 13,
     color: colors.text,
+  },
+  btnReserved: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#1a3322',
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
+  btnReservedText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primary,
+  },
+  btnPending: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#2a2510',
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 10,
+  },
+  btnPendingText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
+    color: '#f5c518',
   },
 });

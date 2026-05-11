@@ -19,6 +19,8 @@ export class UsersService {
         status: true,
         reputationScore: true,
         totalTrips: true,
+        walletBalance: true,
+        pendingBalance: true,
         emailVerified: true,
         createdAt: true,
         vehicle: {

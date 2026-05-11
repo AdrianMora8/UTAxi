@@ -1,14 +1,185 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { colors, fonts } from '../../theme';
+import { useAuthStore } from '../../store/authStore';
+import type { PerfilStackParamList } from '../../navigation/MainTabs';
+
+type NavProp = NativeStackNavigationProp<PerfilStackParamList, 'Profile'>;
 
 export default function ProfileScreen() {
+  const navigation = useNavigation<NavProp>();
+  const { user, clearAuth } = useAuthStore();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Mi perfil</Text>
-    </View>
+    <SafeAreaView style={styles.root} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.logo}>U-RIDE</Text>
+      </View>
+
+      <View style={styles.avatarBlock}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {user?.fullName?.[0]?.toUpperCase() ?? 'U'}
+          </Text>
+        </View>
+        <Text style={styles.name}>{user?.fullName ?? 'Usuario'}</Text>
+        <Text style={styles.career}>{user?.career?.toUpperCase() ?? 'UTA'}</Text>
+
+        <View style={styles.statsRow}>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{user?.reputationScore?.toFixed(1) ?? '—'}</Text>
+            <Text style={styles.statLabel}>PUNTUACIÓN</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: colors.text }]}>
+              {user?.status === 'ACTIVE' ? 'Activo' : user?.status ?? '—'}
+            </Text>
+            <Text style={styles.statLabel}>ESTADO</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.menu}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('MisViajes')}
+        >
+          <Ionicons name="time-outline" size={20} color={colors.primary} />
+          <Text style={styles.menuText}>Mis Viajes</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem}>
+          <Ionicons name="settings-outline" size={20} color={colors.primary} />
+          <Text style={styles.menuText}>Configuración</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem}>
+          <Ionicons name="help-circle-outline" size={20} color={colors.primary} />
+          <Text style={styles.menuText}>Ayuda</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textDim} />
+        </TouchableOpacity>
+      </View>
+
+      <TouchableOpacity style={styles.logoutBtn} onPress={clearAuth}>
+        <Ionicons name="log-out-outline" size={18} color="#ff6b4a" />
+        <Text style={styles.logoutText}>Cerrar Sesión</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: 'bold' },
+  root: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  logo: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    letterSpacing: 1,
+  },
+  avatarBlock: {
+    alignItems: 'center',
+    paddingTop: 24,
+    paddingBottom: 32,
+    gap: 8,
+  },
+  avatar: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: colors.surfaceHigh,
+    borderWidth: 2.5,
+    borderColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  avatarText: {
+    fontFamily: fonts.display,
+    fontSize: 36,
+    color: colors.primary,
+  },
+  name: {
+    fontFamily: fonts.display,
+    fontSize: 24,
+    color: colors.text,
+  },
+  career: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    letterSpacing: 2,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.surfaceContainer,
+    borderRadius: 14,
+    marginTop: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    gap: 32,
+  },
+  statItem: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  statValue: {
+    fontFamily: fonts.display,
+    fontSize: 22,
+    color: colors.primary,
+  },
+  statLabel: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: colors.textMuted,
+    letterSpacing: 1.5,
+  },
+  statDivider: {
+    width: 1,
+    backgroundColor: colors.surfaceHigh,
+  },
+  menu: {
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceContainer,
+    borderRadius: 14,
+    padding: 16,
+    gap: 14,
+  },
+  menuText: {
+    flex: 1,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.text,
+  },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 'auto',
+    paddingBottom: 24,
+  },
+  logoutText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 15,
+    color: '#ff6b4a',
+  },
 });

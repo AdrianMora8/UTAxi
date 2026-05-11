@@ -8,7 +8,11 @@ const svc = new TripsService(prisma);
 
 const createTripSchema = z.object({
   originZone: z.string().min(2).max(100),
+  originLat:  z.number().optional(),
+  originLng:  z.number().optional(),
   destinationZone: z.string().min(2).max(100),
+  destLat: z.number().optional(),
+  destLng: z.number().optional(),
   departureTime: z.string().datetime({ offset: true }),
   totalSeats: z.number().int().min(1).max(8),
   pricePerSeat: z.number().positive(),

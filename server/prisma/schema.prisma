@@ -116,7 +116,11 @@ model Trip {
   driverId        String
   driver          User       @relation("DriverTrips", fields: [driverId], references: [id])
   originZone      String
+  originLat       Float?
+  originLng       Float?
   destinationZone String
+  destLat         Float?
+  destLng         Float?
   departureTime   DateTime
   totalSeats      Int
   availableSeats  Int

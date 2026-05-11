@@ -20,6 +20,8 @@ import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-n
 import { colors, fonts } from '../../theme';
 import { tripsApi } from '../../api/trips.api';
 import type { PublicarStackParamList } from '../../navigation/MainTabs';
+import CampusPicker from '../../components/CampusPicker';
+import { type Campus, findCampusByLabel, CAMPUSES } from '../../constants/campuses';
 
 type NavProp = NativeStackNavigationProp<PublicarStackParamList, 'EditTrip'>;
 type RouteProp = NativeStackScreenProps<PublicarStackParamList, 'EditTrip'>['route'];
@@ -39,7 +41,7 @@ export default function EditTripScreen() {
   const { tripId } = route.params;
   const queryClient = useQueryClient();
 
-  const [origin, setOrigin] = useState('');
+  const [campus, setCampus] = useState<Campus | null>(null);
   const [destination, setDestination] = useState('');
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
@@ -56,7 +58,9 @@ export default function EditTripScreen() {
 
   useEffect(() => {
     if (tripData && !ready) {
-      setOrigin(tripData.originZone);
+      // Try to match saved origin to a campus; fall back to first campus
+      const matched = findCampusByLabel(tripData.originZone) ?? CAMPUSES[0];
+      setCampus(matched);
       setDestination(tripData.destinationZone);
       const d = new Date(tripData.departureTime);
       setDate(d);
@@ -72,7 +76,9 @@ export default function EditTripScreen() {
       const departure = new Date(date);
       departure.setHours(time.getHours(), time.getMinutes(), 0, 0);
       return tripsApi.updateTrip(tripId, {
-        originZone: origin.trim(),
+        originZone: campus!.label,
+        originLat: campus!.lat,
+        originLng: campus!.lng,
         destinationZone: destination.trim(),
         departureTime: departure.toISOString(),
         totalSeats: seats,
@@ -93,8 +99,12 @@ export default function EditTripScreen() {
   });
 
   function handleSubmit() {
-    if (!origin.trim() || !destination.trim()) {
-      Alert.alert('Error', 'Ingresa el origen y destino del viaje');
+    if (!campus) {
+      Alert.alert('Error', 'Selecciona el campus de origen');
+      return;
+    }
+    if (!destination.trim()) {
+      Alert.alert('Error', 'Ingresa el destino del viaje');
       return;
     }
     const departure = new Date(date);
@@ -134,26 +144,19 @@ export default function EditTripScreen() {
         <Text style={styles.title}>Editar Viaje</Text>
         <Text style={styles.subtitle}>Modifica los detalles antes de que inicie.</Text>
 
+        {/* Origen — Campus picker */}
         <View style={styles.fieldBlock}>
-          <SectionLabel icon="locate-outline" label="ORIGEN" />
-          <View style={styles.inputRow}>
-            <TextInput
-              style={styles.input}
-              placeholder="Campus, Estación..."
-              placeholderTextColor={colors.textDim}
-              value={origin}
-              onChangeText={setOrigin}
-              autoCapitalize="words"
-            />
-          </View>
+          <SectionLabel icon="locate-outline" label="CAMPUS DE ORIGEN" />
+          <CampusPicker value={campus} onChange={setCampus} />
         </View>
 
+        {/* Destino */}
         <View style={styles.fieldBlock}>
           <SectionLabel icon="location-outline" label="DESTINO" />
           <View style={styles.inputRow}>
             <TextInput
               style={styles.input}
-              placeholder="Zona, Calle..."
+              placeholder="Calle, Barrio, Sector..."
               placeholderTextColor={colors.textDim}
               value={destination}
               onChangeText={setDestination}

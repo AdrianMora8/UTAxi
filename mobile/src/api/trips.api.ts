@@ -19,7 +19,11 @@ export interface Trip {
   id: string;
   driverId: string;
   originZone: string;
+  originLat?: number | null;
+  originLng?: number | null;
   destinationZone: string;
+  destLat?: number | null;
+  destLng?: number | null;
   departureTime: string;
   totalSeats: number;
   availableSeats: number;
@@ -47,7 +51,11 @@ export interface GetTripsResponse {
 
 export interface CreateTripPayload {
   originZone: string;
+  originLat?: number;
+  originLng?: number;
   destinationZone: string;
+  destLat?: number;
+  destLng?: number;
   departureTime: string;
   totalSeats: number;
   pricePerSeat: number;

@@ -20,6 +20,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, fonts } from '../../theme';
 import { tripsApi } from '../../api/trips.api';
 import type { PublicarStackParamList } from '../../navigation/MainTabs';
+import CampusPicker from '../../components/CampusPicker';
+import { type Campus } from '../../constants/campuses';
 
 type NavProp = NativeStackNavigationProp<PublicarStackParamList, 'CreateTrip'>;
 
@@ -36,7 +38,7 @@ export default function CreateTripScreen() {
   const navigation = useNavigation<NavProp>();
   const queryClient = useQueryClient();
 
-  const [origin, setOrigin] = useState('');
+  const [campus, setCampus] = useState<Campus | null>(null);
   const [destination, setDestination] = useState('');
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
@@ -50,7 +52,9 @@ export default function CreateTripScreen() {
       const departure = new Date(date);
       departure.setHours(time.getHours(), time.getMinutes(), 0, 0);
       return tripsApi.createTrip({
-        originZone: origin.trim(),
+        originZone: campus!.label,
+        originLat: campus!.lat,
+        originLng: campus!.lng,
         destinationZone: destination.trim(),
         departureTime: departure.toISOString(),
         totalSeats: seats,
@@ -70,8 +74,12 @@ export default function CreateTripScreen() {
   });
 
   function handleSubmit() {
-    if (!origin.trim() || !destination.trim()) {
-      Alert.alert('Error', 'Ingresa el origen y destino del viaje');
+    if (!campus) {
+      Alert.alert('Error', 'Selecciona el campus de origen');
+      return;
+    }
+    if (!destination.trim()) {
+      Alert.alert('Error', 'Ingresa el destino del viaje');
       return;
     }
     const departure = new Date(date);
@@ -96,23 +104,13 @@ export default function CreateTripScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <Text style={styles.title}>Publicar Viaje</Text>
         <Text style={styles.subtitle}>Organiza tu ruta y comparte el viaje.</Text>
 
-        {/* Origen */}
+        {/* Origen — Campus picker */}
         <View style={styles.fieldBlock}>
-          <SectionLabel icon="locate-outline" label="ORIGEN" />
-          <View style={styles.inputRow}>
-            <TextInput
-              style={styles.input}
-              placeholder="Campus, Estación..."
-              placeholderTextColor={colors.textDim}
-              value={origin}
-              onChangeText={setOrigin}
-              autoCapitalize="words"
-            />
-          </View>
+          <SectionLabel icon="locate-outline" label="CAMPUS DE ORIGEN" />
+          <CampusPicker value={campus} onChange={setCampus} />
         </View>
 
         {/* Destino */}
@@ -121,7 +119,7 @@ export default function CreateTripScreen() {
           <View style={styles.inputRow}>
             <TextInput
               style={styles.input}
-              placeholder="Zona, Calle..."
+              placeholder="Calle, Barrio, Sector..."
               placeholderTextColor={colors.textDim}
               value={destination}
               onChangeText={setDestination}
@@ -134,10 +132,7 @@ export default function CreateTripScreen() {
         <View style={styles.rowFields}>
           <View style={[styles.fieldBlock, { flex: 1 }]}>
             <SectionLabel icon="calendar-outline" label="FECHA" />
-            <TouchableOpacity
-              style={styles.inputRow}
-              onPress={() => setShowDate(true)}
-            >
+            <TouchableOpacity style={styles.inputRow} onPress={() => setShowDate(true)}>
               <Text style={styles.pickerText}>{formatDate(date)}</Text>
               <Ionicons name="calendar-outline" size={16} color={colors.textMuted} />
             </TouchableOpacity>
@@ -145,10 +140,7 @@ export default function CreateTripScreen() {
 
           <View style={[styles.fieldBlock, { flex: 1 }]}>
             <SectionLabel icon="time-outline" label="HORA" />
-            <TouchableOpacity
-              style={styles.inputRow}
-              onPress={() => setShowTime(true)}
-            >
+            <TouchableOpacity style={styles.inputRow} onPress={() => setShowTime(true)}>
               <Text style={styles.pickerText}>{formatTime(time)}</Text>
               <Ionicons name="time-outline" size={16} color={colors.textMuted} />
             </TouchableOpacity>
@@ -223,7 +215,6 @@ export default function CreateTripScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* Botón fijo */}
       <View style={styles.footer}>
         <TouchableOpacity onPress={handleSubmit} disabled={isPending} activeOpacity={0.85}>
           <LinearGradient
@@ -248,10 +239,7 @@ export default function CreateTripScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  root: { flex: 1, backgroundColor: colors.background },
   scroll: {
     paddingHorizontal: 20,
     paddingTop: 24,
@@ -271,14 +259,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: -12,
   },
-  fieldBlock: {
-    gap: 8,
-  },
-  sectionLabel: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
+  fieldBlock: { gap: 8 },
+  sectionLabel: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   sectionLabelText: {
     fontFamily: fonts.bodySemiBold,
     fontSize: 11,
@@ -307,10 +289,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.text,
   },
-  rowFields: {
-    flexDirection: 'row',
-    gap: 12,
-  },
+  rowFields: { flexDirection: 'row', gap: 12 },
   stepperCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -332,10 +311,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     textAlign: 'center',
   },
-  priceCard: {
-    backgroundColor: colors.surfaceContainer,
-    borderRadius: 12,
-  },
+  priceCard: { backgroundColor: colors.surfaceContainer, borderRadius: 12 },
   priceCurrency: {
     fontFamily: fonts.display,
     fontSize: 22,

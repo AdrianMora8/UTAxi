@@ -44,11 +44,12 @@ export const TEST_VEHICLES = {
 
 export const TEST_TRIPS = {
   valid: {
-    from: 'Polanco',
-    to: 'Campus Santa Fe',
+    originZone: 'Polanco',
+    destinationZone: 'Campus Santa Fe',
     departureTime: new Date(Date.now() + 3600000).toISOString(),
-    availableSeats: 3,
-    costPerPerson: 5.0,
+    totalSeats: 4,
+    availableSeats: 4,
+    pricePerSeat: 5.0,
     notes: 'Comfortable and safe ride',
   },
 };
@@ -117,14 +118,37 @@ export async function createTestVehicle(userId: string) {
 /**
  * Crear un viaje de prueba.
  */
-export async function createTestTrip(driverId: string) {
+export async function createTestTrip(driverId: string, customData = {}) {
   const prisma = getPrisma();
 
   return await prisma.trip.create({
     data: {
       driverId,
-      ...TEST_TRIPS.valid,
+      originZone: TEST_TRIPS.valid.originZone,
+      destinationZone: TEST_TRIPS.valid.destinationZone,
+      departureTime: new Date(TEST_TRIPS.valid.departureTime),
+      totalSeats: TEST_TRIPS.valid.totalSeats,
+      availableSeats: TEST_TRIPS.valid.availableSeats,
+      pricePerSeat: TEST_TRIPS.valid.pricePerSeat,
+      notes: TEST_TRIPS.valid.notes,
       status: 'SCHEDULED',
+      ...customData,
+    },
+  });
+}
+
+/**
+ * Crear una reserva de prueba.
+ */
+export async function createTestRequest(tripId: string, passengerId: string) {
+  const prisma = getPrisma();
+
+  return await prisma.tripRequest.create({
+    data: {
+      tripId,
+      passengerId,
+      message: 'Me gustaría unirme al viaje',
+      status: 'PENDING',
     },
   });
 }

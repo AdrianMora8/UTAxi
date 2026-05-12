@@ -1,12 +1,13 @@
-import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '../store/authStore';
 import { colors } from '../theme';
 import AuthStack from './AuthStack';
 import MainTabs from './MainTabs';
+import { navigationRef } from './navigationRef';
 
-export const navigationRef = createNavigationContainerRef();
+export { navigationRef };
 
 export default function AppNavigator() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);

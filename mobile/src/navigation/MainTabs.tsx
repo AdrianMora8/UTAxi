@@ -7,7 +7,7 @@ import { colors, fonts } from '../theme';
 import { usersApi } from '../api/users.api';
 import { useNotifications, TripCompletedPassengerPayload, TripCompletedDriverPayload } from '../hooks/useNotifications';
 import RatingModal from '../components/RatingModal';
-import { navigationRef } from './AppNavigator';
+import { navigationRef } from './navigationRef';
 
 import HomePasajeroScreen from '../screens/app/HomePasajeroScreen';
 import TripDetailScreen from '../screens/app/TripDetailScreen';

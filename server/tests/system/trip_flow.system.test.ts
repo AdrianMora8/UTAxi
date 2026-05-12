@@ -57,7 +57,9 @@ describe('Trip Flow System Test', () => {
     // 4. Passenger searches for the trip
     const searchRes = await request(app)
       .get('/api/trips')
-      .query({ destinationZone: TEST_TRIPS.valid.destinationZone });
+      .query({ destinationZone: TEST_TRIPS.valid.destinationZone })
+      .set('Authorization', `Bearer ${passengerToken}`)
+      ;
     
     expect(searchRes.status).toBe(200);
     expect(searchRes.body.trips).toContainEqual(expect.objectContaining({ id: tripId }));
@@ -89,7 +91,9 @@ describe('Trip Flow System Test', () => {
     expect(respondRes.body.request.status).toBe('ACCEPTED');
 
     // 8. Verify trip available seats decreased
-    const updatedTripRes = await request(app).get(`/api/trips/${tripId}`);
+    const updatedTripRes = await request(app)
+  .get(`/api/trips/${tripId}`)
+  .set('Authorization', `Bearer ${driverToken}`);
     expect(updatedTripRes.body.trip.availableSeats).toBe(TEST_TRIPS.valid.availableSeats - 1);
   });
 });

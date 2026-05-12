@@ -8,6 +8,8 @@ import {
   RefreshControl,
   Alert,
   Animated,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +20,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, fonts } from '../../theme';
 import { tripsApi, Trip } from '../../api/trips.api';
+import { requestsApi, TripRequest } from '../../api/requests.api';
 import { useAuthStore } from '../../store/authStore';
 import type { PublicarStackParamList } from '../../navigation/MainTabs';
 import { useLocationTracking } from '../../hooks/useLocationTracking';
@@ -164,6 +167,144 @@ function TripCard({
   );
 }
 
+function BoardingModal({
+  trip,
+  onConfirm,
+  onClose,
+  isLoading,
+}: {
+  trip: Trip;
+  onConfirm: (boardedIds: string[]) => void;
+  onClose: () => void;
+  isLoading: boolean;
+}) {
+  const { data, isLoading: loadingPassengers } = useQuery({
+    queryKey: ['trip-requests', trip.id],
+    queryFn: () => requestsApi.getRequestsByTrip(trip.id).then(r => r.data.requests),
+    select: (reqs) => reqs.filter(r => r.status === 'ACCEPTED'),
+  });
+
+  const passengers = data ?? [];
+  const [absent, setAbsent] = useState<Set<string>>(new Set());
+
+  function togglePassenger(requestId: string) {
+    setAbsent(prev => {
+      const next = new Set(prev);
+      if (next.has(requestId)) next.delete(requestId);
+      else next.add(requestId);
+      return next;
+    });
+  }
+
+  const boardedCount = passengers.length - absent.size;
+
+  function handleConfirm() {
+    if (boardedCount === 0) {
+      Alert.alert('Sin pasajeros', 'Debes tener al menos un pasajero para iniciar el viaje.');
+      return;
+    }
+    const boardedIds = passengers.filter(p => !absent.has(p.id)).map(p => p.id);
+    onConfirm(boardedIds);
+  }
+
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <View style={bStyles.overlay}>
+        <View style={bStyles.sheet}>
+          <View style={bStyles.handle} />
+
+          <View style={bStyles.titleRow}>
+            <Ionicons name="people" size={20} color={colors.primary} />
+            <Text style={bStyles.title}>Lista de Asistencia</Text>
+          </View>
+          <Text style={bStyles.subtitle}>
+            {trip.originZone} → {trip.destinationZone}
+          </Text>
+
+          <View style={bStyles.counter}>
+            <Text style={bStyles.counterNum}>{boardedCount}</Text>
+            <Text style={bStyles.counterOf}> / {passengers.length}</Text>
+            <Text style={bStyles.counterLabel}> pasajeros presentes</Text>
+          </View>
+
+          {loadingPassengers ? (
+            <ActivityIndicator color={colors.primary} style={{ marginVertical: 24 }} />
+          ) : passengers.length === 0 ? (
+            <Text style={bStyles.emptyText}>No hay pasajeros aceptados en este viaje.</Text>
+          ) : (
+            <ScrollView style={bStyles.list} showsVerticalScrollIndicator={false}>
+              {passengers.map(req => {
+                const isAbsent = absent.has(req.id);
+                return (
+                  <TouchableOpacity
+                    key={req.id}
+                    style={[bStyles.row, isAbsent && bStyles.rowAbsent]}
+                    onPress={() => togglePassenger(req.id)}
+                    activeOpacity={0.75}
+                  >
+                    <View style={[bStyles.avatar, isAbsent && bStyles.avatarAbsent]}>
+                      <Text style={[bStyles.avatarText, isAbsent && bStyles.avatarTextAbsent]}>
+                        {req.passenger?.fullName?.[0]?.toUpperCase() ?? '?'}
+                      </Text>
+                    </View>
+                    <View style={bStyles.rowInfo}>
+                      <Text style={[bStyles.passengerName, isAbsent && bStyles.passengerNameAbsent]}>
+                        {req.passenger?.fullName ?? 'Pasajero'}
+                      </Text>
+                      {req.passenger?.career ? (
+                        <Text style={bStyles.passengerCareer}>{req.passenger.career}</Text>
+                      ) : null}
+                    </View>
+                    <View style={[bStyles.toggle, isAbsent ? bStyles.toggleAbsent : bStyles.togglePresent]}>
+                      <Ionicons
+                        name={isAbsent ? 'close' : 'checkmark'}
+                        size={16}
+                        color={isAbsent ? '#ff6b4a' : colors.primaryDark}
+                      />
+                      <Text style={[bStyles.toggleText, isAbsent ? bStyles.toggleTextAbsent : bStyles.toggleTextPresent]}>
+                        {isAbsent ? 'No llegó' : 'Llegó'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
+
+          {absent.size > 0 && (
+            <View style={bStyles.warningBox}>
+              <Ionicons name="warning-outline" size={14} color="#f5a623" />
+              <Text style={bStyles.warningText}>
+                {absent.size} pasajero{absent.size > 1 ? 's' : ''} marcado{absent.size > 1 ? 's' : ''} como ausente{absent.size > 1 ? 's' : ''}. Su pago no será reembolsado.
+              </Text>
+            </View>
+          )}
+
+          <View style={bStyles.actions}>
+            <TouchableOpacity style={bStyles.cancelBtn} onPress={onClose} disabled={isLoading}>
+              <Text style={bStyles.cancelBtnText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[bStyles.startBtn, (isLoading || boardedCount === 0) && bStyles.startBtnDisabled]}
+              onPress={handleConfirm}
+              disabled={isLoading || boardedCount === 0}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color={colors.primaryDark} />
+              ) : (
+                <>
+                  <Ionicons name="play" size={16} color={colors.primaryDark} />
+                  <Text style={bStyles.startBtnText}>Iniciar viaje</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
 type TabMode = 'active' | 'history';
 
 export default function HomeConductorScreen() {
@@ -171,6 +312,7 @@ export default function HomeConductorScreen() {
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<TabMode>('active');
+  const [boardingTrip, setBoardingTrip] = useState<Trip | null>(null);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['my-trips', user?.id],
@@ -178,9 +320,13 @@ export default function HomeConductorScreen() {
     enabled: !!user?.id,
   });
 
-  const { mutate: startTrip } = useMutation({
-    mutationFn: (id: string) => tripsApi.updateTripStatus(id, 'IN_PROGRESS'),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-trips'] }),
+  const { mutate: startTrip, isPending: startingTrip } = useMutation({
+    mutationFn: ({ id, boardedRequestIds }: { id: string; boardedRequestIds: string[] }) =>
+      tripsApi.startTrip(id, boardedRequestIds),
+    onSuccess: () => {
+      setBoardingTrip(null);
+      queryClient.invalidateQueries({ queryKey: ['my-trips'] });
+    },
     onError: (err: any) => Alert.alert('Error', err?.response?.data?.error || 'No se pudo iniciar el viaje'),
   });
 
@@ -196,11 +342,8 @@ export default function HomeConductorScreen() {
     onError: (err: any) => Alert.alert('Error', err?.response?.data?.error || 'No se pudo completar el viaje'),
   });
 
-  function handleStart(id: string) {
-    Alert.alert('Iniciar viaje', '¿Estás listo para iniciar este viaje?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Iniciar', onPress: () => startTrip(id) },
-    ]);
+  function handleStart(trip: Trip) {
+    setBoardingTrip(trip);
   }
 
   function handleCancel(id: string) {
@@ -315,7 +458,7 @@ export default function HomeConductorScreen() {
           <TripCard
             trip={item}
             onManage={() => navigation.navigate('Solicitudes', { tripId: item.id })}
-            onStart={() => handleStart(item.id)}
+            onStart={() => handleStart(item)}
             onComplete={() => handleComplete(item.id)}
             onEdit={() => navigation.navigate('EditTrip', { tripId: item.id })}
             onCancel={() => handleCancel(item.id)}
@@ -352,6 +495,15 @@ export default function HomeConductorScreen() {
           )
         }
       />
+
+      {boardingTrip && (
+        <BoardingModal
+          trip={boardingTrip}
+          isLoading={startingTrip}
+          onConfirm={(boardedIds) => startTrip({ id: boardingTrip.id, boardedRequestIds: boardedIds })}
+          onClose={() => setBoardingTrip(null)}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -655,5 +807,206 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 12,
     color: colors.primary,
+  },
+});
+
+const bStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.surfaceContainer,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 36,
+    maxHeight: '80%',
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.surfaceHigh,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  title: {
+    fontFamily: fonts.display,
+    fontSize: 20,
+    color: colors.text,
+  },
+  subtitle: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    marginBottom: 16,
+  },
+  counter: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    backgroundColor: colors.surfaceHigh,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  counterNum: {
+    fontFamily: fonts.display,
+    fontSize: 22,
+    color: colors.primary,
+  },
+  counterOf: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.textMuted,
+  },
+  counterLabel: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  list: {
+    maxHeight: 260,
+    marginBottom: 12,
+  },
+  emptyText: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textDim,
+    textAlign: 'center',
+    marginVertical: 24,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceHigh,
+  },
+  rowAbsent: {
+    opacity: 0.6,
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#1a3322',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarAbsent: {
+    backgroundColor: '#2a1a15',
+  },
+  avatarText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 17,
+    color: colors.primary,
+  },
+  avatarTextAbsent: {
+    color: '#ff6b4a',
+  },
+  rowInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  passengerName: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.text,
+  },
+  passengerNameAbsent: {
+    color: colors.textDim,
+    textDecorationLine: 'line-through',
+  },
+  passengerCareer: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  toggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  togglePresent: {
+    backgroundColor: '#1a3322',
+  },
+  toggleAbsent: {
+    backgroundColor: '#2a1a15',
+  },
+  toggleText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+  },
+  toggleTextPresent: {
+    color: colors.primary,
+  },
+  toggleTextAbsent: {
+    color: '#ff6b4a',
+  },
+  warningBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: '#2a2010',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+  },
+  warningText: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: '#f5a623',
+    lineHeight: 17,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 50,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.surfaceHigh,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.textMuted,
+  },
+  startBtn: {
+    flex: 2,
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  startBtnDisabled: {
+    opacity: 0.4,
+  },
+  startBtnText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 15,
+    color: colors.primaryDark,
   },
 });

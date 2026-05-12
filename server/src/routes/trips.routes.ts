@@ -7,6 +7,7 @@ import {
   updateTrip,
   cancelTrip,
   updateTripStatus,
+  startTrip,
   safetyAck,
 } from '../controllers/trips.controller';
 
@@ -20,4 +21,5 @@ tripsRouter.get('/:id', getTrip);
 tripsRouter.patch('/:id', updateTrip);
 tripsRouter.delete('/:id', cancelTrip);
 tripsRouter.patch('/:id/status', updateTripStatus);
+tripsRouter.post('/:id/start', startTrip);
 tripsRouter.post('/:id/safety-ack', safetyAck);

@@ -84,4 +84,7 @@ export const tripsApi = {
 
   getMyTrips: (driverId: string) =>
     apiClient.get<GetTripsResponse>('/trips', { params: { driverId, limit: 20 } }),
+
+  startTrip: (id: string, boardedRequestIds: string[]) =>
+    apiClient.post<{ trip: Trip }>(`/trips/${id}/start`, { boardedRequestIds }),
 };

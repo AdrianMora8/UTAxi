@@ -32,11 +32,21 @@ export interface TripCompletedDriverPayload {
   passengers: { requestId: string; name: string }[];
 }
 
+export interface NoShowPayload {
+  tripId: string;
+  requestId: string;
+  driverName: string;
+  originZone: string;
+  destinationZone: string;
+  refunded: boolean;
+}
+
 interface UseNotificationsOptions {
   onRequestUpdate?: (payload: RequestUpdatePayload) => void;
   onRequestNew?: (payload: RequestNewPayload) => void;
   onTripCompletedPassenger?: (payload: TripCompletedPassengerPayload) => void;
   onTripCompletedDriver?: (payload: TripCompletedDriverPayload) => void;
+  onNoShow?: (payload: NoShowPayload) => void;
 }
 
 export function useNotifications({
@@ -44,6 +54,7 @@ export function useNotifications({
   onRequestNew,
   onTripCompletedPassenger,
   onTripCompletedDriver,
+  onNoShow,
 }: UseNotificationsOptions = {}) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const socketRef = useRef<Socket | null>(null);
@@ -52,10 +63,12 @@ export function useNotifications({
   const onNewRef = useRef(onRequestNew);
   const onTripCompletedPassengerRef = useRef(onTripCompletedPassenger);
   const onTripCompletedDriverRef = useRef(onTripCompletedDriver);
+  const onNoShowRef = useRef(onNoShow);
   onUpdateRef.current = onRequestUpdate;
   onNewRef.current = onRequestNew;
   onTripCompletedPassengerRef.current = onTripCompletedPassenger;
   onTripCompletedDriverRef.current = onTripCompletedDriver;
+  onNoShowRef.current = onNoShow;
 
   useEffect(() => {
     if (!accessToken) return;
@@ -80,6 +93,10 @@ export function useNotifications({
       } else {
         onTripCompletedPassengerRef.current?.(payload as TripCompletedPassengerPayload);
       }
+    });
+
+    socket.on('request:cancelled-no-show', (payload: NoShowPayload) => {
+      onNoShowRef.current?.(payload);
     });
 
     return () => {

@@ -26,6 +26,10 @@ const updateStatusSchema = z.object({
   status: z.enum([TripStatus.IN_PROGRESS, TripStatus.COMPLETED, TripStatus.CANCELLED]),
 });
 
+const startTripSchema = z.object({
+  boardedRequestIds: z.array(z.string()).min(1, 'Debes indicar al menos un pasajero que abordó'),
+});
+
 export async function createTrip(req: Request, res: Response) {
   const data = createTripSchema.parse(req.body);
   const trip = await svc.create(req.user!.id, {
@@ -71,6 +75,12 @@ export async function cancelTrip(req: Request, res: Response) {
 export async function updateTripStatus(req: Request, res: Response) {
   const { status } = updateStatusSchema.parse(req.body);
   const trip = await svc.updateStatus(String(req.params.id), req.user!.id, status);
+  res.json({ trip });
+}
+
+export async function startTrip(req: Request, res: Response) {
+  const { boardedRequestIds } = startTripSchema.parse(req.body);
+  const trip = await svc.startTrip(String(req.params.id), req.user!.id, boardedRequestIds);
   res.json({ trip });
 }
 

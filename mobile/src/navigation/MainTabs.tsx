@@ -3,9 +3,10 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
+import { Alert } from 'react-native';
 import { colors, fonts } from '../theme';
 import { usersApi } from '../api/users.api';
-import { useNotifications, TripCompletedPassengerPayload, TripCompletedDriverPayload } from '../hooks/useNotifications';
+import { useNotifications, TripCompletedPassengerPayload, TripCompletedDriverPayload, NoShowPayload } from '../hooks/useNotifications';
 import RatingModal from '../components/RatingModal';
 import { navigationRef } from './navigationRef';
 
@@ -161,6 +162,14 @@ function PostTripManager() {
       if (payload.passengers.length > 0) {
         setDriverQueue(payload.passengers);
       }
+    },
+    onNoShow: (payload: NoShowPayload) => {
+      queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+      Alert.alert(
+        'No abordaste el viaje',
+        `El conductor registró que no subiste al vehículo en el viaje ${payload.originZone} → ${payload.destinationZone}.\n\nTu reserva fue cancelada y el pago no es reembolsable.`,
+        [{ text: 'Entendido' }],
+      );
     },
   });
 

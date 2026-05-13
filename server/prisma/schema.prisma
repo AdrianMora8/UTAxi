@@ -142,11 +142,12 @@ model Trip {
   totalSeats      Int
   availableSeats  Int
   pricePerSeat    Decimal    @db.Decimal(8, 2)
-  notes           String?
-  rules           String?
-  status          TripStatus @default(SCHEDULED)
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  notes                  String?
+  rules                  String?
+  status                 TripStatus @default(SCHEDULED)
+  departureTimeChangedAt DateTime?
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
 
   requests TripRequest[]
   payments Payment[]
@@ -163,10 +164,11 @@ model TripRequest {
   passengerId    String
   passenger      User          @relation("PassengerRequests", fields: [passengerId], references: [id])
   status         RequestStatus @default(PENDING)
-  message        String?
-  rejectionCount Int           @default(0)
-  arrivedAt      DateTime?
-  createdAt      DateTime      @default(now())
+  message                String?
+  rejectionCount         Int           @default(0)
+  arrivedAt              DateTime?
+  scheduleChangeDeadline DateTime?
+  createdAt              DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
   payment Payment?

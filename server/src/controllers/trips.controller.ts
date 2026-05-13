@@ -84,6 +84,11 @@ export async function startTrip(req: Request, res: Response) {
   res.json({ trip });
 }
 
+export async function confirmSchedule(req: Request, res: Response) {
+  const result = await svc.confirmSchedule(String(req.params.id), req.user!.id);
+  res.json(result);
+}
+
 export async function safetyAck(req: Request, res: Response) {
   const result = await svc.safetyAck(String(req.params.id), req.user!.id);
   res.status(201).json(result);

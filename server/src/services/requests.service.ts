@@ -193,12 +193,16 @@ export class RequestsService {
       return { refunded: false, message: 'Reserva cancelada y cupo devuelto al viaje' };
     }
 
-    // ACCEPTED con pago confirmado: aplicar política de 10 minutos
+    // ACCEPTED con pago confirmado: aplicar política de cancelación
     const minutesUntilDeparture = (new Date(request.trip.departureTime).getTime() - Date.now()) / 60_000;
     const amount = request.payment.amount;
     const driverId = request.trip.driverId;
 
-    if (minutesUntilDeparture >= 10) {
+    // Regla 1: ventana de gracia de 30 min si el conductor cambió la hora recientemente
+    const withinGracePeriod = !!request.trip.departureTimeChangedAt &&
+      (Date.now() - new Date(request.trip.departureTimeChangedAt).getTime()) < 30 * 60_000;
+
+    if (minutesUntilDeparture >= 10 || withinGracePeriod) {
       // Dentro del plazo: reembolso total al wallet del pasajero
       await this.prisma.$transaction([
         this.prisma.tripRequest.update({
@@ -235,7 +239,9 @@ export class RequestsService {
       return {
         refunded: true,
         amount: Number(amount),
-        message: `Se reembolsaron $${Number(amount).toFixed(2)} a tu U-Wallet`,
+        message: withinGracePeriod
+          ? `Cancelación por cambio de horario. Se reembolsaron $${Number(amount).toFixed(2)} a tu U-Wallet`
+          : `Se reembolsaron $${Number(amount).toFixed(2)} a tu U-Wallet`,
       };
     }
 

@@ -19,6 +19,7 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { colors, fonts } from '../../theme';
 import { tripsApi } from '../../api/trips.api';
+import { requestsApi } from '../../api/requests.api';
 import type { PublicarStackParamList } from '../../navigation/MainTabs';
 import CampusPicker from '../../components/CampusPicker';
 import { type Campus, findCampusByLabel, CAMPUSES } from '../../constants/campuses';
@@ -53,6 +54,7 @@ export default function EditTripScreen() {
   const [seats, setSeats] = useState(3);
   const [price, setPrice] = useState('');
   const [ready, setReady] = useState(false);
+  const [originalDeparture, setOriginalDeparture] = useState<Date | null>(null);
 
   const locationResult = useLocationPickerStore((s) => s.result);
   const clearLocation = useLocationPickerStore((s) => s.clear);
@@ -73,9 +75,18 @@ export default function EditTripScreen() {
     queryFn: () => tripsApi.getTripById(tripId).then(r => r.data.trip),
   });
 
+  const { data: requestsData } = useQuery({
+    queryKey: ['trip-requests', tripId],
+    queryFn: () => requestsApi.getRequestsByTrip(tripId).then(r => r.data.requests),
+    enabled: !!tripId,
+  });
+
+  const hasPaidPassenger = (requestsData ?? []).some(
+    r => r.status === 'ACCEPTED' && r.payment?.status === 'CONFIRMED',
+  );
+
   useEffect(() => {
     if (tripData && !ready) {
-      // Try to match saved origin to a campus; fall back to first campus
       const matched = findCampusByLabel(tripData.originZone) ?? CAMPUSES[0];
       setCampus(matched);
       setDestination(tripData.destinationZone);
@@ -86,6 +97,7 @@ export default function EditTripScreen() {
       setTime(d);
       setSeats(tripData.totalSeats);
       setPrice(String(tripData.pricePerSeat));
+      setOriginalDeparture(d);
       setReady(true);
     }
   }, [tripData, ready]);
@@ -165,6 +177,15 @@ export default function EditTripScreen() {
         <Text style={styles.title}>Editar Viaje</Text>
         <Text style={styles.subtitle}>Modifica los detalles antes de que inicie.</Text>
 
+        {hasPaidPassenger && (
+          <View style={styles.warningBanner}>
+            <Ionicons name="lock-closed" size={15} color="#f5a623" />
+            <Text style={styles.warningText}>
+              Hay pasajeros que ya pagaron. El precio está bloqueado y no puedes adelantar la hora de salida.
+            </Text>
+          </View>
+        )}
+
         {/* Origen — Campus picker */}
         <View style={styles.fieldBlock}>
           <SectionLabel icon="locate-outline" label="CAMPUS DE ORIGEN" />
@@ -207,7 +228,7 @@ export default function EditTripScreen() {
             <SectionLabel icon="time-outline" label="HORA" />
             <TouchableOpacity style={styles.inputRow} onPress={() => setShowTime(true)}>
               <Text style={styles.pickerText}>{formatTime(time)}</Text>
-              <Ionicons name="time-outline" size={16} color={colors.textMuted} />
+              <Ionicons name={hasPaidPassenger ? 'lock-closed-outline' : 'time-outline'} size={16} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
         </View>
@@ -217,7 +238,7 @@ export default function EditTripScreen() {
             value={date}
             mode="date"
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            minimumDate={new Date()}
+            minimumDate={hasPaidPassenger && originalDeparture ? originalDeparture : new Date()}
             onChange={(_, selected) => {
               setShowDate(false);
               if (selected) setDate(selected);
@@ -260,7 +281,7 @@ export default function EditTripScreen() {
 
         <View style={styles.fieldBlock}>
           <SectionLabel icon="cash-outline" label="APORTE SUGERIDO" />
-          <View style={styles.priceCard}>
+          <View style={[styles.priceCard, hasPaidPassenger && styles.priceCardLocked]}>
             <View style={styles.inputRow}>
               <Text style={styles.priceCurrency}>$</Text>
               <TextInput
@@ -270,9 +291,16 @@ export default function EditTripScreen() {
                 value={price}
                 onChangeText={(t) => setPrice(t.replace(/[^0-9.]/g, ''))}
                 keyboardType="decimal-pad"
+                editable={!hasPaidPassenger}
               />
+              {hasPaidPassenger && (
+                <Ionicons name="lock-closed" size={18} color={colors.textDim} />
+              )}
             </View>
           </View>
+          {hasPaidPassenger && (
+            <Text style={styles.lockHint}>Precio bloqueado — hay pasajeros que ya pagaron</Text>
+          )}
         </View>
 
         <View style={{ height: 100 }} />
@@ -386,6 +414,28 @@ const styles = StyleSheet.create({
   },
   destinationBtn: { paddingHorizontal: 14, height: 52 },
   priceCard: { backgroundColor: colors.surfaceContainer, borderRadius: 12 },
+  priceCardLocked: { opacity: 0.6 },
+  lockHint: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textDim,
+    marginTop: 4,
+  },
+  warningBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: '#2a2010',
+    borderRadius: 12,
+    padding: 12,
+  },
+  warningText: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: '#f5a623',
+    lineHeight: 18,
+  },
   priceCurrency: {
     fontFamily: fonts.display,
     fontSize: 22,

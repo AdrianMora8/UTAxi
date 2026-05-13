@@ -41,12 +41,31 @@ export interface NoShowPayload {
   refunded: boolean;
 }
 
+export interface ScheduleChangedPayload {
+  tripId: string;
+  requestId: string;
+  originZone: string;
+  destinationZone: string;
+  oldTime: string;
+  newTime: string;
+  bigChange: boolean;
+}
+
+export interface TripCancelledByDriverPayload {
+  tripId: string;
+  originZone: string;
+  destinationZone: string;
+  refundAmount: number;
+}
+
 interface UseNotificationsOptions {
   onRequestUpdate?: (payload: RequestUpdatePayload) => void;
   onRequestNew?: (payload: RequestNewPayload) => void;
   onTripCompletedPassenger?: (payload: TripCompletedPassengerPayload) => void;
   onTripCompletedDriver?: (payload: TripCompletedDriverPayload) => void;
   onNoShow?: (payload: NoShowPayload) => void;
+  onScheduleChanged?: (payload: ScheduleChangedPayload) => void;
+  onTripCancelledByDriver?: (payload: TripCancelledByDriverPayload) => void;
 }
 
 export function useNotifications({
@@ -55,6 +74,8 @@ export function useNotifications({
   onTripCompletedPassenger,
   onTripCompletedDriver,
   onNoShow,
+  onScheduleChanged,
+  onTripCancelledByDriver,
 }: UseNotificationsOptions = {}) {
   const accessToken = useAuthStore((s) => s.accessToken);
   const socketRef = useRef<Socket | null>(null);
@@ -64,11 +85,15 @@ export function useNotifications({
   const onTripCompletedPassengerRef = useRef(onTripCompletedPassenger);
   const onTripCompletedDriverRef = useRef(onTripCompletedDriver);
   const onNoShowRef = useRef(onNoShow);
+  const onScheduleChangedRef = useRef(onScheduleChanged);
+  const onTripCancelledByDriverRef = useRef(onTripCancelledByDriver);
   onUpdateRef.current = onRequestUpdate;
   onNewRef.current = onRequestNew;
   onTripCompletedPassengerRef.current = onTripCompletedPassenger;
   onTripCompletedDriverRef.current = onTripCompletedDriver;
   onNoShowRef.current = onNoShow;
+  onScheduleChangedRef.current = onScheduleChanged;
+  onTripCancelledByDriverRef.current = onTripCancelledByDriver;
 
   useEffect(() => {
     if (!accessToken) return;
@@ -97,6 +122,14 @@ export function useNotifications({
 
     socket.on('request:cancelled-no-show', (payload: NoShowPayload) => {
       onNoShowRef.current?.(payload);
+    });
+
+    socket.on('trip:schedule-changed', (payload: ScheduleChangedPayload) => {
+      onScheduleChangedRef.current?.(payload);
+    });
+
+    socket.on('trip:cancelled-by-driver', (payload: TripCancelledByDriverPayload) => {
+      onTripCancelledByDriverRef.current?.(payload);
     });
 
     return () => {

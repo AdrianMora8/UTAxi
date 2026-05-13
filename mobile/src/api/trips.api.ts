@@ -87,4 +87,7 @@ export const tripsApi = {
 
   startTrip: (id: string, boardedRequestIds: string[]) =>
     apiClient.post<{ trip: Trip }>(`/trips/${id}/start`, { boardedRequestIds }),
+
+  confirmSchedule: (id: string) =>
+    apiClient.post<{ confirmed: boolean }>(`/trips/${id}/confirm-schedule`),
 };

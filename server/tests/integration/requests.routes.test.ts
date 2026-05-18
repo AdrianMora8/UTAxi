@@ -72,7 +72,7 @@ describe('Requests Integration Tests', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ message: 'I want to join my own trip' });
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(403);
     });
   });
 
@@ -129,7 +129,7 @@ describe('Requests Integration Tests', () => {
     });
   });
 
-  describe('DELETE /api/requests/:id/cancel', () => {
+  describe('DELETE /api/requests/:id', () => {
     it('should allow passenger to cancel their request', async () => {
       const driver = await createVerifiedTestUser('driver@uta.edu.ec');
       await createTestVehicle(driver.id);
@@ -147,11 +147,65 @@ describe('Requests Integration Tests', () => {
       const accessToken = loginRes.body.accessToken;
 
       const response = await request(app)
-        .delete(`/api/requests/${tripRequest.id}/cancel`)
+        .delete(`/api/requests/${tripRequest.id}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.request.status).toBe('CANCELLED');
+    });
+  });
+
+  describe('PATCH /api/requests/:id/respond (REJECT)', () => {
+    it('should allow driver to reject a request', async () => {
+      const driver = await createVerifiedTestUser('driver@uta.edu.ec');
+      await createTestVehicle(driver.id);
+      const trip = await createTestTrip(driver.id);
+      const passenger = await createVerifiedTestUser('passenger@uta.edu.ec');
+      const tripRequest = await createTestRequest(trip.id, passenger.id);
+
+      const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: driver.email,
+          password: TEST_USERS.validUser.password,
+        });
+
+      const accessToken = loginRes.body.accessToken;
+
+      const response = await request(app)
+        .patch(`/api/requests/${tripRequest.id}/respond`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ action: 'REJECT' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.request.status).toBe('REJECTED');
+    });
+  });
+
+  describe('GET /api/requests/my', () => {
+    it('should list passenger requests', async () => {
+      const driver = await createVerifiedTestUser('driver@uta.edu.ec');
+      await createTestVehicle(driver.id);
+      const trip = await createTestTrip(driver.id);
+      const passenger = await createVerifiedTestUser('passenger@uta.edu.ec');
+      await createTestRequest(trip.id, passenger.id);
+
+      const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: passenger.email,
+          password: TEST_USERS.validUser.password,
+        });
+
+      const accessToken = loginRes.body.accessToken;
+
+      const response = await request(app)
+        .get('/api/requests/my')
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.requests).toBeInstanceOf(Array);
+      expect(response.body.requests).toHaveLength(1);
     });
   });
 });

@@ -79,8 +79,18 @@ describe('Trips Integration Tests', () => {
       await createTestTrip(driver.id, { destinationZone: 'Centro' });
       await createTestTrip(driver.id, { destinationZone: 'Sur' });
 
+      const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: driver.email,
+          password: TEST_USERS.validUser.password,
+        });
+
+      const accessToken = loginRes.body.accessToken;
+
       const response = await request(app)
         .get('/api/trips')
+        .set('Authorization', `Bearer ${accessToken}`)
         .query({ destinationZone: 'Centro' });
 
       expect(response.status).toBe(200);
@@ -93,8 +103,18 @@ describe('Trips Integration Tests', () => {
       await createTestVehicle(driver.id);
       const trip = await createTestTrip(driver.id);
 
+      const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: driver.email,
+          password: TEST_USERS.validUser.password,
+        });
+
+      const accessToken = loginRes.body.accessToken;
+
       const response = await request(app)
-        .get(`/api/trips/${trip.id}`);
+        .get(`/api/trips/${trip.id}`)
+        .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.trip.id).toBe(trip.id);
@@ -126,7 +146,7 @@ describe('Trips Integration Tests', () => {
     });
   });
 
-  describe('DELETE /api/trips/:id/cancel', () => {
+  describe('DELETE /api/trips/:id', () => {
     it('should cancel a trip', async () => {
       const user = await createVerifiedTestUser();
       await createTestVehicle(user.id);
@@ -142,11 +162,60 @@ describe('Trips Integration Tests', () => {
       const accessToken = loginRes.body.accessToken;
 
       const response = await request(app)
-        .delete(`/api/trips/${trip.id}/cancel`)
+        .delete(`/api/trips/${trip.id}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.trip.status).toBe('CANCELLED');
+    });
+  });
+
+  describe('PATCH /api/trips/:id/status', () => {
+    it('should update trip status to IN_PROGRESS', async () => {
+      const user = await createVerifiedTestUser();
+      await createTestVehicle(user.id);
+      const trip = await createTestTrip(user.id);
+
+      const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: user.email,
+          password: TEST_USERS.validUser.password,
+        });
+
+      const accessToken = loginRes.body.accessToken;
+
+      const response = await request(app)
+        .patch(`/api/trips/${trip.id}/status`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ status: 'IN_PROGRESS' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.trip.status).toBe('IN_PROGRESS');
+    });
+  });
+
+  describe('POST /api/trips/:id/safety-ack', () => {
+    it('should acknowledge safety protocol', async () => {
+      const user = await createVerifiedTestUser();
+      await createTestVehicle(user.id);
+      const trip = await createTestTrip(user.id);
+
+      const loginRes = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: user.email,
+          password: TEST_USERS.validUser.password,
+        });
+
+      const accessToken = loginRes.body.accessToken;
+
+      const response = await request(app)
+        .post(`/api/trips/${trip.id}/safety-ack`)
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.status).toBe(201);
+      expect(response.body.acknowledged).toBe(true);
     });
   });
 });

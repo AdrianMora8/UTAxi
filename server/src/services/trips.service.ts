@@ -13,6 +13,14 @@ export class TripsService {
     notes?: string;
     rules?: string;
   }) {
+    // Verificar que el conductor tenga un vehículo registrado
+    const vehicle = await this.prisma.vehicle.findUnique({
+      where: { userId: driverId }
+    });
+    if (!vehicle) {
+      throw new AppError(400, 'Debes registrar un vehículo antes de publicar un viaje.');
+    }
+
     const bufferHours = 2;
     const bufferStart = new Date(data.departureTime);
     bufferStart.setHours(bufferStart.getHours() - bufferHours);

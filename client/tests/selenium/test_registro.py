@@ -1,5 +1,6 @@
 
 import os
+import sys
 import time
 import uuid
 import subprocess
@@ -113,4 +114,13 @@ def test_registro_and_login(driver, base_url):
 	assert "Iniciar Sesión" not in driver.page_source
 
 
-
+if __name__ == "__main__":
+	print("\n[ERROR] Este archivo usa fixtures de pytest y NO puede ejecutarse directamente.")
+	print("   Ejecuta las pruebas con el comando correcto:")
+	print("")
+	print("   python -m pytest client/tests/selenium/test_registro.py -v")
+	print("")
+	print("   O para correr TODAS las pruebas:")
+	print("   python -m pytest")
+	print("")
+	sys.exit(1)

@@ -1,3 +1,4 @@
+import sys
 import time
 import uuid
 from selenium.webdriver.common.by import By
@@ -69,3 +70,15 @@ def test_bookings_crud(driver, base_url):
             pass
     except Exception:
         pass
+
+
+if __name__ == "__main__":
+    print("\n[ERROR] Este archivo usa fixtures de pytest y NO puede ejecutarse directamente.")
+    print("   Ejecuta las pruebas con el comando correcto:")
+    print("")
+    print("   python -m pytest client/tests/selenium/test_bookings_crud.py -v")
+    print("")
+    print("   O para correr TODAS las pruebas:")
+    print("   python -m pytest")
+    print("")
+    sys.exit(1)

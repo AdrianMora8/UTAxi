@@ -3,7 +3,6 @@ import request from 'supertest';
 import { createApp } from '../../src/app';
 import { setupTestDb, teardownTestDb, getPrisma } from '../helpers/testDb';
 import { TEST_USERS, createVerifiedTestUser, createUnverifiedTestUser } from '../helpers/fixtures';
-import bcryptjs from 'bcryptjs';
 
 /**
  * Pruebas de integración para rutas de autenticación.

@@ -10,7 +10,6 @@ import { TEST_USERS, TEST_VEHICLES, createVerifiedTestUser, createTestVehicle } 
  */
 
 const app = createApp();
-const prisma = getPrisma();
 
 describe('GET /api/users/me - Integration Tests', () => {
   beforeAll(async () => {

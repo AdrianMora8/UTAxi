@@ -87,7 +87,7 @@ describe('Payments Routes - Integration Tests', () => {
     const driver = await createVerifiedTestUser('driver@uta.edu.ec');
     const passenger = await createVerifiedTestUser('passenger@uta.edu.ec', 'Password123!', 'Passenger User');
     
-    const trip = await createTestTrip(driver.id, { pricePerSeat: 5.0 });
+    const trip = await createTestTrip(driver.id, { pricePerSeat: 5 });
     const tripRequest = await createTestRequest(trip.id, passenger.id);
     
     const prisma = getPrisma();

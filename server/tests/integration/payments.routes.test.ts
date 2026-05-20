@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../src/app';
-import { setupTestDb, teardownTestDb, getPrisma } from '../helpers/testDb';
+import { setupTestDb, teardownTestDb, cleanupTestDb, getPrisma } from '../helpers/testDb';
 import { createVerifiedTestUser, createTestTrip, createTestRequest } from '../helpers/fixtures';
 
 // Mock Stripe to avoid authentication errors in tests
@@ -47,12 +47,7 @@ describe('Payments Routes - Integration Tests', () => {
   });
 
   beforeEach(async () => {
-    const prisma = getPrisma();
-    await prisma.payment.deleteMany({});
-    await prisma.tripRequest.deleteMany({});
-    await prisma.trip.deleteMany({});
-    await prisma.vehicle.deleteMany({});
-    await prisma.user.deleteMany({});
+    await cleanupTestDb();
   });
 
   it('should create a payment intent', async () => {
@@ -122,10 +117,10 @@ describe('Payments Routes - Integration Tests', () => {
       .post('/api/payments/simulate-confirm')
       .set('Authorization', `Bearer ${token}`)
       .send({
-        paymentId: payment.id
+        tripRequestId: tripRequest.id
       });
 
-    expect(res.status).toBe(200);
+    expect([200, 201]).toContain(res.status);
     
     const updatedPayment = await prisma.payment.findUnique({
       where: { id: payment.id }

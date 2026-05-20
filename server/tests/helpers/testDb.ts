@@ -73,3 +73,25 @@ export function getPrisma() {
   }
   return prisma;
 }
+
+/**
+ * Limpia todos los datos de la BD de test respetando las foreign keys
+ * Esta función debe usarse en los beforeEach de los tests
+ */
+export async function cleanupTestDb() {
+  try {
+    if (prisma) {
+      // Limpiar en el orden correcto para respetar las foreign keys
+      await prisma.report.deleteMany({});
+      await prisma.rating.deleteMany({});
+      await prisma.payment.deleteMany({});
+      await prisma.tripRequest.deleteMany({});
+      await prisma.trip.deleteMany({});
+      await prisma.vehicle.deleteMany({});
+      await prisma.user.deleteMany({});
+    }
+  } catch (error) {
+    console.error('Error limpiando BD en test:', error);
+    throw error;
+  }
+}

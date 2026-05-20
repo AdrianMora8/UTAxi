@@ -19,6 +19,8 @@ export default function VerifyEmail() {
   const [searchParams] = useSearchParams()
   const email = searchParams.get('email') ?? ''
   const [serverError, setServerError] = useState('')
+  const [resendMessage, setResendMessage] = useState('')
+  const [isResending, setIsResending] = useState(false)
 
   const {
     register,
@@ -36,6 +38,24 @@ export default function VerifyEmail() {
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
         'Código inválido o expirado'
       setServerError(msg)
+    }
+  }
+
+  const handleResendCode = async () => {
+    setIsResending(true)
+    setResendMessage('')
+    setServerError('')
+    try {
+      await authApi.resendCode(email)
+      setResendMessage('✓ Código reenviado exitosamente')
+      setTimeout(() => setResendMessage(''), 5000)
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Error al reenviar el código'
+      setServerError(msg)
+    } finally {
+      setIsResending(false)
     }
   }
 
@@ -103,11 +123,18 @@ export default function VerifyEmail() {
               <div className="flex flex-col items-center gap-4">
                 <button
                   type="button"
-                  className="text-on-surface-variant hover:text-white font-label text-sm uppercase tracking-widest transition-colors duration-300 flex items-center gap-2"
+                  onClick={handleResendCode}
+                  disabled={isResending || isSubmitting}
+                  className="text-on-surface-variant hover:text-white font-label text-sm uppercase tracking-widest transition-colors duration-300 flex items-center gap-2 disabled:opacity-50"
                 >
                   <span className="material-symbols-outlined text-sm">refresh</span>
-                  Reenviar código
+                  {isResending ? 'Reenviando...' : 'Reenviar código'}
                 </button>
+                {resendMessage && (
+                  <p className="text-xs text-green-400 text-center">
+                    {resendMessage}
+                  </p>
+                )}
                 <Link
                   to="/login"
                   className="text-zinc-600 hover:text-zinc-400 font-label text-xs uppercase tracking-widest transition-colors duration-300"

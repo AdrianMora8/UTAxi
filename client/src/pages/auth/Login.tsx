@@ -164,6 +164,12 @@ export default function Login() {
                   )}
                 </div>
 
+                <div className="text-right">
+                  <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
+
                 {serverError && (
                   <div className="flex items-center gap-2 bg-error/10 border border-error/20 rounded-lg px-4 py-3">
                     <span className="material-symbols-outlined text-error text-sm">error</span>

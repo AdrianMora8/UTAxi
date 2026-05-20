@@ -1,3 +1,20 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';
@@ -31,6 +48,251 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
 
+  // ─── Ruta raíz ───────────────────────────────────────────────────────────
+  app.get('/', (_req, res) => {
+    res.json({ message: 'API UTAxi - Servidor activo', version: '1.0.0' });
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
   // ─── Health check ─────────────────────────────────────────────────────────
   app.get('/health', async (_req, res) => {
     try {
@@ -40,6 +302,22 @@ export function createApp() {
       res.status(503).json({ status: 'error', db: 'disconnected' });
     }
   });
+
+  // ─── Dev: Get verification code (solo en desarrollo) ─────────────────────
+  if (env.NODE_ENV === 'development') {
+    app.get('/api/dev/code/:email', async (req, res) => {
+      const { email } = req.params;
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user || !user.emailVerifyToken) {
+        return res.status(404).json({ error: 'No hay código para este usuario' });
+      }
+      res.json({
+        email,
+        code: user.emailVerifyToken,
+        expiresAt: user.emailVerifyExpiry,
+      });
+    });
+  }
 
   // ─── Rutas API ────────────────────────────────────────────────────────────
   app.use('/api/auth', authRouter);

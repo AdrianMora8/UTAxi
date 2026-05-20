@@ -18,12 +18,25 @@ export interface LoginResponse {
   user: AuthUser
 }
 
+export interface ForgotPasswordPayload {
+  email: string
+}
+
+export interface ResetPasswordPayload {
+  email: string
+  code: string
+  newPassword: string
+}
+
 export const authApi = {
   register: (payload: RegisterPayload) =>
     apiClient.post<{ message: string }>('/auth/register', payload),
 
   verifyEmail: (email: string, code: string) =>
     apiClient.post<{ message: string }>('/auth/verify-email', { email, code }),
+
+  resendCode: (email: string) =>
+    apiClient.post<{ message: string }>('/auth/resend-code', { email }),
 
   login: (payload: LoginPayload) =>
     apiClient.post<LoginResponse>('/auth/login', payload),
@@ -33,4 +46,10 @@ export const authApi = {
 
   logout: () =>
     apiClient.post('/auth/logout'),
+
+  forgotPassword: (payload: ForgotPasswordPayload) =>
+    apiClient.post<{ message: string }>('/auth/forgot-password', payload),
+
+  resetPassword: (payload: ResetPasswordPayload) =>
+    apiClient.post<{ message: string }>('/auth/reset-password', payload),
 }

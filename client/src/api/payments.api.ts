@@ -11,7 +11,18 @@ export interface Payment {
   createdAt: string
 }
 
+export interface CreateIntentResponse {
+  clientSecret: string
+  paymentId: string
+  amount: number
+}
+
 export const paymentsApi = {
+  createIntent: (tripRequestId: string) =>
+    apiClient.post<CreateIntentResponse>('/payments/create-intent', {
+      tripRequestId,
+    }),
+
   simulateConfirm: (tripRequestId: string) =>
     apiClient.post<{ payment: Payment; amount: number }>('/payments/simulate-confirm', {
       tripRequestId,

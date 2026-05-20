@@ -44,6 +44,16 @@ export class UsersService {
     phone?: string;
     neighborhood?: string;
   }) {
+    // Validación de seguridad: asegurar que el usuario existe
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+
+    if (!userExists) {
+      throw new AppError(404, 'Usuario no encontrado');
+    }
+
     const user = await this.prisma.user.update({
       where: { id: userId },
       data,
@@ -87,6 +97,11 @@ export class UsersService {
   }) {
     const existing = await this.prisma.vehicle.findUnique({ where: { userId } });
     if (!existing) throw new AppError(404, 'No tienes vehículo registrado. Usa POST para crear uno.');
+
+    // Validar que el vehículo pertenece al usuario (capa de seguridad extra)
+    if (existing.userId !== userId) {
+      throw new AppError(403, 'No puedes editar el vehículo de otro usuario');
+    }
 
     const vehicle = await this.prisma.vehicle.update({
       where: { userId },

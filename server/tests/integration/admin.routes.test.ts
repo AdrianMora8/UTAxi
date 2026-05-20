@@ -53,7 +53,7 @@ describe('Admin Routes - Integration Tests', () => {
         emailVerified: true
       }
     });
-g
+
     // We can just use the login route if we use a known password hash. But createVerifiedTestUser creates a known password.
     const validUser = await createVerifiedTestUser('admin2@uta.edu.ec', 'Password123!', 'Admin User');
     await prisma.user.update({

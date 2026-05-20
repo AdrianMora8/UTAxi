@@ -38,10 +38,10 @@ export async function setupTestDb() {
     // Usar deleteMany de Prisma es más seguro que SQL crudo
     await prisma.report.deleteMany({});
     await prisma.rating.deleteMany({});
+    await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
     await prisma.trip.deleteMany({});
     await prisma.vehicle.deleteMany({});
-    await prisma.payment.deleteMany({});
     await prisma.user.deleteMany({});
   } catch (error) {
     console.error('Error limpiando BD de test:', error);
@@ -56,10 +56,10 @@ export async function teardownTestDb() {
     if (prisma) {
       await prisma.report.deleteMany({});
       await prisma.rating.deleteMany({});
+      await prisma.payment.deleteMany({});
       await prisma.tripRequest.deleteMany({});
       await prisma.trip.deleteMany({});
       await prisma.vehicle.deleteMany({});
-      await prisma.payment.deleteMany({});
       await prisma.user.deleteMany({});
     }
   } catch (error) {

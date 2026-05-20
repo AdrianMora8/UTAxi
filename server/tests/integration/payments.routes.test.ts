@@ -1,8 +1,39 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../../src/app';
 import { setupTestDb, teardownTestDb, getPrisma } from '../helpers/testDb';
 import { createVerifiedTestUser, createTestTrip, createTestRequest } from '../helpers/fixtures';
+
+// Mock Stripe to avoid authentication errors in tests
+vi.mock('stripe', () => {
+  return {
+    default: vi.fn(() => ({
+      paymentIntents: {
+        create: vi.fn(async (params) => ({
+          id: 'pi_test_' + Math.random().toString(36).substr(2, 9),
+          client_secret: 'pi_test_secret_' + Math.random().toString(36).substr(2, 9),
+          amount: params.amount,
+          currency: params.currency,
+          metadata: params.metadata,
+          status: 'requires_payment_method',
+        })),
+        retrieve: vi.fn(async (id) => ({
+          id,
+          client_secret: 'pi_test_secret_123',
+          amount: 500,
+          currency: 'usd',
+          status: 'succeeded',
+        })),
+      },
+      webhooks: {
+        constructEvent: vi.fn((payload, signature, secret) => ({
+          type: 'payment_intent.succeeded',
+          data: { object: { id: 'pi_test_123' } },
+        })),
+      },
+    })),
+  };
+});
 
 const app = createApp();
 

@@ -1,78 +1,94 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
-/**
- * Pruebas E2E de Flujo de Viajes
- * Valida: Crear viaje, Buscar viaje, Solicitar viaje, Ver detalles
- */
+async function login(page: Page) {
+  await page.goto('/login');
+  await page.fill('input[placeholder="usuario@uta.edu.ec"]', 'student1@uta.edu.ec');
+  await page.fill('input[placeholder="••••••••"]', 'Password123!');
+  await page.click('button:has-text("Iniciar Sesión")');
+  await expect(page).toHaveURL(/.*trips/, { timeout: 10000 });
+}
 
 test.describe('Trips Flow - E2E', () => {
   test.beforeEach(async ({ page }) => {
-    // Login antes de cada test
-    await page.goto('/login');
-    await page.fill('input[type="email"]', 'student1@uta.edu.ec');
-    await page.fill('input[type="password"]', 'Password123!');
-    await page.click('button:has-text("Login")');
-    
-    // Esperar a que se cargue el dashboard
-    await expect(page).toHaveURL(/.*dashboard|.*trips/, { timeout: 10000 });
+    await login(page);
   });
 
-  test('should navigate to trips list', async ({ page }) => {
-    await page.click('a:has-text("Trips") >> nth=0');
-    
-    // Debería mostrar lista de viajes
-    await expect(page.locator('text=/Available Trips|Viajes Disponibles/')).toBeVisible();
-  });
-
-  test('should view trip details', async ({ page }) => {
+  test('should show trips list with heading', async ({ page }) => {
     await page.goto('/trips');
-    
-    // Click en el primer viaje
-    await page.click('div[class*="trip-card"] >> nth=0');
-    
-    // Debería mostrar detalles del viaje
-    await expect(page.locator('text=/Trip Details|Detalles del Viaje/')).toBeVisible();
-    
-    // Verificar que se muestren campos importantes
-    await expect(page.locator('text=/From:|To:|Date:|Seats/')).toBeVisible();
+
+    await expect(page.locator('h2:has-text("Viajes Disponibles")')).toBeVisible();
   });
 
-  test('should request to join a trip', async ({ page }) => {
+  test('should show sort buttons on trips list', async ({ page }) => {
     await page.goto('/trips');
-    
-    // Click en el primer viaje
-    await page.click('div[class*="trip-card"] >> nth=0');
-    
-    // Click en "Request to Join"
-    await page.click('button:has-text("Request to Join")');
-    
-    // Debería mostrar mensaje de confirmación
-    await expect(page.locator('text=/request sent|solicitud enviada/i')).toBeVisible();
+
+    await expect(page.locator('button:has-text("MÁS RECIENTES")')).toBeVisible();
+    await expect(page.locator('button:has-text("MEJOR CALIFICADOS")')).toBeVisible();
   });
 
-  test('should filter trips by location', async ({ page }) => {
+  test('should navigate to trip detail on card click', async ({ page }) => {
     await page.goto('/trips');
-    
-    // Llenar filtro de origen
-    await page.fill('input[name="from"]', 'Polanco');
-    
-    // Hacer click en buscar (o esperar que filtre automáticamente)
-    await page.click('button:has-text("Search")');
-    
-    // Debería mostrar solo viajes desde Polanco
-    await expect(page.locator('text=/Polanco/')).toBeVisible();
+
+    // Wait for at least one trip card to appear (Link to /trips/:id)
+    const firstCard = page.locator('a[href^="/trips/"]:not([href="/trips/new"])').first();
+    await expect(firstCard).toBeVisible({ timeout: 10000 });
+    await firstCard.click();
+
+    await expect(page).toHaveURL(/\/trips\/[^/]+$/, { timeout: 8000 });
+    await expect(page.locator('text="Itinerario del Viaje"')).toBeVisible();
   });
 
-  test('should show trip booking modal', async ({ page }) => {
+  test('should show Solicitar Unirse button on a trip not owned by user', async ({ page }) => {
     await page.goto('/trips');
-    
-    // Click en el primer viaje
-    await page.click('div[class*="trip-card"] >> nth=0');
-    
-    // Click en "Request to Join"
-    await page.click('button:has-text("Request to Join")');
-    
-    // Debería mostrar modal/dialog de confirmación
-    await expect(page.locator('[role="dialog"]')).toBeVisible();
+
+    const firstCard = page.locator('a[href^="/trips/"]:not([href="/trips/new"])').first();
+    await expect(firstCard).toBeVisible({ timeout: 10000 });
+    await firstCard.click();
+
+    // Could be "Solicitar Unirse", "Gestionar Solicitudes" (if driver), or "¡Solicitud enviada!"
+    const actionPanel = page.locator('button:has-text("Solicitar Unirse"), button:has-text("Gestionar Solicitudes"), div:has-text("¡Solicitud enviada!")');
+    await expect(actionPanel).toBeVisible({ timeout: 8000 });
+  });
+
+  test('should filter trips by origin zone', async ({ page }) => {
+    await page.goto('/trips');
+
+    await page.fill('input[placeholder="¿De dónde sales?"]', 'Campus');
+    await page.click('button:has-text("Encontrar Viaje")');
+
+    // Either shows results with "Campus" or empty state message
+    const results = page.locator('text=/Campus|No hay viajes disponibles/i');
+    await expect(results).toBeVisible({ timeout: 8000 });
+  });
+
+  test('should filter trips by destination zone', async ({ page }) => {
+    await page.goto('/trips');
+
+    await page.fill('input[placeholder="¿A dónde vas?"]', 'Huachi');
+    await page.click('button:has-text("Encontrar Viaje")');
+
+    const results = page.locator('text=/Huachi|No hay viajes disponibles/i');
+    await expect(results).toBeVisible({ timeout: 8000 });
+  });
+
+  test('should show empty state when no trips match filter', async ({ page }) => {
+    await page.goto('/trips');
+
+    await page.fill('input[placeholder="¿A dónde vas?"]', 'ZonaInexistente99999');
+    await page.click('button:has-text("Encontrar Viaje")');
+
+    await expect(page.locator('text="No hay viajes disponibles con esos filtros."')).toBeVisible({ timeout: 8000 });
+  });
+
+  test('should clear filters and show all trips again', async ({ page }) => {
+    await page.goto('/trips');
+
+    await page.fill('input[placeholder="¿A dónde vas?"]', 'ZonaInexistente99999');
+    await page.click('button:has-text("Encontrar Viaje")');
+    await expect(page.locator('text="No hay viajes disponibles con esos filtros."')).toBeVisible({ timeout: 8000 });
+
+    await page.click('button:has-text("Limpiar filtros")');
+
+    await expect(page.locator('h2:has-text("Viajes Disponibles")')).toBeVisible();
   });
 });

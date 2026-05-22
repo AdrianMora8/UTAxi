@@ -1,0 +1,67 @@
+appId: host.exp.exponent
+name: "04 — Perfil (navegación y sub-pantallas)"
+tags:
+  - perfil
+
+---
+
+# ── Login como pasajero E2E ──────────────────────────────────────
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "U-Ride"
+    timeout: 8000
+
+- runFlow:
+    file: ../subflows/login.yaml
+    env:
+      EMAIL: "e2e.passenger@uta.edu.ec"
+      PASSWORD: "E2ETest123!"
+
+# ── Navegar a tab Perfil ──────────────────────────────────────────
+- tapOn:
+    text: "Perfil"
+- assertVisible:
+    text: "U-RIDE"
+    timeout: 5000
+
+# Verificar datos del usuario presentes
+- assertVisible: "PUNTUACIÓN"
+- assertVisible: "PASAJERO"
+- assertVisible: "U-Wallet"
+- assertVisible: "Historial"
+
+# ── Sub-pantalla: Historial (Mis Viajes) ─────────────────────────
+- tapOn:
+    text: "Historial"
+- assertVisible:
+    text: "Mis Viajes"
+    timeout: 5000
+- assertVisible: "Activas"
+
+# Volver atrás con swipe (los botones back son íconos sin texto)
+- swipe:
+    direction: RIGHT
+    duration: 400
+- assertVisible:
+    text: "U-RIDE"
+    timeout: 5000
+
+# ── Sub-pantalla: U-Wallet ────────────────────────────────────────
+- tapOn:
+    text: "U-Wallet"
+- assertVisible:
+    text: "U-Wallet"
+    timeout: 5000
+- assertVisible: "Saldo disponible"
+
+- swipe:
+    direction: RIGHT
+    duration: 400
+- assertVisible:
+    text: "U-RIDE"
+    timeout: 5000
+
+# ── Logout ────────────────────────────────────────────────────────
+- runFlow:
+    file: ../subflows/logout.yaml

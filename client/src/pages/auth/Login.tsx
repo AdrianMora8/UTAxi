@@ -132,7 +132,7 @@ export default function Login() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
                 <div>
                   <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant mb-2">
                     Correo Institucional

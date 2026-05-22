@@ -1,85 +1,117 @@
 import { test, expect } from '@playwright/test';
 
-/**
- * Pruebas E2E de Flujo de Autenticación
- * Valida el flujo completo: Registro → Verificación → Login
- */
+test.describe('Forgot Password / Reset Password Flow - E2E', () => {
+  test('should show forgot-password form with email input', async ({ page }) => {
+    await page.goto('/forgot-password');
+
+    await expect(page.locator('input[placeholder="usuario@uta.edu.ec"]')).toBeVisible();
+    await expect(page.locator('button:has-text("Enviar código")')).toBeVisible();
+  });
+
+  test('should navigate to forgot-password via login page link', async ({ page }) => {
+    await page.goto('/login');
+
+    await page.click('a[href="/forgot-password"]');
+
+    await expect(page).toHaveURL(/.*forgot-password/);
+    await expect(page.locator('button:has-text("Enviar código")')).toBeVisible();
+  });
+
+  test('should show reset-password form with email, code and password fields', async ({ page }) => {
+    await page.goto('/reset-password');
+
+    await expect(page.locator('text="Restablecer contraseña"').first()).toBeVisible();
+    await expect(page.locator('input[placeholder="usuario@uta.edu.ec"]')).toBeVisible();
+    await expect(page.locator('input[placeholder="000000"]')).toBeVisible();
+    await expect(page.locator('input[placeholder="Mínimo 8 caracteres"]')).toBeVisible();
+    await expect(page.locator('button:has-text("Restablecer contraseña")')).toBeVisible();
+  });
+
+  test('should show error when reset code is invalid', async ({ page }) => {
+    await page.goto('/reset-password');
+
+    await page.fill('input[placeholder="usuario@uta.edu.ec"]', 'student1@uta.edu.ec');
+    await page.fill('input[placeholder="000000"]', '000000');
+    await page.fill('input[placeholder="Mínimo 8 caracteres"]', 'NewPass123!');
+    await page.click('button:has-text("Restablecer contraseña")');
+
+    await expect(
+      page.locator('text=/código|inválido|expirado|error/i')
+    ).toBeVisible({ timeout: 8000 });
+  });
+});
 
 test.describe('Authentication Flow - E2E', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
+  test('should register a new user and redirect to verify-email', async ({ page }) => {
+    await page.goto('/register');
+
+    await page.fill('input[placeholder="Ej. Alex Maldonado"]', 'Test E2E User');
+    await page.fill('input[placeholder="usuario@uta.edu.ec"]', 'e2etest@uta.edu.ec');
+    await page.selectOption('select', { label: 'Ingeniería en Sistemas' });
+    await page.fill('input[placeholder="••••••••"]', 'SecurePass123!');
+
+    await page.click('button:has-text("Crear Cuenta Institucional")');
+
+    await expect(page).toHaveURL(/.*verify-email/, { timeout: 10000 });
   });
 
-  test('should register a new user', async ({ page }) => {
-    // Navegar a registro
-    await page.click('button:has-text("Sign Up")');
-    
-    // Esperar que se cargue el formulario de registro
-    await expect(page.locator('form')).toBeVisible();
+  test('should show verify-email form with code input', async ({ page }) => {
+    await page.goto('/verify-email?email=e2etest@uta.edu.ec');
 
-    // Llenar formulario de registro
-    await page.fill('input[type="email"]', 'newstudent@uta.edu.ec');
-    await page.fill('input[name="fullName"]', 'New Student');
-    await page.fill('input[name="password"]', 'SecurePass123!');
-    await page.fill('input[name="confirmPassword"]', 'SecurePass123!');
-    
-    // Hacer click en registro
-    await page.click('button:has-text("Register")');
-    
-    // Esperar mensaje de éxito o redirección a verificación
-    await expect(page).toHaveURL(/.*verify|.*success/, { timeout: 10000 });
+    await expect(page.locator('input[placeholder="000000"]')).toBeVisible();
+    await expect(page.locator('button:has-text("Verificar Código")')).toBeVisible();
   });
 
-  test('should verify email with OTP code', async ({ page }) => {
-    // Asumir que el usuario se registró y está en página de verificación
-    await page.goto('/verify-email');
-    
-    await page.fill('input[name="email"]', 'newstudent@uta.edu.ec');
-    await page.fill('input[name="code"]', '123456'); // Código de prueba
-    
-    await page.click('button:has-text("Verify")');
-    
-    // Debería redirigir a login después de verificación exitosa
-    await expect(page).toHaveURL(/.*login/, { timeout: 10000 });
+  test('should show error on invalid OTP code', async ({ page }) => {
+    await page.goto('/verify-email?email=e2etest@uta.edu.ec');
+
+    await page.fill('input[placeholder="000000"]', '000000');
+    await page.click('button:has-text("Verificar Código")');
+
+    await expect(page.locator('text=/Código inválido|expirado|inválido/i')).toBeVisible({ timeout: 8000 });
   });
 
-  test('should login with verified credentials', async ({ page }) => {
-    // Navegar a login
+  test('should login with valid credentials', async ({ page }) => {
     await page.goto('/login');
-    
-    // Llenar formulario de login
-    await page.fill('input[type="email"]', 'student1@uta.edu.ec');
-    await page.fill('input[type="password"]', 'Password123!');
-    
-    // Hacer click en login
-    await page.click('button:has-text("Login")');
-    
-    // Debería redirigir al dashboard después de login exitoso
-    await expect(page).toHaveURL(/.*dashboard|.*trips/, { timeout: 10000 });
-    
-    // Verificar que se muestre la información del usuario
-    await expect(page.locator('text=/Dashboard|Mis Viajes/')).toBeVisible();
+
+    await page.fill('input[placeholder="usuario@uta.edu.ec"]', 'student1@uta.edu.ec');
+    await page.fill('input[placeholder="••••••••"]', 'Password123!');
+    await page.click('button:has-text("Iniciar Sesión")');
+
+    await expect(page).toHaveURL(/.*trips/, { timeout: 10000 });
   });
 
   test('should reject login with incorrect password', async ({ page }) => {
     await page.goto('/login');
-    
-    await page.fill('input[type="email"]', 'student1@uta.edu.ec');
-    await page.fill('input[type="password"]', 'WrongPassword123!');
-    
-    await page.click('button:has-text("Login")');
-    
-    // Debería mostrar mensaje de error
-    await expect(page.locator('text=/Invalid credentials|Wrong password/')).toBeVisible();
+
+    await page.fill('input[placeholder="usuario@uta.edu.ec"]', 'student1@uta.edu.ec');
+    await page.fill('input[placeholder="••••••••"]', 'WrongPassword123!');
+    await page.click('button:has-text("Iniciar Sesión")');
+
+    await expect(page.locator('text=/Credenciales incorrectas|credenciales/i')).toBeVisible({ timeout: 8000 });
   });
 
-  test('should show validation errors for invalid email', async ({ page }) => {
+  test('should show inline validation error for invalid email', async ({ page }) => {
     await page.goto('/login');
-    
-    await page.fill('input[type="email"]', 'invalid-email');
-    await page.fill('input[type="password"]', 'Password123!');
-    
-    // El error debería aparecer sin hacer click
-    await expect(page.locator('text=/Invalid email/')).toBeVisible();
+
+    await page.fill('input[placeholder="usuario@uta.edu.ec"]', 'not-an-email');
+    await page.fill('input[placeholder="••••••••"]', 'Password123!');
+    await page.click('button:has-text("Iniciar Sesión")');
+
+    await expect(page.locator('text="Email inválido"')).toBeVisible();
+  });
+
+  test('should navigate to register page from login link', async ({ page }) => {
+    await page.goto('/login');
+
+    await page.click('a:has-text("Registrarse como Estudiante")');
+
+    await expect(page).toHaveURL(/.*register/);
+  });
+
+  test('should redirect unauthenticated user from protected route', async ({ page }) => {
+    await page.goto('/trips/new');
+
+    await expect(page).toHaveURL(/.*login/, { timeout: 8000 });
   });
 });

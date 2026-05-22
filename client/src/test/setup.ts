@@ -1,6 +1,29 @@
 import '@testing-library/jest-dom'
-import { expect, afterEach, vi } from 'vitest'
+import { expect, afterEach, vi, beforeEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
+
+// localStorage mock — necesario para Zustand persist con Node.js 22+
+const localStorageMock = (() => {
+  let store: Record<string, string> = {}
+  return {
+    getItem: (key: string) => store[key] ?? null,
+    setItem: (key: string, value: string) => { store[key] = value },
+    removeItem: (key: string) => { delete store[key] },
+    clear: () => { store = {} },
+    get length() { return Object.keys(store).length },
+    key: (index: number) => Object.keys(store)[index] ?? null,
+  }
+})()
+
+Object.defineProperty(globalThis, 'localStorage', {
+  writable: true,
+  configurable: true,
+  value: localStorageMock,
+})
+
+beforeEach(() => {
+  localStorage.clear()
+})
 
 // Cleanup después de cada test
 afterEach(() => {

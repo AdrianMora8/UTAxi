@@ -51,7 +51,7 @@ apiClient.interceptors.response.use(
         refreshQueue = []
 
         original.headers.Authorization = `Bearer ${newToken}`
-        return apiClient(original)
+        return apiClient.request(original)
       } catch {
         useAuthStore.getState().clearAuth()
         window.location.href = '/login'

@@ -59,7 +59,7 @@ export default function ForgotPassword() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit((data) => forgotMutation.mutate(data))} className="space-y-6">
+          <form onSubmit={handleSubmit((data) => forgotMutation.mutate(data))} noValidate className="space-y-6">
             <div>
               <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant mb-2">
                 Correo Institucional

@@ -159,7 +159,7 @@ export default function CreateTripScreen() {
         <View style={styles.rowFields}>
           <View style={[styles.fieldBlock, { flex: 1 }]}>
             <SectionLabel icon="calendar-outline" label="FECHA" />
-            <TouchableOpacity style={styles.inputRow} onPress={() => setShowDate(true)}>
+            <TouchableOpacity testID="date-picker-btn" style={styles.inputRow} onPress={() => setShowDate(true)}>
               <Text style={styles.pickerText}>{formatDate(date)}</Text>
               <Ionicons name="calendar-outline" size={16} color={colors.textMuted} />
             </TouchableOpacity>
@@ -167,7 +167,7 @@ export default function CreateTripScreen() {
 
           <View style={[styles.fieldBlock, { flex: 1 }]}>
             <SectionLabel icon="time-outline" label="HORA" />
-            <TouchableOpacity style={styles.inputRow} onPress={() => setShowTime(true)}>
+            <TouchableOpacity testID="time-picker-btn" style={styles.inputRow} onPress={() => setShowTime(true)}>
               <Text style={styles.pickerText}>{formatTime(time)}</Text>
               <Ionicons name="time-outline" size={16} color={colors.textMuted} />
             </TouchableOpacity>

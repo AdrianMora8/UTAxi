@@ -1,7 +1,7 @@
 {
   "config": {
-    "configFile": "C:\\Users\\HOME\\Desktop\\UTAxi\\client\\playwright.config.ts",
-    "rootDir": "C:/Users/HOME/Desktop/UTAxi/client/tests/e2e",
+    "configFile": "/home/adrian/dev/UTAxi/client/playwright.config.ts",
+    "rootDir": "/home/adrian/dev/UTAxi/client/tests/e2e",
     "forbidOnly": false,
     "fullyParallel": true,
     "globalSetup": null,
@@ -14,13 +14,13 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "C:/Users/HOME/Desktop/UTAxi/client/test-results",
+        "outputDir": "/home/adrian/dev/UTAxi/client/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {},
         "id": "chromium",
         "name": "chromium",
-        "testDir": "C:/Users/HOME/Desktop/UTAxi/client/tests/e2e",
+        "testDir": "/home/adrian/dev/UTAxi/client/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -28,13 +28,13 @@
         "timeout": 30000
       },
       {
-        "outputDir": "C:/Users/HOME/Desktop/UTAxi/client/test-results",
+        "outputDir": "/home/adrian/dev/UTAxi/client/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {},
         "id": "firefox",
         "name": "firefox",
-        "testDir": "C:/Users/HOME/Desktop/UTAxi/client/tests/e2e",
+        "testDir": "/home/adrian/dev/UTAxi/client/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -42,13 +42,13 @@
         "timeout": 30000
       },
       {
-        "outputDir": "C:/Users/HOME/Desktop/UTAxi/client/test-results",
+        "outputDir": "/home/adrian/dev/UTAxi/client/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {},
         "id": "webkit",
         "name": "webkit",
-        "testDir": "C:/Users/HOME/Desktop/UTAxi/client/tests/e2e",
+        "testDir": "/home/adrian/dev/UTAxi/client/tests/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -84,21 +84,4291 @@
     "updateSnapshots": "missing",
     "updateSourceMethod": "patch",
     "version": "1.59.1",
-    "workers": 8,
+    "workers": 6,
     "webServer": null
   },
-  "suites": [],
-  "errors": [
+  "suites": [
     {
-      "message": "Error: Timed out waiting 120000ms from config.webServer.",
-      "stack": "Error: Timed out waiting 120000ms from config.webServer."
+      "title": "auth.spec.ts",
+      "file": "auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Forgot Password / Reset Password Flow - E2E",
+          "file": "auth.spec.ts",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should show forgot-password form with email input",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-9ee13588f2662188cd04",
+              "file": "auth.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "should navigate to forgot-password via login page link",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-4826e813e92d036b8cce",
+              "file": "auth.spec.ts",
+              "line": 11,
+              "column": 3
+            },
+            {
+              "title": "should show reset-password form with email, code and password fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-4658154ecda9a2496734",
+              "file": "auth.spec.ts",
+              "line": 20,
+              "column": 3
+            },
+            {
+              "title": "should show error when reset code is invalid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-420d7fd5264b68ab8568",
+              "file": "auth.spec.ts",
+              "line": 30,
+              "column": 3
+            },
+            {
+              "title": "should show forgot-password form with email input",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-6d223f2576584af12127",
+              "file": "auth.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "should navigate to forgot-password via login page link",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-f7973b7692b8d1830db0",
+              "file": "auth.spec.ts",
+              "line": 11,
+              "column": 3
+            },
+            {
+              "title": "should show reset-password form with email, code and password fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-d9f2fc710ade7066437b",
+              "file": "auth.spec.ts",
+              "line": 20,
+              "column": 3
+            },
+            {
+              "title": "should show error when reset code is invalid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-1564c8c0e009fc50ad80",
+              "file": "auth.spec.ts",
+              "line": 30,
+              "column": 3
+            },
+            {
+              "title": "should show forgot-password form with email input",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-6be3a421e355d4454ab4",
+              "file": "auth.spec.ts",
+              "line": 4,
+              "column": 3
+            },
+            {
+              "title": "should navigate to forgot-password via login page link",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-8044f5ec731c089b6965",
+              "file": "auth.spec.ts",
+              "line": 11,
+              "column": 3
+            },
+            {
+              "title": "should show reset-password form with email, code and password fields",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-a36bd8beb88907b4ecfc",
+              "file": "auth.spec.ts",
+              "line": 20,
+              "column": 3
+            },
+            {
+              "title": "should show error when reset code is invalid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-484c4515f45ed307fff1",
+              "file": "auth.spec.ts",
+              "line": 30,
+              "column": 3
+            }
+          ]
+        },
+        {
+          "title": "Authentication Flow - E2E",
+          "file": "auth.spec.ts",
+          "line": 44,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should register a new user and redirect to verify-email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-972bfc64a38512b06ccf",
+              "file": "auth.spec.ts",
+              "line": 45,
+              "column": 3
+            },
+            {
+              "title": "should show verify-email form with code input",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-408ffa9ba4974130a297",
+              "file": "auth.spec.ts",
+              "line": 58,
+              "column": 3
+            },
+            {
+              "title": "should show error on invalid OTP code",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-dcf838850f95f8e6149a",
+              "file": "auth.spec.ts",
+              "line": 65,
+              "column": 3
+            },
+            {
+              "title": "should login with valid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-0098e0d357d086c354c9",
+              "file": "auth.spec.ts",
+              "line": 74,
+              "column": 3
+            },
+            {
+              "title": "should reject login with incorrect password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-396f6e2c93d89f53c2bf",
+              "file": "auth.spec.ts",
+              "line": 84,
+              "column": 3
+            },
+            {
+              "title": "should show inline validation error for invalid email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-3b3c86d9141fb1023faf",
+              "file": "auth.spec.ts",
+              "line": 94,
+              "column": 3
+            },
+            {
+              "title": "should navigate to register page from login link",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-7d30c697014896a641d4",
+              "file": "auth.spec.ts",
+              "line": 104,
+              "column": 3
+            },
+            {
+              "title": "should redirect unauthenticated user from protected route",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-d4896b75a203c8418f87",
+              "file": "auth.spec.ts",
+              "line": 112,
+              "column": 3
+            },
+            {
+              "title": "should register a new user and redirect to verify-email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-6a5e4af31acc881a9877",
+              "file": "auth.spec.ts",
+              "line": 45,
+              "column": 3
+            },
+            {
+              "title": "should show verify-email form with code input",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-436b83e3330178fc9383",
+              "file": "auth.spec.ts",
+              "line": 58,
+              "column": 3
+            },
+            {
+              "title": "should show error on invalid OTP code",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-bb30bfd987724f856f22",
+              "file": "auth.spec.ts",
+              "line": 65,
+              "column": 3
+            },
+            {
+              "title": "should login with valid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-e03112bde5703dd88619",
+              "file": "auth.spec.ts",
+              "line": 74,
+              "column": 3
+            },
+            {
+              "title": "should reject login with incorrect password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-b4857d5624abe365b817",
+              "file": "auth.spec.ts",
+              "line": 84,
+              "column": 3
+            },
+            {
+              "title": "should show inline validation error for invalid email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-81e98ec2f7317d21bfd5",
+              "file": "auth.spec.ts",
+              "line": 94,
+              "column": 3
+            },
+            {
+              "title": "should navigate to register page from login link",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-96bb56678ede07236685",
+              "file": "auth.spec.ts",
+              "line": 104,
+              "column": 3
+            },
+            {
+              "title": "should redirect unauthenticated user from protected route",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-da184ef374ccac163e9e",
+              "file": "auth.spec.ts",
+              "line": 112,
+              "column": 3
+            },
+            {
+              "title": "should register a new user and redirect to verify-email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-8e0a2608f723c2e09c4f",
+              "file": "auth.spec.ts",
+              "line": 45,
+              "column": 3
+            },
+            {
+              "title": "should show verify-email form with code input",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-e9803e60687a8c897492",
+              "file": "auth.spec.ts",
+              "line": 58,
+              "column": 3
+            },
+            {
+              "title": "should show error on invalid OTP code",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-1fa8bef2555e13a60635",
+              "file": "auth.spec.ts",
+              "line": 65,
+              "column": 3
+            },
+            {
+              "title": "should login with valid credentials",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-2f28e6dfbc811a412348",
+              "file": "auth.spec.ts",
+              "line": 74,
+              "column": 3
+            },
+            {
+              "title": "should reject login with incorrect password",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-95d5503e39f8f172bc63",
+              "file": "auth.spec.ts",
+              "line": 84,
+              "column": 3
+            },
+            {
+              "title": "should show inline validation error for invalid email",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-43527205d8d7c898dec3",
+              "file": "auth.spec.ts",
+              "line": 94,
+              "column": 3
+            },
+            {
+              "title": "should navigate to register page from login link",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-794b72c3887c5df7c64c",
+              "file": "auth.spec.ts",
+              "line": 104,
+              "column": 3
+            },
+            {
+              "title": "should redirect unauthenticated user from protected route",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d748ac400d08b85935ef-ce7fca7d3357189d5315",
+              "file": "auth.spec.ts",
+              "line": 112,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "create-trip.spec.ts",
+      "file": "create-trip.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Create Trip - E2E",
+          "file": "create-trip.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "925ab904b89a324b6f14-aaadfaee587f681dfb51",
+              "file": "create-trip.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "925ab904b89a324b6f14-5bdbeca68321dc9fec38",
+              "file": "create-trip.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "925ab904b89a324b6f14-83ea09ba2deabdef5cb9",
+              "file": "create-trip.spec.ts",
+              "line": 12,
+              "column": 3
+            }
+          ],
+          "suites": [
+            {
+              "title": "authenticated",
+              "file": "create-trip.spec.ts",
+              "line": 17,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should show the create trip form heading",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-e1c4c1fb21cee318d7a7",
+                  "file": "create-trip.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show campus picker with UTA campus options",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-eb4efe95e8f8163195ab",
+                  "file": "create-trip.spec.ts",
+                  "line": 29,
+                  "column": 5
+                },
+                {
+                  "title": "should show destination field with search input",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-11b8d405092279e1504b",
+                  "file": "create-trip.spec.ts",
+                  "line": 37,
+                  "column": 5
+                },
+                {
+                  "title": "should show date, time, seats and price fields",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-acb9e42d5b552ddb5ca0",
+                  "file": "create-trip.spec.ts",
+                  "line": 45,
+                  "column": 5
+                },
+                {
+                  "title": "should show campus validation error when submitting without campus",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-7e5ca2a6da1f709d4b31",
+                  "file": "create-trip.spec.ts",
+                  "line": 53,
+                  "column": 5
+                },
+                {
+                  "title": "should show destination validation error when campus selected but no destination",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-5fd278f7a26aed38604b",
+                  "file": "create-trip.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "should show date validation error when date is empty",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-9dfaefb8924c28ae99f6",
+                  "file": "create-trip.spec.ts",
+                  "line": 79,
+                  "column": 5
+                },
+                {
+                  "title": "Cancelar button navigates back to /trips",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-af7b969a64c8ef58a53c",
+                  "file": "create-trip.spec.ts",
+                  "line": 90,
+                  "column": 5
+                },
+                {
+                  "title": "selecting a campus highlights it visually",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-ed13fc256dc14aecbc06",
+                  "file": "create-trip.spec.ts",
+                  "line": 98,
+                  "column": 5
+                },
+                {
+                  "title": "should show the create trip form heading",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-41c5583fa653b89ac444",
+                  "file": "create-trip.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show campus picker with UTA campus options",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-f3de6a8dc42c4cf5fdcf",
+                  "file": "create-trip.spec.ts",
+                  "line": 29,
+                  "column": 5
+                },
+                {
+                  "title": "should show destination field with search input",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-fb6935a5a6cd5bd5b720",
+                  "file": "create-trip.spec.ts",
+                  "line": 37,
+                  "column": 5
+                },
+                {
+                  "title": "should show date, time, seats and price fields",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-2626a2a6f6bf061773c9",
+                  "file": "create-trip.spec.ts",
+                  "line": 45,
+                  "column": 5
+                },
+                {
+                  "title": "should show campus validation error when submitting without campus",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-af3b6f7746842f924b6e",
+                  "file": "create-trip.spec.ts",
+                  "line": 53,
+                  "column": 5
+                },
+                {
+                  "title": "should show destination validation error when campus selected but no destination",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-66908a0135a3227f80d2",
+                  "file": "create-trip.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "should show date validation error when date is empty",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-5a98529ee7f1c4814298",
+                  "file": "create-trip.spec.ts",
+                  "line": 79,
+                  "column": 5
+                },
+                {
+                  "title": "Cancelar button navigates back to /trips",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-de3d619913c001197cb8",
+                  "file": "create-trip.spec.ts",
+                  "line": 90,
+                  "column": 5
+                },
+                {
+                  "title": "selecting a campus highlights it visually",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-d76945177f5e07ff7422",
+                  "file": "create-trip.spec.ts",
+                  "line": 98,
+                  "column": 5
+                },
+                {
+                  "title": "should show the create trip form heading",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-3b8cc641a46f09c050a0",
+                  "file": "create-trip.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show campus picker with UTA campus options",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-07be901869902f300b0e",
+                  "file": "create-trip.spec.ts",
+                  "line": 29,
+                  "column": 5
+                },
+                {
+                  "title": "should show destination field with search input",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-830b913b7e42dff4278c",
+                  "file": "create-trip.spec.ts",
+                  "line": 37,
+                  "column": 5
+                },
+                {
+                  "title": "should show date, time, seats and price fields",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-49a3d894499842eef994",
+                  "file": "create-trip.spec.ts",
+                  "line": 45,
+                  "column": 5
+                },
+                {
+                  "title": "should show campus validation error when submitting without campus",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-3672681faf5f97877081",
+                  "file": "create-trip.spec.ts",
+                  "line": 53,
+                  "column": 5
+                },
+                {
+                  "title": "should show destination validation error when campus selected but no destination",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-802385691c852098fcd5",
+                  "file": "create-trip.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "should show date validation error when date is empty",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-c668698926916fc21f71",
+                  "file": "create-trip.spec.ts",
+                  "line": 79,
+                  "column": 5
+                },
+                {
+                  "title": "Cancelar button navigates back to /trips",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-fcdf4fd2e55c835fdf20",
+                  "file": "create-trip.spec.ts",
+                  "line": 90,
+                  "column": 5
+                },
+                {
+                  "title": "selecting a campus highlights it visually",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "925ab904b89a324b6f14-616ac4d9dbf7b9e88922",
+                  "file": "create-trip.spec.ts",
+                  "line": 98,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "home.spec.ts",
+      "file": "home.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Home / - E2E",
+          "file": "home.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "unauthenticated: / redirects to /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d318381359a9b96acb1e-3bfce1538f724e4575c8",
+              "file": "home.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "authenticated: / redirects to /trips",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d318381359a9b96acb1e-ea4a8e17005528a956a9",
+              "file": "home.spec.ts",
+              "line": 17,
+              "column": 3
+            },
+            {
+              "title": "unknown route redirects to /login when unauthenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d318381359a9b96acb1e-b9cd91f8f02edaafd12b",
+              "file": "home.spec.ts",
+              "line": 23,
+              "column": 3
+            },
+            {
+              "title": "unauthenticated: / redirects to /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d318381359a9b96acb1e-3dbc39a7c9b8247ab2af",
+              "file": "home.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "authenticated: / redirects to /trips",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d318381359a9b96acb1e-bda4aff3e1037bd11ea6",
+              "file": "home.spec.ts",
+              "line": 17,
+              "column": 3
+            },
+            {
+              "title": "unknown route redirects to /login when unauthenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d318381359a9b96acb1e-3515ededf7e81c5d297f",
+              "file": "home.spec.ts",
+              "line": 23,
+              "column": 3
+            },
+            {
+              "title": "unauthenticated: / redirects to /login",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d318381359a9b96acb1e-aaf65ea9a6caf967e12d",
+              "file": "home.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "authenticated: / redirects to /trips",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d318381359a9b96acb1e-8d795c0383aeff99f0d2",
+              "file": "home.spec.ts",
+              "line": 17,
+              "column": 3
+            },
+            {
+              "title": "unknown route redirects to /login when unauthenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "d318381359a9b96acb1e-d42da55cbe39916463c0",
+              "file": "home.spec.ts",
+              "line": 23,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "my-trips.spec.ts",
+      "file": "my-trips.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "My Trips - E2E",
+          "file": "my-trips.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "b8da12866110c4eafa44-75ed788e3be4ee60d06b",
+              "file": "my-trips.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "b8da12866110c4eafa44-5b90f63415fa7431a631",
+              "file": "my-trips.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "b8da12866110c4eafa44-db5ea18991aac397a384",
+              "file": "my-trips.spec.ts",
+              "line": 12,
+              "column": 3
+            }
+          ],
+          "suites": [
+            {
+              "title": "authenticated",
+              "file": "my-trips.spec.ts",
+              "line": 17,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should show Mis Viajes heading and Panel del Conductor",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-038a6d38b8fb70f27bec",
+                  "file": "my-trips.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show Activos and Completados tab buttons",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-583d8c836913b32eff62",
+                  "file": "my-trips.spec.ts",
+                  "line": 29,
+                  "column": 5
+                },
+                {
+                  "title": "should show Publicar Viaje link in header",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-fbaa344b0ab01550d91c",
+                  "file": "my-trips.spec.ts",
+                  "line": 36,
+                  "column": 5
+                },
+                {
+                  "title": "Activos tab: shows trips or empty state \"Sin viajes activos\"",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-01aff75709bc1b3b7d93",
+                  "file": "my-trips.spec.ts",
+                  "line": 44,
+                  "column": 5
+                },
+                {
+                  "title": "Completados tab: shows \"Sin viajes completados\" or completed trips",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-c44342e5241e3dbf8ac2",
+                  "file": "my-trips.spec.ts",
+                  "line": 55,
+                  "column": 5
+                },
+                {
+                  "title": "empty state Activos shows Publicar Viaje link",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-ba4f1f011dc1c1cc60ff",
+                  "file": "my-trips.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "clicking Gestionar in a trip row navigates to requests page",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-469a8e540aedd16c8450",
+                  "file": "my-trips.spec.ts",
+                  "line": 82,
+                  "column": 5
+                },
+                {
+                  "title": "should show Mis Viajes heading and Panel del Conductor",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-dac3545c2d7c492bfa5d",
+                  "file": "my-trips.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show Activos and Completados tab buttons",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-f524b8a56ccc4c312dbd",
+                  "file": "my-trips.spec.ts",
+                  "line": 29,
+                  "column": 5
+                },
+                {
+                  "title": "should show Publicar Viaje link in header",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-30dc5fdeff5f4149780b",
+                  "file": "my-trips.spec.ts",
+                  "line": 36,
+                  "column": 5
+                },
+                {
+                  "title": "Activos tab: shows trips or empty state \"Sin viajes activos\"",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-cee05e3043d1af4a8019",
+                  "file": "my-trips.spec.ts",
+                  "line": 44,
+                  "column": 5
+                },
+                {
+                  "title": "Completados tab: shows \"Sin viajes completados\" or completed trips",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-6de50d5d5b6a4ddbadf6",
+                  "file": "my-trips.spec.ts",
+                  "line": 55,
+                  "column": 5
+                },
+                {
+                  "title": "empty state Activos shows Publicar Viaje link",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-fc7cbc127eda57a6003a",
+                  "file": "my-trips.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "clicking Gestionar in a trip row navigates to requests page",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-b698e17be99066c37066",
+                  "file": "my-trips.spec.ts",
+                  "line": 82,
+                  "column": 5
+                },
+                {
+                  "title": "should show Mis Viajes heading and Panel del Conductor",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-2e4fe83f70918068a997",
+                  "file": "my-trips.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show Activos and Completados tab buttons",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-acdaefc044170988f73f",
+                  "file": "my-trips.spec.ts",
+                  "line": 29,
+                  "column": 5
+                },
+                {
+                  "title": "should show Publicar Viaje link in header",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-dbb482e9462e1c5f4243",
+                  "file": "my-trips.spec.ts",
+                  "line": 36,
+                  "column": 5
+                },
+                {
+                  "title": "Activos tab: shows trips or empty state \"Sin viajes activos\"",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-7b81d54489657aea2d39",
+                  "file": "my-trips.spec.ts",
+                  "line": 44,
+                  "column": 5
+                },
+                {
+                  "title": "Completados tab: shows \"Sin viajes completados\" or completed trips",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-6e99360bce497b1baf57",
+                  "file": "my-trips.spec.ts",
+                  "line": 55,
+                  "column": 5
+                },
+                {
+                  "title": "empty state Activos shows Publicar Viaje link",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-00acb611b19d5db5b7b1",
+                  "file": "my-trips.spec.ts",
+                  "line": 66,
+                  "column": 5
+                },
+                {
+                  "title": "clicking Gestionar in a trip row navigates to requests page",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "b8da12866110c4eafa44-a57344a48d74684441d1",
+                  "file": "my-trips.spec.ts",
+                  "line": 82,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "payment.spec.ts",
+      "file": "payment.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Payment - E2E",
+          "file": "payment.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3e7ba30b94d7e035fc14-e4236f643d381fb260c4",
+              "file": "payment.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3e7ba30b94d7e035fc14-3989da766e463e26a46d",
+              "file": "payment.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3e7ba30b94d7e035fc14-021d7b83bf0c845071a0",
+              "file": "payment.spec.ts",
+              "line": 12,
+              "column": 3
+            }
+          ],
+          "suites": [
+            {
+              "title": "authenticated",
+              "file": "payment.spec.ts",
+              "line": 17,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "shows \"Solicitud no encontrada\" for invalid request ID",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-c173ad4652e940e2ab51",
+                  "file": "payment.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "\"Volver a mis solicitudes\" link navigates to /requests",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-f9de8ff8ca34e622559f",
+                  "file": "payment.spec.ts",
+                  "line": 34,
+                  "column": 5
+                },
+                {
+                  "title": "payment page shows Confirmar Pago heading and card form",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-dbdcfc380349c48336f6",
+                  "file": "payment.spec.ts",
+                  "line": 42,
+                  "column": 5
+                },
+                {
+                  "title": "payment page shows Confirmar Pago button and Cancelar Transacción link",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-5a953f62a51cb09c2609",
+                  "file": "payment.spec.ts",
+                  "line": 63,
+                  "column": 5
+                },
+                {
+                  "title": "payment page shows demo disclaimer",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-c2ca3fcb9f209110f7bd",
+                  "file": "payment.spec.ts",
+                  "line": 80,
+                  "column": 5
+                },
+                {
+                  "title": "Cancelar Transacción navigates back to /requests",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-dca3814386931c11b43d",
+                  "file": "payment.spec.ts",
+                  "line": 98,
+                  "column": 5
+                },
+                {
+                  "title": "confirming payment shows ¡Pago Confirmado! and redirects",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-2afe2bd470ca0e5f1918",
+                  "file": "payment.spec.ts",
+                  "line": 115,
+                  "column": 5
+                },
+                {
+                  "title": "shows \"Solicitud no encontrada\" for invalid request ID",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-4e5168c26b54f16481f1",
+                  "file": "payment.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "\"Volver a mis solicitudes\" link navigates to /requests",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-800a0975b8a7a5c3a307",
+                  "file": "payment.spec.ts",
+                  "line": 34,
+                  "column": 5
+                },
+                {
+                  "title": "payment page shows Confirmar Pago heading and card form",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-84c4c8bbc0a6f6ffb6c0",
+                  "file": "payment.spec.ts",
+                  "line": 42,
+                  "column": 5
+                },
+                {
+                  "title": "payment page shows Confirmar Pago button and Cancelar Transacción link",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-9554af488c55ba1e4337",
+                  "file": "payment.spec.ts",
+                  "line": 63,
+                  "column": 5
+                },
+                {
+                  "title": "payment page shows demo disclaimer",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-156c7ff618fc370d4425",
+                  "file": "payment.spec.ts",
+                  "line": 80,
+                  "column": 5
+                },
+                {
+                  "title": "Cancelar Transacción navigates back to /requests",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-385b85b666130b248aa7",
+                  "file": "payment.spec.ts",
+                  "line": 98,
+                  "column": 5
+                },
+                {
+                  "title": "confirming payment shows ¡Pago Confirmado! and redirects",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-b0a45aeb655fddaf22ca",
+                  "file": "payment.spec.ts",
+                  "line": 115,
+                  "column": 5
+                },
+                {
+                  "title": "shows \"Solicitud no encontrada\" for invalid request ID",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-46d4ac983eb2c7c6cc76",
+                  "file": "payment.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "\"Volver a mis solicitudes\" link navigates to /requests",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-148d9dafb007aae65fa7",
+                  "file": "payment.spec.ts",
+                  "line": 34,
+                  "column": 5
+                },
+                {
+                  "title": "payment page shows Confirmar Pago heading and card form",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-e67ae701b6e9e408d6e0",
+                  "file": "payment.spec.ts",
+                  "line": 42,
+                  "column": 5
+                },
+                {
+                  "title": "payment page shows Confirmar Pago button and Cancelar Transacción link",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-a89c55f5fb3ddaa5b952",
+                  "file": "payment.spec.ts",
+                  "line": 63,
+                  "column": 5
+                },
+                {
+                  "title": "payment page shows demo disclaimer",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-e67d39aebc595154dac1",
+                  "file": "payment.spec.ts",
+                  "line": 80,
+                  "column": 5
+                },
+                {
+                  "title": "Cancelar Transacción navigates back to /requests",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-7d568855db06e4ff5e1d",
+                  "file": "payment.spec.ts",
+                  "line": 98,
+                  "column": 5
+                },
+                {
+                  "title": "confirming payment shows ¡Pago Confirmado! and redirects",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3e7ba30b94d7e035fc14-9134a8444d7844cd445e",
+                  "file": "payment.spec.ts",
+                  "line": 115,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "profile.spec.ts",
+      "file": "profile.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Profile - E2E",
+          "file": "profile.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "e8b79b4ee550a37632f1-91673782f661fd36ea91",
+              "file": "profile.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "e8b79b4ee550a37632f1-83ab39761f24e5fda1de",
+              "file": "profile.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "e8b79b4ee550a37632f1-f0121b8cc85e2d66d071",
+              "file": "profile.spec.ts",
+              "line": 12,
+              "column": 3
+            }
+          ],
+          "suites": [
+            {
+              "title": "authenticated",
+              "file": "profile.spec.ts",
+              "line": 17,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should show user name as page heading",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-0731bf3aa453f91fccbc",
+                  "file": "profile.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show Información Personal section",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-6fad1d6c812104ca1c3f",
+                  "file": "profile.spec.ts",
+                  "line": 31,
+                  "column": 5
+                },
+                {
+                  "title": "should show profile form fields",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-8783b406d8e9a441d0c4",
+                  "file": "profile.spec.ts",
+                  "line": 37,
+                  "column": 5
+                },
+                {
+                  "title": "should show Guardar Cambios button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-1e6f9981bd6de572c3c3",
+                  "file": "profile.spec.ts",
+                  "line": 43,
+                  "column": 5
+                },
+                {
+                  "title": "should show vehicle section",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-b9991ba823ccab53dc0d",
+                  "file": "profile.spec.ts",
+                  "line": 49,
+                  "column": 5
+                },
+                {
+                  "title": "should save profile changes and show success state",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-1bee3e6e0331b41387f6",
+                  "file": "profile.spec.ts",
+                  "line": 58,
+                  "column": 5
+                },
+                {
+                  "title": "should show edit button for profile info",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-60e7d5e1f1e0d1e8f987",
+                  "file": "profile.spec.ts",
+                  "line": 78,
+                  "column": 5
+                },
+                {
+                  "title": "should navigate to /profile from navbar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-ab7dc2995a593fa8c74d",
+                  "file": "profile.spec.ts",
+                  "line": 86,
+                  "column": 5
+                },
+                {
+                  "title": "should show user name as page heading",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-2a0ba2658c3576c9b2f0",
+                  "file": "profile.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show Información Personal section",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-8f9c8e91fa7e18662f1e",
+                  "file": "profile.spec.ts",
+                  "line": 31,
+                  "column": 5
+                },
+                {
+                  "title": "should show profile form fields",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-e54734a9c41e43c6aa2c",
+                  "file": "profile.spec.ts",
+                  "line": 37,
+                  "column": 5
+                },
+                {
+                  "title": "should show Guardar Cambios button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-f3152002bc5d3608c5d7",
+                  "file": "profile.spec.ts",
+                  "line": 43,
+                  "column": 5
+                },
+                {
+                  "title": "should show vehicle section",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-2c87874a86e142f8ed03",
+                  "file": "profile.spec.ts",
+                  "line": 49,
+                  "column": 5
+                },
+                {
+                  "title": "should save profile changes and show success state",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-01cd49253d92e3db7dba",
+                  "file": "profile.spec.ts",
+                  "line": 58,
+                  "column": 5
+                },
+                {
+                  "title": "should show edit button for profile info",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-c5db7b07f859a0861eb1",
+                  "file": "profile.spec.ts",
+                  "line": 78,
+                  "column": 5
+                },
+                {
+                  "title": "should navigate to /profile from navbar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-26d9afde5b2d143ba3ba",
+                  "file": "profile.spec.ts",
+                  "line": 86,
+                  "column": 5
+                },
+                {
+                  "title": "should show user name as page heading",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-c1e4c109200e1013d380",
+                  "file": "profile.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show Información Personal section",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-7ca57cda2ba485528b13",
+                  "file": "profile.spec.ts",
+                  "line": 31,
+                  "column": 5
+                },
+                {
+                  "title": "should show profile form fields",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-ae7fc229fa8bfd3ea5fe",
+                  "file": "profile.spec.ts",
+                  "line": 37,
+                  "column": 5
+                },
+                {
+                  "title": "should show Guardar Cambios button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-1f1425d717df28f646d1",
+                  "file": "profile.spec.ts",
+                  "line": 43,
+                  "column": 5
+                },
+                {
+                  "title": "should show vehicle section",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-45d8b2fda75ce2d56ded",
+                  "file": "profile.spec.ts",
+                  "line": 49,
+                  "column": 5
+                },
+                {
+                  "title": "should save profile changes and show success state",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-3a5cb10c2d8613629ef6",
+                  "file": "profile.spec.ts",
+                  "line": 58,
+                  "column": 5
+                },
+                {
+                  "title": "should show edit button for profile info",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-651fe99e83043aa2d730",
+                  "file": "profile.spec.ts",
+                  "line": 78,
+                  "column": 5
+                },
+                {
+                  "title": "should navigate to /profile from navbar",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "e8b79b4ee550a37632f1-41a70c8f8a1dcfcce8fa",
+                  "file": "profile.spec.ts",
+                  "line": 86,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "requests.spec.ts",
+      "file": "requests.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "My Requests - E2E",
+          "file": "requests.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3dc5dc399f2435702a85-22ea4f7a3ea8990c62b5",
+              "file": "requests.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3dc5dc399f2435702a85-9f788690258eb45b53c7",
+              "file": "requests.spec.ts",
+              "line": 12,
+              "column": 3
+            },
+            {
+              "title": "should redirect to login when not authenticated",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "3dc5dc399f2435702a85-7f8f39fa674553e65f17",
+              "file": "requests.spec.ts",
+              "line": 12,
+              "column": 3
+            }
+          ],
+          "suites": [
+            {
+              "title": "authenticated",
+              "file": "requests.spec.ts",
+              "line": 17,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should show Mis Solicitudes heading and Panel de Pasajero",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-3ce3abca91c22113e8c9",
+                  "file": "requests.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show Activas and Historial tab buttons",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-53389fdf5452358a2811",
+                  "file": "requests.spec.ts",
+                  "line": 29,
+                  "column": 5
+                },
+                {
+                  "title": "should show U-Wallet sidebar with Recargar Saldo button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-cf005dfa2d95f2713208",
+                  "file": "requests.spec.ts",
+                  "line": 36,
+                  "column": 5
+                },
+                {
+                  "title": "Activas tab: shows requests or empty state with Buscar Viaje link",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-5bf073c4588a13999088",
+                  "file": "requests.spec.ts",
+                  "line": 43,
+                  "column": 5
+                },
+                {
+                  "title": "empty Activas state shows Buscar Viaje link to /trips",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-c5dfec861606540934c1",
+                  "file": "requests.spec.ts",
+                  "line": 55,
+                  "column": 5
+                },
+                {
+                  "title": "Historial tab: shows completed requests or empty state",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-e89e203de821fe222b9e",
+                  "file": "requests.spec.ts",
+                  "line": 73,
+                  "column": 5
+                },
+                {
+                  "title": "pending request shows Cancelar Solicitud button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-9cb544594af4ea390026",
+                  "file": "requests.spec.ts",
+                  "line": 83,
+                  "column": 5
+                },
+                {
+                  "title": "accepted unpaid request shows Pagar Ahora button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-1328ec3b64b4fa88e100",
+                  "file": "requests.spec.ts",
+                  "line": 98,
+                  "column": 5
+                },
+                {
+                  "title": "completed request shows Calificar button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-23b338fc4e74c4c11040",
+                  "file": "requests.spec.ts",
+                  "line": 114,
+                  "column": 5
+                },
+                {
+                  "title": "should show Mis Solicitudes heading and Panel de Pasajero",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-9bb660cf6ddc7c239f6e",
+                  "file": "requests.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show Activas and Historial tab buttons",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-cc40a3be9d2f9a208065",
+                  "file": "requests.spec.ts",
+                  "line": 29,
+                  "column": 5
+                },
+                {
+                  "title": "should show U-Wallet sidebar with Recargar Saldo button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-43c3ce039c935ed8532e",
+                  "file": "requests.spec.ts",
+                  "line": 36,
+                  "column": 5
+                },
+                {
+                  "title": "Activas tab: shows requests or empty state with Buscar Viaje link",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-01faf04ded4fc8581107",
+                  "file": "requests.spec.ts",
+                  "line": 43,
+                  "column": 5
+                },
+                {
+                  "title": "empty Activas state shows Buscar Viaje link to /trips",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-f7b258addbb5549739bd",
+                  "file": "requests.spec.ts",
+                  "line": 55,
+                  "column": 5
+                },
+                {
+                  "title": "Historial tab: shows completed requests or empty state",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-96a2bc265bc15f06acbb",
+                  "file": "requests.spec.ts",
+                  "line": 73,
+                  "column": 5
+                },
+                {
+                  "title": "pending request shows Cancelar Solicitud button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-a12e23fbba772b024501",
+                  "file": "requests.spec.ts",
+                  "line": 83,
+                  "column": 5
+                },
+                {
+                  "title": "accepted unpaid request shows Pagar Ahora button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-87b1d25e3467e36c5720",
+                  "file": "requests.spec.ts",
+                  "line": 98,
+                  "column": 5
+                },
+                {
+                  "title": "completed request shows Calificar button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "firefox",
+                      "projectName": "firefox",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-e03802b396e8d8049e9c",
+                  "file": "requests.spec.ts",
+                  "line": 114,
+                  "column": 5
+                },
+                {
+                  "title": "should show Mis Solicitudes heading and Panel de Pasajero",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-72ce35ce38603c9c545e",
+                  "file": "requests.spec.ts",
+                  "line": 22,
+                  "column": 5
+                },
+                {
+                  "title": "should show Activas and Historial tab buttons",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-aee84038501453f7c75f",
+                  "file": "requests.spec.ts",
+                  "line": 29,
+                  "column": 5
+                },
+                {
+                  "title": "should show U-Wallet sidebar with Recargar Saldo button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-b6fe264f536362768f0d",
+                  "file": "requests.spec.ts",
+                  "line": 36,
+                  "column": 5
+                },
+                {
+                  "title": "Activas tab: shows requests or empty state with Buscar Viaje link",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-ed3f342986ad7a9fa7a8",
+                  "file": "requests.spec.ts",
+                  "line": 43,
+                  "column": 5
+                },
+                {
+                  "title": "empty Activas state shows Buscar Viaje link to /trips",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-2430e829b24fbb797568",
+                  "file": "requests.spec.ts",
+                  "line": 55,
+                  "column": 5
+                },
+                {
+                  "title": "Historial tab: shows completed requests or empty state",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-b58ae4f655d9df39c934",
+                  "file": "requests.spec.ts",
+                  "line": 73,
+                  "column": 5
+                },
+                {
+                  "title": "pending request shows Cancelar Solicitud button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-21841aa174360f4c400c",
+                  "file": "requests.spec.ts",
+                  "line": 83,
+                  "column": 5
+                },
+                {
+                  "title": "accepted unpaid request shows Pagar Ahora button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-82c94dbb8720e9f132d9",
+                  "file": "requests.spec.ts",
+                  "line": 98,
+                  "column": 5
+                },
+                {
+                  "title": "completed request shows Calificar button",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "webkit",
+                      "projectName": "webkit",
+                      "results": [],
+                      "status": "skipped"
+                    }
+                  ],
+                  "id": "3dc5dc399f2435702a85-715fec1b425f1c0fba25",
+                  "file": "requests.spec.ts",
+                  "line": 114,
+                  "column": 5
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "trips.spec.ts",
+      "file": "trips.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Trips Flow - E2E",
+          "file": "trips.spec.ts",
+          "line": 11,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should show trips list with heading",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-e80e60d6fdc442a4fab3",
+              "file": "trips.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "should show sort buttons on trips list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-f52ce669331639545870",
+              "file": "trips.spec.ts",
+              "line": 22,
+              "column": 3
+            },
+            {
+              "title": "should navigate to trip detail on card click",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-ad8c42c992e78dc6270c",
+              "file": "trips.spec.ts",
+              "line": 29,
+              "column": 3
+            },
+            {
+              "title": "should show Solicitar Unirse button on a trip not owned by user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-9813b47a2b5c301292d0",
+              "file": "trips.spec.ts",
+              "line": 41,
+              "column": 3
+            },
+            {
+              "title": "should filter trips by origin zone",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-0d89d10ac2876ab6ed26",
+              "file": "trips.spec.ts",
+              "line": 53,
+              "column": 3
+            },
+            {
+              "title": "should filter trips by destination zone",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-e855d71a59d99e18c1e6",
+              "file": "trips.spec.ts",
+              "line": 64,
+              "column": 3
+            },
+            {
+              "title": "should show empty state when no trips match filter",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-bb47f678ae162897c8de",
+              "file": "trips.spec.ts",
+              "line": 74,
+              "column": 3
+            },
+            {
+              "title": "should clear filters and show all trips again",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-eb98f3633d3425315d08",
+              "file": "trips.spec.ts",
+              "line": 83,
+              "column": 3
+            },
+            {
+              "title": "should show trips list with heading",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-9540f484c11f62d248d0",
+              "file": "trips.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "should show sort buttons on trips list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-00981eb3c37c7a459aa0",
+              "file": "trips.spec.ts",
+              "line": 22,
+              "column": 3
+            },
+            {
+              "title": "should navigate to trip detail on card click",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-de0586126bf5732c299f",
+              "file": "trips.spec.ts",
+              "line": 29,
+              "column": 3
+            },
+            {
+              "title": "should show Solicitar Unirse button on a trip not owned by user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-3240e7c489e592415b3c",
+              "file": "trips.spec.ts",
+              "line": 41,
+              "column": 3
+            },
+            {
+              "title": "should filter trips by origin zone",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-9d2bbc9cef56f6c0f7a7",
+              "file": "trips.spec.ts",
+              "line": 53,
+              "column": 3
+            },
+            {
+              "title": "should filter trips by destination zone",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-2c1dd113b2bbfc6cd5a4",
+              "file": "trips.spec.ts",
+              "line": 64,
+              "column": 3
+            },
+            {
+              "title": "should show empty state when no trips match filter",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-d604f84ee3bc50777077",
+              "file": "trips.spec.ts",
+              "line": 74,
+              "column": 3
+            },
+            {
+              "title": "should clear filters and show all trips again",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-a24b6fdacf7e33ab38e9",
+              "file": "trips.spec.ts",
+              "line": 83,
+              "column": 3
+            },
+            {
+              "title": "should show trips list with heading",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-5905cccfea79800778f6",
+              "file": "trips.spec.ts",
+              "line": 16,
+              "column": 3
+            },
+            {
+              "title": "should show sort buttons on trips list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-93777a5e9d40de0d6099",
+              "file": "trips.spec.ts",
+              "line": 22,
+              "column": 3
+            },
+            {
+              "title": "should navigate to trip detail on card click",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-02ba5eaa4cfde929c364",
+              "file": "trips.spec.ts",
+              "line": 29,
+              "column": 3
+            },
+            {
+              "title": "should show Solicitar Unirse button on a trip not owned by user",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-76d14f43e87fcc4c4f29",
+              "file": "trips.spec.ts",
+              "line": 41,
+              "column": 3
+            },
+            {
+              "title": "should filter trips by origin zone",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-36b67e1e3b7bd28210ae",
+              "file": "trips.spec.ts",
+              "line": 53,
+              "column": 3
+            },
+            {
+              "title": "should filter trips by destination zone",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-ba230f261f491eba59aa",
+              "file": "trips.spec.ts",
+              "line": 64,
+              "column": 3
+            },
+            {
+              "title": "should show empty state when no trips match filter",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-49f14f1a4b2a8fcb47fe",
+              "file": "trips.spec.ts",
+              "line": 74,
+              "column": 3
+            },
+            {
+              "title": "should clear filters and show all trips again",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [],
+                  "status": "skipped"
+                }
+              ],
+              "id": "2111f51dd46aeba1a1b7-7c0b95ae2ffbc04b4802",
+              "file": "trips.spec.ts",
+              "line": 83,
+              "column": 3
+            }
+          ]
+        }
+      ]
     }
   ],
+  "errors": [],
   "stats": {
-    "startTime": "2026-05-06T17:38:54.266Z",
-    "duration": 120802.39899999999,
+    "startTime": "2026-05-22T02:52:22.588Z",
+    "duration": 198.75000000000006,
     "expected": 0,
-    "skipped": 0,
+    "skipped": 204,
     "unexpected": 0,
     "flaky": 0
   }

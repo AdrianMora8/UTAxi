@@ -145,7 +145,7 @@ export default function HomePasajeroScreen() {
   const destinationZone = activeFilter === 'Todos' ? undefined : activeFilter;
 
   const { data, isLoading, isError, refetch, isRefetching } = useQuery({
-    queryKey: ['trips', destinationZone],
+    queryKey: ['trips', activeFilter],
     queryFn: () => tripsApi.getTrips({ destinationZone, limit: 20 }).then(r => r.data),
   });
 
@@ -186,11 +186,11 @@ export default function HomePasajeroScreen() {
           <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.getParent()?.navigate('Avisos')}>
             <Ionicons name="notifications-outline" size={22} color={colors.text} />
           </TouchableOpacity>
-          <View style={styles.avatarSmall}>
+          <TouchableOpacity style={styles.avatarSmall} onPress={() => navigation.getParent()?.navigate('Perfil')}>
             <Text style={styles.avatarSmallText}>
               {user?.fullName?.[0]?.toUpperCase() ?? 'U'}
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 

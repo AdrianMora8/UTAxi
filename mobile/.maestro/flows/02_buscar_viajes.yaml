@@ -1,0 +1,91 @@
+appId: host.exp.exponent
+name: "02 — Buscar viajes (filtros y detalle)"
+tags:
+  - pasajero
+  - buscar
+
+---
+
+# ── Login como pasajero E2E ──────────────────────────────────────
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "U-Ride"
+    timeout: 8000
+
+- runFlow:
+    file: ../subflows/login.yaml
+    env:
+      EMAIL: "e2e.passenger@uta.edu.ec"
+      PASSWORD: "E2ETest123!"
+
+# El subflow ya verifica "Buscar Viaje" al hacer login
+- assertVisible: "Buscar Viaje"
+
+# ── Verificar chips de filtro ─────────────────────────────────────
+- assertVisible: "Todos"
+- assertVisible: "Campus Norte"
+- assertVisible: "Centro"
+- assertVisible: "Los Shyris"
+
+# ── Aplicar filtro ────────────────────────────────────────────────
+- tapOn:
+    text: "Campus Norte"
+- assertVisible: "Campus Norte"   # chip sigue visible (ahora activo)
+
+# Volver a todos
+- tapOn:
+    text: "Todos"
+
+# ── Buscar por texto ──────────────────────────────────────────────
+- tapOn:
+    text: "¿A dónde vas?"
+- inputText: "Huachi"
+- clearText
+# Dejar el search en blanco para ver todos los viajes
+
+# ── Abrir detalle si hay algún viaje disponible ───────────────────
+# El flow es resiliente: si no hay viajes muestra el estado vacío;
+# si hay viajes, entra al primero y vuelve.
+- runFlow:
+    when:
+      visible: "Reservar"
+    commands:
+      - tapOn:
+          text: "Reservar"
+      - assertVisible:
+          text: "Detalles del Viaje"
+          timeout: 5000
+      - swipe:
+          direction: RIGHT
+          duration: 400
+      - assertVisible:
+          text: "Buscar Viaje"
+          timeout: 5000
+
+- runFlow:
+    when:
+      visible: "Ver Detalles"
+    commands:
+      - tapOn:
+          text: "Ver Detalles"
+      - assertVisible:
+          text: "Detalles del Viaje"
+          timeout: 5000
+      - swipe:
+          direction: RIGHT
+          duration: 400
+      - assertVisible:
+          text: "Buscar Viaje"
+          timeout: 5000
+
+# Si no hay viajes se verifica el estado vacío
+- runFlow:
+    when:
+      visible: "No hay viajes disponibles"
+    commands:
+      - assertVisible: "Intenta con otro destino o revisa más tarde"
+
+# ── Logout ────────────────────────────────────────────────────────
+- runFlow:
+    file: ../subflows/logout.yaml

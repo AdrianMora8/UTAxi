@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { tripsApi } from '@/api/trips.api'
@@ -20,6 +20,7 @@ export default function ActiveTrip() {
   })
 
   const isDriver = trip?.driverId === user?.id
+  const [eta, setEta] = useState<number | null>(null)
 
   const { driverLocation, connected, error } = useTracking({
     tripId: id ?? '',
@@ -95,6 +96,9 @@ export default function ActiveTrip() {
             driverLocation={driverLocation}
             originZone={trip.originZone}
             destinationZone={trip.destinationZone}
+            destLat={trip.destLat}
+            destLng={trip.destLng}
+            onEtaUpdate={setEta}
           />
         </Suspense>
 
@@ -139,7 +143,9 @@ export default function ActiveTrip() {
           </div>
           <div className="text-right">
             <p className="text-on-surface-variant text-[10px] uppercase tracking-widest">ETA</p>
-            <p className="font-headline text-3xl font-extrabold text-white">~15 MIN</p>
+            <p className="font-headline text-3xl font-extrabold text-white">
+              {eta !== null ? `${eta} MIN` : '— MIN'}
+            </p>
           </div>
         </div>
 

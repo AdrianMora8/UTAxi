@@ -1,25 +1,33 @@
 import { ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
-import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClient } from '@/lib/queryClient'
+import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
-interface ExtendedRenderOptions extends Omit<RenderOptions, 'wrapper'> {
+export interface ExtendedRenderOptions extends Omit<RenderOptions, 'wrapper'> {
   initialEntries?: string[]
 }
 
-const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>{children}</BrowserRouter>
-    </QueryClientProvider>
-  )
+export function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false, gcTime: 0 },
+      mutations: { retry: false },
+    },
+  })
 }
 
 const customRender = (
   ui: ReactElement,
-  options?: ExtendedRenderOptions,
-) => render(ui, { wrapper: AllTheProviders, ...options })
+  { initialEntries = ['/'], ...options }: ExtendedRenderOptions = {},
+) => {
+  const qc = makeQueryClient()
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={qc}>
+      <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
+    </QueryClientProvider>
+  )
+  return render(ui, { wrapper: Wrapper, ...options })
+}
 
 export * from '@testing-library/react'
 export { customRender as render }

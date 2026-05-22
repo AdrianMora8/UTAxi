@@ -1,0 +1,120 @@
+appId: host.exp.exponent
+name: "03 — Publicar viaje (conductor)"
+tags:
+  - conductor
+  - publicar
+
+---
+
+# ── Login como conductor E2E ──────────────────────────────────────
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "U-Ride"
+    timeout: 8000
+
+- runFlow:
+    file: ../subflows/login.yaml
+    env:
+      EMAIL: "e2e.driver@uta.edu.ec"
+      PASSWORD: "E2ETest123!"
+
+# ── Verificar pantalla del conductor ─────────────────────────────
+- assertVisible:
+    text: "Panel del Conductor"
+    timeout: 5000
+- assertVisible: "Publicar Viaje"
+
+# ── Abrir pantalla de crear viaje ─────────────────────────────────
+- tapOn:
+    text: "Publicar Viaje"
+- assertVisible:
+    text: "Publicar Viaje"
+    timeout: 5000
+- assertVisible: "Organiza tu ruta y comparte el viaje."
+
+# ── Seleccionar campus de origen ──────────────────────────────────
+- assertVisible: "CAMPUS DE ORIGEN"
+- tapOn:
+    text: "Campus Huachi"
+# Verificar que quedó seleccionado (el campus label sigue en pantalla)
+- assertVisible: "Campus Huachi"
+
+# ── Seleccionar destino via LocationPicker ────────────────────────
+# La sección DESTINO navega a LocationPickerScreen (WebView con mapa)
+- assertVisible: "DESTINO"
+- tapOn:
+    text: "Toca para elegir en el mapa..."
+- assertVisible:
+    text: "Seleccionar Destino"
+    timeout: 5000
+
+# Tocar el centro del mapa para colocar un pin y activar el botón confirmar.
+# El WebView ocupa la mayor parte de la pantalla bajo el header.
+- tapOn:
+    point: "50%, 55%"
+- wait:
+    timeout: 2000
+
+# Confirmar ubicación (botón HTML con id="confirm-btn" y texto "Confirmar ubicación")
+- tapOn:
+    text: "Confirmar ubicación"
+- assertVisible:
+    text: "Publicar Viaje"
+    timeout: 5000
+# El destino ahora muestra la dirección elegida (texto variable)
+
+# ── Ajustar hora para garantizar salida futura ────────────────────
+# La validación requiere departure > now. Usamos el picker de HORA
+# para forzar las 23:30 (siempre futuro si se corre durante el día).
+# testID "time-picker-btn" añadido en CreateTripScreen.tsx.
+- tapOn:
+    id: "time-picker-btn"
+# Android time picker con is24Hour — cambia a modo teclado y teclea 23:30.
+# Accessibility label del icono teclado: "Switch to text input mode"
+- tapOn:
+    description: "Switch to text input mode"
+- clearText
+- inputText: "2330"   # 23:30 en formato HHMM
+- tapOn:
+    text: "OK"
+
+# ── Precio ────────────────────────────────────────────────────────
+# Scroll para llegar a la sección APORTE SUGERIDO
+- scroll
+- tapOn:
+    text: "0.00"    # placeholder del TextInput de precio
+- clearText
+- inputText: "0.50"
+
+# ── Publicar ──────────────────────────────────────────────────────
+# El botón "Publicar Viaje" está en el footer fijo (siempre visible)
+- tapOn:
+    text: "Publicar Viaje"
+
+# Verificar el Alert de éxito
+- assertVisible:
+    text: "¡Viaje publicado!"
+    timeout: 8000
+- assertVisible: "Tu viaje ya está visible para los pasajeros."
+
+# Cerrar el Alert con OK → vuelve al Panel del Conductor
+- tapOn:
+    text: "OK"
+- assertVisible:
+    text: "Panel del Conductor"
+    timeout: 5000
+
+# ── Verificar que el viaje aparece en la pestaña Activos ──────────
+- tapOn:
+    text: "Activos"
+- assertVisible:
+    text: "Mis Viajes Activos"
+    timeout: 3000
+- assertVisible:
+    text: "Campus Huachi"
+    timeout: 5000
+
+# ── Logout ────────────────────────────────────────────────────────
+- runFlow:
+    file: ../subflows/logout.yaml

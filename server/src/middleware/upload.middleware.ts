@@ -1,6 +1,7 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { randomInt } from 'node:crypto';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import { cloudinary } from '../config/cloudinary';
 import { AppError } from './errorHandler';
@@ -11,7 +12,7 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 const diskStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),
   filename: (_req, file, cb) => {
-    const unique = `${Date.now()}-${Math.round(Math.random() * 1e6)}`;
+    const unique = `${Date.now()}-${randomInt(0, 1_000_000)}`;
     cb(null, `${unique}${path.extname(file.originalname)}`);
   },
 });

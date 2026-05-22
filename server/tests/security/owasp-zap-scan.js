@@ -8,12 +8,19 @@ const fs = require('fs');
 const path = require('path');
 
 const ZAP_API_URL = 'http://localhost:8090';
-const TARGET_URL = 'http://localhost:3000';
+const TARGET_URL = 'http://172.18.0.1:4000';
 
 async function runSecurityScan() {
   console.log('🔒 Iniciando escaneo de seguridad con OWASP ZAP...\n');
 
   try {
+    // 0. Forzar la URL al Sites tree de ZAP antes de escanear
+    console.log('🌐 Fase 0: Registrando URL en ZAP...');
+    await axios.get(`${ZAP_API_URL}/JSON/core/action/accessUrl`, {
+      params: { url: TARGET_URL, followRedirects: 'true' },
+    }).catch(() => {});
+    await sleep(2000);
+
     // 1. Espider - rastreo automático de la aplicación
     console.log('📡 Fase 1: Rastreo de la aplicación...');
     const spiderId = await startSpider(TARGET_URL);

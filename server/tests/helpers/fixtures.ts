@@ -117,14 +117,67 @@ export async function createTestVehicle(userId: string) {
 /**
  * Crear un viaje de prueba.
  */
-export async function createTestTrip(driverId: string) {
+export async function createTestTrip(driverId: string, overrides: Record<string, unknown> = {}) {
   const prisma = getPrisma();
 
   return await prisma.trip.create({
     data: {
       driverId,
-      ...TEST_TRIPS.valid,
+      originZone: 'Terminal Norte',
+      destinationZone: 'Campus UTA',
+      departureTime: new Date(Date.now() + 3_600_000),
+      totalSeats: 3,
+      availableSeats: 3,
+      pricePerSeat: 1.5,
       status: 'SCHEDULED',
+      ...overrides,
     },
   });
+}
+
+/**
+ * Crear una solicitud de pasaje de prueba.
+ */
+export async function createTestRequest(
+  passengerId: string,
+  tripId: string,
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED' = 'PENDING',
+) {
+  const prisma = getPrisma();
+
+  return await prisma.tripRequest.create({
+    data: { passengerId, tripId, status },
+  });
+}
+
+/**
+ * Crear un pago confirmado para una solicitud.
+ */
+export async function createTestPayment(
+  tripRequestId: string,
+  tripId: string,
+  payerId: string,
+  driverId: string,
+  amount = 1.5,
+) {
+  const prisma = getPrisma();
+
+  const [payment] = await prisma.$transaction([
+    prisma.payment.create({
+      data: {
+        tripRequestId,
+        tripId,
+        payerId,
+        amount,
+        status: 'CONFIRMED',
+        confirmedAt: new Date(),
+      },
+    }),
+    prisma.user.update({
+      where: { id: driverId },
+      data: { pendingBalance: { increment: amount } },
+    }),
+  ]);
+
+  return payment;
 }

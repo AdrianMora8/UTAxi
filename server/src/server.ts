@@ -6,7 +6,7 @@ import { initSocket } from './config/socket';
 
 const app = createApp();
 const httpServer = createServer(app);
-const PORT = parseInt(env.PORT, 10);
+const PORT = Number.parseInt(env.PORT, 10);
 
 initSocket(httpServer);
 

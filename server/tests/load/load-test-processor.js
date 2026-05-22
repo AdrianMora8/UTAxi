@@ -1,45 +1,61 @@
-/**
- * Processor para Artillery - ejecuta código personalizado durante los tests
- * Útil para generar datos dinámicos, autenticarse, etc.
- */
+const http = require('http');
 
-module.exports = {
-  /**
-   * Generar token de prueba antes de cada escenario
-   */
-  generateToken: generateToken,
-  
-  /**
-   * Procesar respuesta del servidor
-   */
-  processResponse: processResponse,
-};
+const LOAD_USER = { email: 'load-test@uta.edu.ec', password: 'LoadTest123!' };
 
-/**
- * Función para generar un token JWT simulado
- */
-function generateToken(requestParams, context, ee, next) {
-  // En un escenario real, aquí harías login y extraerías el token
-  // Por ahora, asignamos un token de prueba
-  const testToken = 'test-jwt-token-' + Date.now();
-  context.vars.token = testToken;
-  return next();
-}
+// Token cacheado — se obtiene una vez y se reutiliza en todos los VUs
+let cachedToken = '';
+let tokenPromise = null;
 
-/**
- * Procesar respuesta para validar estructura
- */
-function processResponse(requestParams, responseStatus, responseHeaders, responseBody, context, ee, next) {
-  if (responseStatus === 200) {
-    try {
-      const body = JSON.parse(responseBody);
-      // Verificar que la respuesta tenga estructura esperada
-      if (body.data || body.id || body.message) {
-        // Válido
+function postJson(path, body) {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(body);
+    const req = http.request(
+      {
+        hostname: 'localhost',
+        port: 4000,
+        path,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(data),
+        },
+      },
+      (res) => {
+        let raw = '';
+        res.on('data', (chunk) => (raw += chunk));
+        res.on('end', () => {
+          try {
+            resolve({ status: res.statusCode, body: JSON.parse(raw) });
+          } catch {
+            resolve({ status: res.statusCode, body: {} });
+          }
+        });
       }
-    } catch (e) {
-      // Error al parsear JSON
-    }
-  }
-  return next();
+    );
+    req.on('error', reject);
+    req.write(data);
+    req.end();
+  });
 }
+
+function getToken() {
+  if (cachedToken) return Promise.resolve(cachedToken);
+  if (tokenPromise) return tokenPromise;
+
+  tokenPromise = postJson('/api/auth/login', LOAD_USER).then((res) => {
+    if (res.status === 200 && res.body.accessToken) {
+      cachedToken = res.body.accessToken;
+      return cachedToken;
+    }
+    console.warn(`[load-test] login falló con status ${res.status}`);
+    return '';
+  });
+
+  return tokenPromise;
+}
+
+async function loginAndGetToken(context, ee) {
+  context.vars.token = await getToken().catch(() => '');
+}
+
+module.exports = { loginAndGetToken };

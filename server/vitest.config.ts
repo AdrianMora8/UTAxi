@@ -1,7 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import path from 'path';
 
-// Establecer NODE_ENV=test antes de cualquier otra cosa
 process.env.NODE_ENV = 'test';
 
 export default defineConfig({
@@ -10,8 +9,24 @@ export default defineConfig({
     globals: true,
     setupFiles: [],
     globalSetup: [path.resolve(__dirname, 'tests/globalSetup.ts')],
-    // Ejecutar archivos de test en serie para evitar conflictos de BD
     maxWorkers: 1,
     minWorkers: 1,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'json'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.ts'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/**/*.spec.ts',
+        'dist/**',
+        // Infraestructura: entry point y WebSockets — no tienen lógica de negocio testeable
+        'src/server.ts',
+        'src/config/socket.ts',
+        'src/socket/tracking.gateway.ts',
+        // Integración con Stripe — requiere mock dedicado
+        'src/services/payments.service.ts',
+      ],
+    },
   },
 });

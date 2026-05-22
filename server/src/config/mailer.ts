@@ -13,7 +13,7 @@ function createTransporter(): Transporter {
 
   return nodemailer.createTransport({
     host: env.SMTP_HOST,
-    port: parseInt(env.SMTP_PORT, 10),
+    port: Number.parseInt(env.SMTP_PORT, 10),
     secure: false,
     auth: {
       user: env.SMTP_USER,

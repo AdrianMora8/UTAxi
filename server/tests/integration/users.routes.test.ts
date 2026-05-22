@@ -373,17 +373,17 @@ describe('DELETE /api/users/vehicles/:vehicleId - Integration Tests', () => {
 
     const accessToken = loginRes.body.accessToken;
 
-    // Actualizar vehículo (aunque la API no tiene DELETE específicamente, 
-    // el usuario puede crear uno nuevo si borramos y crea)
-    // Para este test, vamos a simplemente verificar que el vehículo existe
-    // y luego hacer un PATCH a estado vacío (si la API lo permite)
-    
-    const response = await request(app)
+    const deleteRes = await request(app)
+      .delete('/api/users/me/vehicle')
+      .set('Authorization', `Bearer ${accessToken}`);
+
+    expect(deleteRes.status).toBe(200);
+
+    const meRes = await request(app)
       .get('/api/users/me')
       .set('Authorization', `Bearer ${accessToken}`);
 
-    expect(response.status).toBe(200);
-    expect(response.body.user.vehicle).toBeDefined();
+    expect(meRes.body.user.vehicle).toBeNull();
   });
 
   it('should reject deletion of non-existent vehicle', async () => {
@@ -399,10 +399,75 @@ describe('DELETE /api/users/vehicles/:vehicleId - Integration Tests', () => {
     const accessToken = loginRes.body.accessToken;
 
     const response = await request(app)
-      .patch('/api/users/me/vehicle')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({});
+      .delete('/api/users/me/vehicle')
+      .set('Authorization', `Bearer ${accessToken}`);
 
     expect(response.status).toBe(404);
+  });
+});
+
+// ─────────────────────────────────────────────
+// GET /api/users/:id (perfil público)
+// ─────────────────────────────────────────────
+describe('GET /api/users/:id - perfil público', () => {
+  let token: string;
+  let targetId: string;
+
+  beforeAll(async () => {
+    await setupTestDb();
+
+    const viewer = await createVerifiedTestUser('viewer@uta.edu.ec', TEST_USERS.validUser.password, 'Viewer');
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: viewer.email, password: TEST_USERS.validUser.password });
+    token = loginRes.body.accessToken;
+
+    const target = await createVerifiedTestUser('target@uta.edu.ec', TEST_USERS.anotherUser.password, 'Target User');
+    await createTestVehicle(target.id);
+    targetId = target.id;
+  });
+
+  afterAll(async () => {
+    await teardownTestDb();
+  });
+
+  it('devuelve perfil público con los campos permitidos', async () => {
+    const res = await request(app)
+      .get(`/api/users/${targetId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.user).toMatchObject({
+      id: targetId,
+      fullName: 'Target User',
+    });
+    expect(res.body.user).toHaveProperty('reputationScore');
+    expect(res.body.user).toHaveProperty('vehicle');
+    expect(res.body.user).toHaveProperty('ratingsReceived');
+  });
+
+  it('no expone datos sensibles (passwordHash, walletBalance, email)', async () => {
+    const res = await request(app)
+      .get(`/api/users/${targetId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.user).not.toHaveProperty('passwordHash');
+    expect(res.body.user).not.toHaveProperty('walletBalance');
+    expect(res.body.user).not.toHaveProperty('email');
+    expect(res.body.user).not.toHaveProperty('passwordResetToken');
+  });
+
+  it('devuelve 404 para id inexistente', async () => {
+    const res = await request(app)
+      .get('/api/users/id-que-no-existe-000')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.status).toBe(404);
+  });
+
+  it('rechaza sin autenticación', async () => {
+    const res = await request(app).get(`/api/users/${targetId}`);
+    expect(res.status).toBe(401);
   });
 });

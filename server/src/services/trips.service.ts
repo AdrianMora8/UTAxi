@@ -106,6 +106,7 @@ export class TripsService {
       where.status = filters.status;
     } else if (!filters.driverId) {
       where.status = TripStatus.SCHEDULED;
+      where.departureTime = { ...where.departureTime, gte: new Date() };
     }
 
     const [trips, total] = await this.prisma.$transaction([
@@ -444,6 +445,14 @@ export class TripsService {
     if (trip.driverId !== driverId) throw new AppError(403, 'No tienes permiso para iniciar este viaje');
     if (trip.status !== TripStatus.SCHEDULED) throw new AppError(400, 'Solo se pueden iniciar viajes en estado SCHEDULED');
 
+    const minutesUntilDeparture = (trip.departureTime.getTime() - Date.now()) / 60_000;
+    if (minutesUntilDeparture > 30) {
+      throw new AppError(400, `Aún no es hora de iniciar el viaje. Faltan ${Math.round(minutesUntilDeparture)} minutos`);
+    }
+    if (minutesUntilDeparture < -60) {
+      throw new AppError(400, 'El viaje expiró: pasaron más de 60 minutos desde la hora programada sin iniciarse');
+    }
+
     // Regla 3: auto-cancelar pasajeros con deadline de re-confirmación expirado
     const expiredConfirmations = await this.prisma.tripRequest.findMany({
       where: {
@@ -521,6 +530,12 @@ export class TripsService {
     });
 
     if (acceptedRequests.length === 0) throw new AppError(400, 'No hay pasajeros aceptados en este viaje');
+
+    const validRequestIds = new Set(acceptedRequests.map(r => r.id));
+    const invalidIds = boardedRequestIds.filter(id => !validRequestIds.has(id));
+    if (invalidIds.length > 0) {
+      throw new AppError(400, `IDs de solicitud no pertenecen a este viaje: ${invalidIds.join(', ')}`);
+    }
 
     const boardedSet = new Set(boardedRequestIds);
     const boarded  = acceptedRequests.filter(r =>  boardedSet.has(r.id));

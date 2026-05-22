@@ -1,27 +1,25 @@
 config:
-  target: 'http://localhost:3000'
+  target: 'http://localhost:4000'
   phases:
-    # Ramp-up: Aumentar usuarios gradualmente
     - duration: 60
       arrivalRate: 5
       name: 'Ramp up'
-    # Sustain: Mantener carga constante
     - duration: 120
       arrivalRate: 20
       name: 'Sustain load'
-    # Ramp-down: Reducir gradualmente
     - duration: 60
       arrivalRate: 5
       name: 'Ramp down'
   processor: './load-test-processor.js'
-  variables:
-    baseUrl: 'http://localhost:3000'
   defaults:
     headers:
       Content-Type: 'application/json'
       Accept: 'application/json'
   http:
     timeout: 30
+  ensure:
+    p95: 500
+    p99: 1000
 
 scenarios:
   - name: 'Authentication Flow'
@@ -31,49 +29,69 @@ scenarios:
           url: '/api/auth/login'
           json:
             email: 'load-test@uta.edu.ec'
-            password: 'TestPassword123!'
+            password: 'LoadTest123!'
           expect:
-            - statusCode: [200, 401]
+            - statusCode: 200
           capture:
             - json: '$.accessToken'
               as: 'token'
+      - get:
+          url: '/api/users/me'
+          headers:
+            Authorization: 'Bearer {{ token }}'
+          expect:
+            - statusCode: 200
 
   - name: 'Get Trips List'
     weight: 40
+    beforeScenario: 'loginAndGetToken'
     flow:
       - get:
           url: '/api/trips?page=1&limit=20'
           headers:
             Authorization: 'Bearer {{ token }}'
           expect:
-            - statusCode: [200, 401]
+            - statusCode: 200
 
   - name: 'Search Trips with Filters'
     weight: 30
+    beforeScenario: 'loginAndGetToken'
     flow:
       - get:
-          url: '/api/trips?from=Polanco&to=Campus&limit=20'
+          url: '/api/trips?destinationZone=Campus&limit=20'
           headers:
             Authorization: 'Bearer {{ token }}'
           expect:
-            - statusCode: [200, 401]
+            - statusCode: 200
 
   - name: 'Get User Profile'
     weight: 10
+    beforeScenario: 'loginAndGetToken'
     flow:
       - get:
           url: '/api/users/me'
           headers:
             Authorization: 'Bearer {{ token }}'
           expect:
-            - statusCode: [200, 401]
+            - statusCode: 200
 
-  - name: 'Get Trip Details'
+  - name: 'Get Trip Detail'
     weight: 10
+    beforeScenario: 'loginAndGetToken'
     flow:
       - get:
-          url: '/api/trips/1'
+          url: '/api/trips?page=1&limit=1'
           headers:
             Authorization: 'Bearer {{ token }}'
+          expect:
+            - statusCode: 200
+          capture:
+            - json: '$.trips[0].id'
+              as: 'tripId'
+      - get:
+          url: '/api/trips/{{ tripId }}'
+          headers:
+            Authorization: 'Bearer {{ token }}'
+          ifTrue: 'tripId'
           expect:
             - statusCode: [200, 404]

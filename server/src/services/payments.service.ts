@@ -1,4 +1,4 @@
-import { PrismaClient, RequestStatus, PaymentStatus, TransactionType, TransactionConcept } from '@prisma/client';
+import { PrismaClient, RequestStatus, PaymentStatus, TransactionType, TransactionConcept, Prisma } from '@prisma/client';
 import Stripe from 'stripe';
 import { AppError } from '../middleware/errorHandler';
 
@@ -70,7 +70,7 @@ export class PaymentsService {
     if (event.type === 'payment_intent.succeeded') {
       const intent = event.data.object as Stripe.PaymentIntent;
       await this.prisma.payment.updateMany({
-        where: { stripePaymentId: intent.id },
+        where: { stripePaymentId: intent.id, status: { not: PaymentStatus.CONFIRMED } },
         data: { status: PaymentStatus.CONFIRMED, confirmedAt: new Date() },
       });
     }
@@ -78,7 +78,7 @@ export class PaymentsService {
     if (event.type === 'payment_intent.payment_failed') {
       const intent = event.data.object as Stripe.PaymentIntent;
       await this.prisma.payment.updateMany({
-        where: { stripePaymentId: intent.id },
+        where: { stripePaymentId: intent.id, status: PaymentStatus.PENDING },
         data: { status: PaymentStatus.FAILED },
       });
     }
@@ -149,46 +149,48 @@ export class PaymentsService {
     const amount = tripRequest.trip.pricePerSeat;
     const driverId = tripRequest.trip.driverId;
 
-    const payer = await this.prisma.user.findUnique({ where: { id: payerId }, select: { walletBalance: true } });
-    if (!payer) throw new AppError(404, 'Usuario no encontrado');
-    if (Number(payer.walletBalance) < Number(amount)) throw new AppError(400, 'Saldo insuficiente en U-Wallet');
+    await this.prisma.$transaction(async (tx) => {
+      // Re-verificar saldo y estado de pago dentro de la transacción para evitar race conditions
+      const [payer, existingPayment] = await Promise.all([
+        tx.user.findUnique({ where: { id: payerId }, select: { walletBalance: true } }),
+        tx.payment.findUnique({ where: { tripRequestId } }),
+      ]);
 
-    await this.prisma.$transaction([
-      this.prisma.user.update({
-        where: { id: payerId },
-        data: { walletBalance: { decrement: amount } },
-      }),
-      this.prisma.user.update({
-        where: { id: driverId },
-        data: { pendingBalance: { increment: amount } },
-      }),
-      this.prisma.walletTransaction.create({
-        data: {
-          userId: payerId,
-          amount,
-          type: TransactionType.DEBIT,
-          concept: TransactionConcept.PAYMENT,
-          description: `${tripRequest.trip.originZone} → ${tripRequest.trip.destinationZone}`,
-          relatedRequestId: tripRequestId,
-        },
-      }),
-      this.prisma.payment.upsert({
-        where: { tripRequestId },
-        create: {
-          tripRequestId,
-          tripId: tripRequest.tripId,
-          payerId,
-          amount,
-          status: PaymentStatus.CONFIRMED,
-          confirmedAt: new Date(),
-        },
-        update: {
-          status: PaymentStatus.CONFIRMED,
-          confirmedAt: new Date(),
-          stripePaymentId: null,
-        },
-      }),
-    ]);
+      if (!payer) throw new AppError(404, 'Usuario no encontrado');
+      if (existingPayment?.status === PaymentStatus.CONFIRMED) throw new AppError(409, 'Esta solicitud ya fue pagada');
+      if (Number(payer.walletBalance) < Number(amount)) throw new AppError(400, 'Saldo insuficiente en U-Wallet');
+
+      await Promise.all([
+        tx.user.update({ where: { id: payerId }, data: { walletBalance: { decrement: amount } } }),
+        tx.user.update({ where: { id: driverId }, data: { pendingBalance: { increment: amount } } }),
+        tx.walletTransaction.create({
+          data: {
+            userId: payerId,
+            amount,
+            type: TransactionType.DEBIT,
+            concept: TransactionConcept.PAYMENT,
+            description: `${tripRequest.trip.originZone} → ${tripRequest.trip.destinationZone}`,
+            relatedRequestId: tripRequestId,
+          },
+        }),
+        tx.payment.upsert({
+          where: { tripRequestId },
+          create: {
+            tripRequestId,
+            tripId: tripRequest.tripId,
+            payerId,
+            amount,
+            status: PaymentStatus.CONFIRMED,
+            confirmedAt: new Date(),
+          },
+          update: {
+            status: PaymentStatus.CONFIRMED,
+            confirmedAt: new Date(),
+            stripePaymentId: null,
+          },
+        }),
+      ]);
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
 
     return { amount: Number(amount) };
   }

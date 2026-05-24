@@ -83,6 +83,9 @@ export const tripsApi = {
   cancelTrip: (id: string) =>
     apiClient.delete<{ trip: Trip }>(`/trips/${id}`),
 
+  startTrip: (id: string, boardedRequestIds: string[]) =>
+    apiClient.post<{ trip: Trip }>(`/trips/${id}/start`, { boardedRequestIds }),
+
   updateTrip: (id: string, data: Partial<CreateTripPayload>) =>
     apiClient.patch<{ trip: Trip }>(`/trips/${id}`, data),
 }

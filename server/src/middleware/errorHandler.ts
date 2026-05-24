@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
+import multer from 'multer';
 
 export class AppError extends Error {
   constructor(
@@ -27,6 +28,14 @@ export function errorHandler(
       error: 'Datos inválidos',
       details: err.flatten().fieldErrors,
     });
+    return;
+  }
+
+  if (err instanceof multer.MulterError) {
+    const msg = err.code === 'LIMIT_FILE_SIZE'
+      ? 'La imagen es demasiado grande (máximo 8 MB)'
+      : `Error al subir archivo: ${err.message}`;
+    res.status(400).json({ error: msg });
     return;
   }
 

@@ -5,6 +5,7 @@ import { tripsApi } from '@/api/trips.api'
 import { requestsApi } from '@/api/requests.api'
 import { useAuthStore } from '@/store/authStore'
 
+
 const RouteMap = lazy(() => import('@/components/map/RouteMap'))
 
 export default function TripDetail() {
@@ -15,6 +16,7 @@ export default function TripDetail() {
   const [message, setMessage] = useState('')
   const [requestError, setRequestError] = useState('')
   const [requestDone, setRequestDone] = useState(false)
+  const [confirmCancel, setConfirmCancel] = useState(false)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['trip', id],
@@ -28,9 +30,17 @@ export default function TripDetail() {
     queryFn: () => requestsApi.getMyRequests().then((r) => r.data.requests),
     enabled: !!id && !!user,
   })
-  const alreadyRequested = myRequests?.some(
-    (r) => r.tripId === id && (r.status === 'PENDING' || r.status === 'ACCEPTED')
-  ) ?? false
+  const myTripRequest = myRequests?.find((r) => r.tripId === id) ?? null
+  const alreadyRequested = !!myTripRequest && myTripRequest.status !== 'REJECTED'
+
+  const cancelMut = useMutation({
+    mutationFn: (tripId: string) => tripsApi.cancelTrip(tripId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-trips'] })
+      navigate('/my-trips')
+    },
+  })
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -54,6 +64,7 @@ export default function TripDetail() {
   const timeStr = depTime.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', hour12: true })
   const isDriver = trip.driverId === user?.id
   const isInProgress = trip.status === 'IN_PROGRESS'
+  const isScheduled = trip.status === 'SCHEDULED'
 
   const driverInitials = trip.driver.fullName
     .split(' ')
@@ -258,15 +269,59 @@ export default function TripDetail() {
                     </span>
                   </button>
                 ) : isDriver ? (
-                  <button
-                    onClick={() => navigate(`/trips/${trip.id}/requests`)}
-                    className="w-full bg-gradient-primary hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95 group"
-                  >
-                    <span className="flex items-center justify-center gap-3">
-                      <span className="material-symbols-outlined">group</span>
-                      Gestionar Solicitudes
-                    </span>
-                  </button>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => navigate(`/trips/${trip.id}/requests`)}
+                      className="w-full bg-gradient-primary hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95 group"
+                    >
+                      <span className="flex items-center justify-center gap-3">
+                        <span className="material-symbols-outlined">group</span>
+                        Gestionar Solicitudes
+                      </span>
+                    </button>
+                    {isScheduled && (
+                      <button
+                        onClick={() => navigate(`/trips/${trip.id}/edit`)}
+                        className="w-full flex items-center justify-center gap-2 border border-white/10 text-on-surface-variant hover:text-white font-bold py-3 rounded-xl text-sm transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-sm">edit</span>
+                        Editar viaje
+                      </button>
+                    )}
+                    {isScheduled && !confirmCancel && (
+                      <button
+                        onClick={() => setConfirmCancel(true)}
+                        className="w-full flex items-center justify-center gap-2 text-error/70 hover:text-error font-bold py-3 rounded-xl text-sm transition-colors border border-error/10 hover:border-error/30"
+                      >
+                        <span className="material-symbols-outlined text-sm">cancel</span>
+                        Cancelar viaje
+                      </button>
+                    )}
+                    {isScheduled && confirmCancel && (
+                      <div className="bg-error/5 border border-error/20 rounded-xl p-4 space-y-3">
+                        <p className="text-error text-xs leading-relaxed flex items-start gap-2">
+                          <span className="material-symbols-outlined text-sm mt-0.5">warning</span>
+                          Esta acción notificará a todos los pasajeros y reembolsará automáticamente sus pagos.
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => cancelMut.mutate(trip.id)}
+                            disabled={cancelMut.isPending}
+                            className="flex-1 flex items-center justify-center gap-1 bg-error/10 border border-error/30 text-error font-bold py-3 rounded-xl text-sm transition-colors hover:bg-error/20 disabled:opacity-50"
+                          >
+                            <span className="material-symbols-outlined text-sm">check</span>
+                            {cancelMut.isPending ? 'Cancelando...' : 'Confirmar'}
+                          </button>
+                          <button
+                            onClick={() => setConfirmCancel(false)}
+                            className="px-4 py-3 rounded-xl text-on-surface-variant hover:text-white text-sm font-bold border border-white/10 transition-colors"
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ) : trip.availableSeats === 0 ? (
                   <div className="w-full bg-error/10 text-error font-headline font-bold py-5 rounded-xl text-center text-lg uppercase tracking-wider border border-error/20">
                     Sin asientos disponibles
@@ -275,6 +330,42 @@ export default function TripDetail() {
                   <div className="w-full bg-primary/10 border border-primary/20 text-primary font-headline font-bold py-5 rounded-xl text-center text-lg uppercase tracking-wider">
                     ¡Solicitud enviada!
                   </div>
+                ) : alreadyRequested ? (
+                  myTripRequest?.status === 'CANCELLED' ? (
+                    <div className="space-y-3">
+                      <div className="w-full flex items-center justify-center gap-2 font-headline font-bold py-5 rounded-xl text-lg uppercase tracking-wider border bg-zinc-700/20 border-zinc-600/30 text-zinc-400">
+                        <span className="material-symbols-outlined">cancel</span>
+                        Solicitud Cancelada
+                      </div>
+                      <p className="text-center text-xs text-on-surface-variant">
+                        Ya no puedes volver a solicitar este viaje.
+                      </p>
+                    </div>
+                  ) : (
+                    (() => {
+                      const isAccepted = myTripRequest?.status === 'ACCEPTED'
+                      return (
+                        <div className="space-y-3">
+                          <div className={`w-full flex items-center justify-center gap-2 font-headline font-bold py-5 rounded-xl text-lg uppercase tracking-wider border ${
+                            isAccepted
+                              ? 'bg-primary/10 border-primary/20 text-primary'
+                              : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+                          }`}>
+                            <span className="material-symbols-outlined material-symbols-filled">
+                              {isAccepted ? 'check_circle' : 'schedule'}
+                            </span>
+                            {isAccepted ? 'Reserva Confirmada' : 'Solicitud Pendiente'}
+                          </div>
+                          <button
+                            onClick={() => navigate('/requests')}
+                            className="w-full flex items-center justify-center gap-2 border border-white/10 text-on-surface-variant hover:text-white font-bold py-3 rounded-xl text-sm transition-colors"
+                          >
+                            Ver mis solicitudes →
+                          </button>
+                        </div>
+                      )
+                    })()
+                  )
                 ) : (
                   <div className="space-y-3">
                     <textarea

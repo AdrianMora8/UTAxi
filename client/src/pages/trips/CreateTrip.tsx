@@ -2,9 +2,10 @@ import { lazy, Suspense, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+import { Link, useNavigate } from 'react-router-dom'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { tripsApi } from '@/api/trips.api'
+import { usersApi } from '@/api/users.api'
 import CampusPicker from '@/components/CampusPicker'
 import { type Campus } from '@/constants/campuses'
 import DestinationPickerField, { type DestinationValue } from '@/components/map/DestinationPickerField'
@@ -26,6 +27,33 @@ type FormData = z.infer<typeof schema>
 export default function CreateTrip() {
   const navigate = useNavigate()
   const [serverError, setServerError] = useState('')
+
+  const { data: profileData, isLoading: profileLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => usersApi.getMe().then((r) => r.data),
+    staleTime: 60_000,
+  })
+  const hasVehicle = !!profileData?.user?.vehicle
+
+  if (!profileLoading && !hasVehicle) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
+        <div className="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center mb-8 border border-white/5">
+          <span className="material-symbols-outlined text-4xl text-zinc-600">directions_car</span>
+        </div>
+        <h2 className="text-3xl font-headline font-bold text-white mb-3">Necesitas registrar un vehículo</h2>
+        <p className="text-on-surface-variant max-w-sm mb-8">
+          Para publicar viajes primero debes registrar tu vehículo en tu perfil.
+        </p>
+        <Link
+          to="/profile"
+          className="bg-gradient-primary text-on-primary px-8 py-3 rounded-xl font-headline font-bold uppercase tracking-tighter hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] transition-all"
+        >
+          Ir a mi Perfil
+        </Link>
+      </div>
+    )
+  }
   const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null)
   const [campusError, setCampusError] = useState('')
   const [destination, setDestination] = useState<DestinationValue | null>(null)

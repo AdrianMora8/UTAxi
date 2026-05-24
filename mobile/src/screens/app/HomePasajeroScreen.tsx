@@ -12,12 +12,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, fonts } from '../../theme';
 import { tripsApi, Trip } from '../../api/trips.api';
 import { requestsApi } from '../../api/requests.api';
+import { usersApi } from '../../api/users.api';
 import { useAuthStore } from '../../store/authStore';
 import type { BuscarStackParamList } from '../../navigation/MainTabs';
 
@@ -142,12 +143,26 @@ export default function HomePasajeroScreen() {
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('Todos');
 
+  const { data: profileData } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => usersApi.getMe().then(r => r.data.user),
+    staleTime: 1000 * 60 * 5,
+  });
+  const hasVehicle = !!profileData?.vehicle;
+
   const destinationZone = activeFilter === 'Todos' ? undefined : activeFilter;
 
-  const { data, isLoading, isError, refetch, isRefetching } = useQuery({
+  const { data, isPending, isError, refetch, isRefetching } = useQuery({
     queryKey: ['trips', activeFilter],
     queryFn: () => tripsApi.getTrips({ destinationZone, limit: 20 }).then(r => r.data),
+    staleTime: 30_000,
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const { data: myRequestsData } = useQuery({
     queryKey: ['my-requests'],
@@ -181,7 +196,14 @@ export default function HomePasajeroScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.logo}>U-RIDE</Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.logo}>U-RIDE</Text>
+          <View style={[styles.roleBadge, hasVehicle && styles.roleBadgeDriver]}>
+            <Text style={[styles.roleBadgeText, hasVehicle && styles.roleBadgeTextDriver]}>
+              {hasVehicle ? 'Conductor / Pasajero' : 'Pasajero'}
+            </Text>
+          </View>
+        </View>
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.getParent()?.navigate('Avisos')}>
             <Ionicons name="notifications-outline" size={22} color={colors.text} />
@@ -236,7 +258,7 @@ export default function HomePasajeroScreen() {
       </ScrollView>
 
       {/* Lista de viajes */}
-      {isLoading ? (
+      {isPending ? (
         <View style={styles.loadingBox}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -289,11 +311,38 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 4,
   },
+  headerLeft: {
+    flexDirection: 'column',
+    gap: 4,
+  },
   logo: {
     fontFamily: fonts.display,
     fontSize: 18,
     color: colors.text,
     letterSpacing: 1,
+  },
+  roleBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#38bdf850',
+    backgroundColor: '#38bdf810',
+  },
+  roleBadgeDriver: {
+    borderColor: colors.primary + '50',
+    backgroundColor: colors.primary + '18',
+  },
+  roleBadgeText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: '#38bdf8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  roleBadgeTextDriver: {
+    color: colors.primary,
   },
   headerRight: {
     flexDirection: 'row',

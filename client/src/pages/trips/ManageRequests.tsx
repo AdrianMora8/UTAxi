@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState, useCallback } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { requestsApi } from '@/api/requests.api'
+import { requestsApi, type TripRequest } from '@/api/requests.api'
 import { tripsApi } from '@/api/trips.api'
 import RatingModal from '@/components/ratings/RatingModal'
 import { useNotifications } from '@/hooks/useNotifications'
@@ -14,6 +14,8 @@ export default function ManageRequests() {
   const qc = useQueryClient()
   const [ratingTarget, setRatingTarget] = useState<{ requestId: string; driverName: string } | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [boardingOpen, setBoardingOpen] = useState(false)
+  const [absentIds, setAbsentIds] = useState<Set<string>>(new Set())
 
   const showToast = useCallback((msg: string) => {
     setToast(msg)
@@ -52,9 +54,13 @@ export default function ManageRequests() {
   })
 
   const startTripMut = useMutation({
-    mutationFn: () => tripsApi.updateTripStatus(tripId!, 'IN_PROGRESS'),
+    mutationFn: (boardedRequestIds: string[]) => tripsApi.startTrip(tripId!, boardedRequestIds),
     onSuccess: () => {
+      setBoardingOpen(false)
       navigate(`/trips/${tripId}/active`)
+    },
+    onError: (err: { response?: { data?: { message?: string } } }) => {
+      showToast(err.response?.data?.message ?? 'Error al iniciar el viaje')
     },
   })
 
@@ -157,16 +163,21 @@ export default function ManageRequests() {
             <section className="bg-surface-container-low rounded-xl p-6 border-l-4 border-tertiary">
               <h2 className="text-xl font-headline font-bold mb-4 text-tertiary">Control de Viaje</h2>
               <p className="text-sm text-on-surface-variant mb-6">
-                Cuando todos tus pasajeros estén a bordo o sea la hora de partida, inicia el viaje para comenzar a transmitir tu ubicación por GPS.
+                Cuando todos tus pasajeros estén a bordo, inicia el viaje. Podrás marcar quién no se presentó.
               </p>
               <button
-                onClick={() => startTripMut.mutate()}
-                disabled={startTripMut.isPending}
-                className="w-full bg-gradient-to-r from-tertiary/20 to-primary/20 hover:from-tertiary/30 hover:to-primary/30 border border-tertiary/30 text-tertiary font-headline font-bold py-4 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                onClick={() => { setAbsentIds(new Set()); setBoardingOpen(true) }}
+                disabled={accepted.length === 0}
+                className="w-full bg-gradient-to-r from-tertiary/20 to-primary/20 hover:from-tertiary/30 hover:to-primary/30 border border-tertiary/30 text-tertiary font-headline font-bold py-4 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined">play_arrow</span>
-                {startTripMut.isPending ? 'Iniciando...' : 'Empezar Viaje'}
+                Empezar Viaje
               </button>
+              {accepted.length === 0 && (
+                <p className="text-xs text-on-surface-variant/60 text-center mt-2">
+                  Necesitas al menos un pasajero confirmado
+                </p>
+              )}
             </section>
           )}
 
@@ -479,6 +490,92 @@ export default function ManageRequests() {
           )}
         </div>
       </main>
+
+      {/* Boarding modal */}
+      {boardingOpen && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-surface-container-low w-full max-w-md rounded-t-2xl md:rounded-2xl p-6 shadow-2xl border border-white/5">
+            <div className="flex items-center gap-3 mb-1">
+              <span className="material-symbols-outlined text-tertiary text-xl">people</span>
+              <h3 className="font-headline font-bold text-white text-lg">Lista de Asistencia</h3>
+            </div>
+            <p className="text-on-surface-variant text-sm mb-5">
+              Marca a los pasajeros que NO están presentes.
+            </p>
+
+            {/* Counter */}
+            <div className="flex items-baseline gap-1 mb-5">
+              <span className="text-4xl font-headline font-bold text-white">
+                {accepted.length - absentIds.size}
+              </span>
+              <span className="text-on-surface-variant">/ {accepted.length} pasajeros presentes</span>
+            </div>
+
+            <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
+              {accepted.map((req) => {
+                const p = req.passenger!
+                const initials = p.fullName.split(' ').slice(0, 2).map((n: string) => n[0]).join('')
+                const isAbsent = absentIds.has(req.id)
+                return (
+                  <button
+                    key={req.id}
+                    type="button"
+                    onClick={() => setAbsentIds((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(req.id)) next.delete(req.id)
+                      else next.add(req.id)
+                      return next
+                    })}
+                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
+                      isAbsent
+                        ? 'bg-error/10 border-error/30 opacity-60'
+                        : 'bg-surface-container border-white/5 hover:border-primary/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-surface-container-highest flex items-center justify-center flex-shrink-0">
+                        <span className="font-headline font-bold text-xs text-on-surface-variant">{initials}</span>
+                      </div>
+                      <span className={`text-sm font-bold ${isAbsent ? 'line-through text-on-surface-variant' : 'text-white'}`}>
+                        {p.fullName}
+                      </span>
+                    </div>
+                    <span className={`material-symbols-outlined text-lg ${isAbsent ? 'text-error' : 'text-primary'}`}>
+                      {isAbsent ? 'person_off' : 'person_check'}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setBoardingOpen(false)}
+                className="flex-1 py-3 rounded-xl text-on-surface-variant border border-white/10 hover:text-white transition-colors text-sm font-bold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  const boardedIds = accepted
+                    .filter((r) => !absentIds.has(r.id))
+                    .map((r) => r.id)
+                  if (boardedIds.length === 0) {
+                    showToast('Debes tener al menos un pasajero presente')
+                    return
+                  }
+                  startTripMut.mutate(boardedIds)
+                }}
+                disabled={startTripMut.isPending || accepted.length - absentIds.size === 0}
+                className="flex-1 bg-gradient-to-r from-tertiary/20 to-primary/20 hover:from-tertiary/30 hover:to-primary/30 border border-tertiary/30 text-tertiary font-headline font-bold py-3 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">play_arrow</span>
+                {startTripMut.isPending ? 'Iniciando...' : 'Iniciar Viaje'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-surface-container-highest border border-primary/30 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3">

@@ -2,10 +2,18 @@ import { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { requestsApi } from '@/api/requests.api'
+import { paymentsApi } from '@/api/payments.api'
 import RatingModal from '@/components/ratings/RatingModal'
 import { useNotifications, type RequestUpdatePayload } from '@/hooks/useNotifications'
 
 type TabMode = 'active' | 'history'
+
+interface CancelTarget {
+  requestId: string
+  isPaid: boolean
+  amount: number
+  departureTime: string
+}
 
 const STATUS_LABEL: Record<string, { text: string; className: string }> = {
   PENDING:   { text: 'PENDIENTE',  className: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' },
@@ -18,6 +26,7 @@ const STATUS_LABEL: Record<string, { text: string; className: string }> = {
 export default function MyRequests() {
   const [tab, setTab] = useState<TabMode>('active')
   const [ratingTarget, setRatingTarget] = useState<{ requestId: string; driverName: string } | null>(null)
+  const [cancelTarget, setCancelTarget] = useState<CancelTarget | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const navigate = useNavigate()
   const qc = useQueryClient()
@@ -43,7 +52,16 @@ export default function MyRequests() {
 
   const cancelMut = useMutation({
     mutationFn: (id: string) => requestsApi.cancelRequest(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['my-requests'] }),
+    onSuccess: (res) => {
+      qc.invalidateQueries({ queryKey: ['my-requests'] })
+      qc.invalidateQueries({ queryKey: ['wallet'] })
+      setCancelTarget(null)
+      showToast(res.data.message)
+    },
+    onError: (e: { response?: { data?: { message?: string } } }) => {
+      setCancelTarget(null)
+      showToast(e.response?.data?.message ?? 'Error al cancelar')
+    },
   })
 
   const retryMut = useMutation({
@@ -51,10 +69,61 @@ export default function MyRequests() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['my-requests'] }),
   })
 
+  const walletPayMut = useMutation({
+    mutationFn: (requestId: string) => paymentsApi.payWithWallet(requestId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-requests'] })
+      qc.invalidateQueries({ queryKey: ['wallet'] })
+      showToast('¡Pago realizado con U-Wallet!')
+    },
+    onError: (e: { response?: { data?: { message?: string } } }) => {
+      showToast(e.response?.data?.message ?? 'Error al pagar')
+    },
+  })
+
+  const { data: walletData } = useQuery({
+    queryKey: ['wallet'],
+    queryFn: () => paymentsApi.getWallet().then((r) => r.data),
+  })
+
   const requests = data ?? []
   const active  = requests.filter((r) => r.status === 'PENDING' || r.status === 'ACCEPTED')
   const history = requests.filter((r) => r.status === 'COMPLETED')
   const displayed = tab === 'active' ? active : history
+
+  function buildCancelModal(req: (typeof requests)[0]): CancelTarget {
+    return {
+      requestId: req.id,
+      isPaid: req.payment?.status === 'CONFIRMED',
+      amount: req.payment?.amount ?? 0,
+      departureTime: req.trip?.departureTime ?? '',
+    }
+  }
+
+  function cancelModalContent(target: CancelTarget) {
+    if (!target.isPaid) {
+      return {
+        title: 'Cancelar solicitud',
+        message: 'Se devolverá tu cupo al viaje. ¿Confirmas la cancelación?',
+        danger: false,
+      }
+    }
+    const minsLeft = target.departureTime
+      ? (new Date(target.departureTime).getTime() - Date.now()) / 60_000
+      : 999
+    if (minsLeft >= 10) {
+      return {
+        title: 'Cancelar reserva',
+        message: `Se reembolsarán $${target.amount.toFixed(2)} a tu U-Wallet. ¿Confirmas la cancelación?`,
+        danger: false,
+      }
+    }
+    return {
+      title: 'Cancelar sin reembolso',
+      message: `Faltan menos de 10 minutos para el viaje. No se realizará ningún reembolso. ¿Confirmas la cancelación?`,
+      danger: true,
+    }
+  }
 
   return (
     <div className="min-h-screen bg-surface text-on-surface font-body">
@@ -227,12 +296,22 @@ export default function MyRequests() {
                           </div>
 
                           {isAccepted && !isPaid && (
-                            <button
-                              onClick={() => navigate(`/pay/${req.id}`)}
-                              className="w-full bg-gradient-primary text-on-primary font-headline font-bold py-3 px-6 rounded-lg text-sm uppercase tracking-tighter hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] transition-all active:scale-95"
-                            >
-                              Pagar Ahora
-                            </button>
+                            <div className="flex flex-col gap-2 w-full">
+                              <button
+                                onClick={() => walletPayMut.mutate(req.id)}
+                                disabled={walletPayMut.isPending}
+                                className="w-full bg-gradient-primary text-on-primary font-headline font-bold py-3 px-6 rounded-lg text-sm uppercase tracking-tighter hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                              >
+                                <span className="material-symbols-outlined text-base">account_balance_wallet</span>
+                                {walletPayMut.isPending ? 'Pagando...' : 'Pagar con U-Wallet'}
+                              </button>
+                              <button
+                                onClick={() => navigate(`/pay/${req.id}`)}
+                                className="w-full text-on-surface-variant border border-white/10 font-bold py-2 px-6 rounded-lg text-xs uppercase tracking-wider hover:text-white transition-colors"
+                              >
+                                Pagar con Tarjeta
+                              </button>
+                            </div>
                           )}
 
                           {isAccepted && isPaid && (
@@ -244,11 +323,28 @@ export default function MyRequests() {
 
                           {isPending && (
                             <button
-                              onClick={() => cancelMut.mutate(req.id)}
-                              disabled={cancelMut.isPending}
-                              className="mt-2 text-on-surface-variant hover:text-error text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+                              onClick={() => setCancelTarget(buildCancelModal(req))}
+                              className="mt-2 text-on-surface-variant hover:text-error text-xs font-bold uppercase tracking-widest transition-colors"
                             >
                               Cancelar Solicitud
+                            </button>
+                          )}
+
+                          {isAccepted && !isPaid && req.trip?.status === 'SCHEDULED' && (
+                            <button
+                              onClick={() => setCancelTarget(buildCancelModal(req))}
+                              className="mt-2 text-on-surface-variant hover:text-error text-xs font-bold uppercase tracking-widest transition-colors"
+                            >
+                              Cancelar reserva
+                            </button>
+                          )}
+
+                          {isAccepted && isPaid && req.trip?.status === 'SCHEDULED' && (
+                            <button
+                              onClick={() => setCancelTarget(buildCancelModal(req))}
+                              className="mt-2 text-on-surface-variant hover:text-error text-xs font-bold uppercase tracking-widest transition-colors"
+                            >
+                              Cancelar reserva
                             </button>
                           )}
 
@@ -303,10 +399,12 @@ export default function MyRequests() {
           {/* ── Right: Stats sidebar (4/12) ── */}
           <div className="lg:col-span-4 space-y-8">
 
-            {/* U-Wallet card (decorative) */}
+            {/* U-Wallet card */}
             <div className="bg-surface-container rounded-2xl overflow-hidden">
-              <div className="h-32 relative bg-surface-container-high flex items-center justify-center">
-                <span className="material-symbols-outlined text-on-surface-variant/10 text-[80px]">map</span>
+              <div className="h-28 relative bg-surface-container-high flex items-center justify-center overflow-hidden">
+                <span className="material-symbols-outlined text-primary/5 text-[120px] leading-none select-none">
+                  account_balance_wallet
+                </span>
                 <div className="absolute inset-0 bg-gradient-to-t from-surface-container to-transparent" />
                 <div className="absolute bottom-4 left-4">
                   <p className="text-white font-headline font-bold">U-Ride Pasajero</p>
@@ -314,16 +412,34 @@ export default function MyRequests() {
                 </div>
               </div>
               <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between mb-3">
                   <span className="text-on-surface-variant text-xs font-bold uppercase tracking-widest">
                     Saldo U-Wallet
                   </span>
                   <span className="material-symbols-outlined text-primary">account_balance_wallet</span>
                 </div>
-                <p className="text-4xl font-headline font-bold text-white mb-6">$342.50</p>
-                <button className="w-full bg-surface-container-highest hover:bg-surface-bright text-white font-bold py-3 rounded-lg text-sm transition-all border border-white/5">
-                  Recargar Saldo
-                </button>
+                <p className="text-4xl font-headline font-bold text-white mb-1">
+                  ${walletData?.walletBalance.toFixed(2) ?? '—'}
+                </p>
+                {(walletData?.pendingBalance ?? 0) > 0 && (
+                  <p className="text-xs text-yellow-400 font-bold mb-3">
+                    +${walletData!.pendingBalance.toFixed(2)} pendiente
+                  </p>
+                )}
+                <div className="flex gap-2 mt-4">
+                  <Link
+                    to="/wallet"
+                    className="flex-1 text-center bg-gradient-primary text-on-primary font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider hover:shadow-[0_0_16px_rgba(156,255,147,0.3)] transition-all"
+                  >
+                    Recargar
+                  </Link>
+                  <Link
+                    to="/wallet"
+                    className="flex-1 text-center bg-surface-container-highest hover:bg-surface-bright text-white font-bold py-2.5 rounded-lg text-xs transition-all border border-white/5"
+                  >
+                    Ver historial
+                  </Link>
+                </div>
               </div>
             </div>
 
@@ -349,6 +465,44 @@ export default function MyRequests() {
           <span className="text-sm font-bold">{toast}</span>
         </div>
       )}
+
+      {cancelTarget && (() => {
+        const { title, message, danger } = cancelModalContent(cancelTarget)
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+            <div className="bg-surface-container-low rounded-2xl w-full max-w-sm p-8 shadow-2xl border border-white/5">
+              <div className="flex items-center gap-3 mb-4">
+                <span className={`material-symbols-outlined text-2xl ${danger ? 'text-error' : 'text-yellow-400'}`}>
+                  {danger ? 'warning' : 'info'}
+                </span>
+                <h3 className={`font-headline font-bold text-lg ${danger ? 'text-error' : 'text-white'}`}>
+                  {title}
+                </h3>
+              </div>
+              <p className="text-on-surface-variant text-sm leading-relaxed mb-6">{message}</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setCancelTarget(null)}
+                  className="flex-1 py-3 rounded-xl text-on-surface-variant border border-white/10 hover:text-white transition-colors text-sm font-bold"
+                >
+                  No, volver
+                </button>
+                <button
+                  onClick={() => cancelMut.mutate(cancelTarget.requestId)}
+                  disabled={cancelMut.isPending}
+                  className={`flex-1 py-3 rounded-xl font-headline font-bold text-sm transition-all active:scale-95 disabled:opacity-50 ${
+                    danger
+                      ? 'bg-error/10 border border-error/30 text-error hover:bg-error/20'
+                      : 'bg-surface-container-highest text-white hover:bg-surface-bright border border-white/10'
+                  }`}
+                >
+                  {cancelMut.isPending ? 'Cancelando...' : 'Sí, cancelar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {ratingTarget && (
         <RatingModal

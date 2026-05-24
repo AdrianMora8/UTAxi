@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { tripsApi, type Trip } from '@/api/trips.api'
+import { usersApi } from '@/api/users.api'
 import { useAuthStore } from '@/store/authStore'
 
 type TabMode = 'active' | 'history'
@@ -17,10 +18,12 @@ const STATUS_BADGE: Record<string, { text: string; className: string }> = {
   CANCELLED:   { text: 'CANCELADO',   className: 'bg-zinc-700/30 text-zinc-500 border border-zinc-700/30' },
 }
 
-function TripRow({ trip }: { trip: Trip }) {
+function TripRow({ trip, onCancel }: { trip: Trip; onCancel: (id: string) => void }) {
   const navigate = useNavigate()
+  const [confirmCancel, setConfirmCancel] = useState(false)
   const badge = STATUS_BADGE[trip.status] ?? STATUS_BADGE.SCHEDULED
   const isActive = trip.status === 'SCHEDULED' || trip.status === 'IN_PROGRESS'
+  const isScheduled = trip.status === 'SCHEDULED'
 
   return (
     <div className="group bg-surface-container-low rounded-xl overflow-hidden hover:bg-surface-container transition-all duration-200 shadow-lg">
@@ -74,6 +77,47 @@ function TripRow({ trip }: { trip: Trip }) {
               Gestionar
             </button>
           )}
+          {isScheduled && (
+            <button
+              onClick={() => navigate(`/trips/${trip.id}/edit`)}
+              className="flex items-center gap-2 border border-white/10 text-on-surface-variant hover:text-white font-bold py-2 px-5 rounded-lg text-sm transition-colors"
+            >
+              <span className="material-symbols-outlined text-sm">edit</span>
+              Editar
+            </button>
+          )}
+          {isScheduled && !confirmCancel && (
+            <button
+              onClick={() => setConfirmCancel(true)}
+              className="flex items-center gap-2 text-error/70 hover:text-error font-bold py-2 px-5 rounded-lg text-sm transition-colors border border-error/10 hover:border-error/30"
+            >
+              <span className="material-symbols-outlined text-sm">cancel</span>
+              Cancelar viaje
+            </button>
+          )}
+          {isScheduled && confirmCancel && (
+            <div className="bg-error/5 border border-error/20 rounded-xl p-3 space-y-2">
+              <p className="text-error text-xs font-bold flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm">warning</span>
+                Esta acción notificará a todos los pasajeros y reembolsará sus pagos.
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onCancel(trip.id)}
+                  className="flex items-center gap-1 bg-error/10 border border-error/30 text-error font-bold py-2 px-4 rounded-lg text-xs transition-colors hover:bg-error/20"
+                >
+                  <span className="material-symbols-outlined text-sm">check</span>
+                  Confirmar
+                </button>
+                <button
+                  onClick={() => setConfirmCancel(false)}
+                  className="text-on-surface-variant hover:text-white font-bold py-2 px-3 rounded-lg text-xs transition-colors border border-white/10"
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          )}
           {trip.status === 'COMPLETED' && (
             <Link
               to={`/trips/${trip.id}/requests`}
@@ -92,6 +136,14 @@ function TripRow({ trip }: { trip: Trip }) {
 export default function MyTrips() {
   const [tab, setTab] = useState<TabMode>('active')
   const user = useAuthStore((s) => s.user)
+  const qc = useQueryClient()
+
+  const { data: profileData, isLoading: profileLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => usersApi.getMe().then((r) => r.data),
+    staleTime: 60_000,
+  })
+  const hasVehicle = !!profileData?.user?.vehicle
 
   const { data, isLoading } = useQuery({
     queryKey: ['my-trips', user?.id, tab],
@@ -102,10 +154,35 @@ export default function MyTrips() {
     enabled: !!user?.id,
   })
 
+  const cancelMut = useMutation({
+    mutationFn: (id: string) => tripsApi.cancelTrip(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['my-trips'] }),
+  })
+
   const trips = data?.trips ?? []
   const displayed = tab === 'active'
     ? trips.filter((t) => t.status === 'SCHEDULED' || t.status === 'IN_PROGRESS')
     : trips.filter((t) => t.status === 'COMPLETED')
+
+  if (!profileLoading && !hasVehicle) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
+        <div className="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center mb-8 border border-white/5">
+          <span className="material-symbols-outlined text-4xl text-zinc-600">directions_car</span>
+        </div>
+        <h2 className="text-3xl font-headline font-bold text-white mb-3">Necesitas registrar un vehículo</h2>
+        <p className="text-on-surface-variant max-w-sm mb-8">
+          Para gestionar viajes como conductor primero debes registrar tu vehículo en tu perfil.
+        </p>
+        <Link
+          to="/profile"
+          className="bg-gradient-primary text-on-primary px-8 py-3 rounded-xl font-headline font-bold uppercase tracking-tighter hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] transition-all"
+        >
+          Ir a mi Perfil
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-surface text-on-surface font-body">
@@ -184,7 +261,9 @@ export default function MyTrips() {
               )}
             </div>
           ) : (
-            displayed.map((trip) => <TripRow key={trip.id} trip={trip} />)
+            displayed.map((trip) => (
+              <TripRow key={trip.id} trip={trip} onCancel={(id) => cancelMut.mutate(id)} />
+            ))
           )}
         </div>
       </main>

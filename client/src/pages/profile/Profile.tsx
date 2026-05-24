@@ -49,10 +49,11 @@ export default function Profile() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['me'],
-    queryFn: () => usersApi.getMe().then((r) => r.data.user),
+    queryFn: () => usersApi.getMe().then((r) => r.data),
+    staleTime: 60_000,
   })
 
-  const user = data
+  const user = data?.user
 
   // Profile form
   const {
@@ -112,11 +113,24 @@ export default function Profile() {
   })
 
   const [vehicleServerError, setVehicleServerError] = useState('')
+  const [photoUploading, setPhotoUploading] = useState(false)
+  const [pendingPhoto, setPendingPhoto] = useState<File | null>(null)
+  const [pendingPhotoPreview, setPendingPhotoPreview] = useState<string | null>(null)
 
   const vehicleMut = useMutation({
     mutationFn: (data: VehicleForm) =>
       hasVehicle ? usersApi.updateVehicle(data) : usersApi.createVehicle(data),
-    onSuccess: () => {
+    onSuccess: async () => {
+      if (!hasVehicle && pendingPhoto) {
+        setPhotoUploading(true)
+        try {
+          await usersApi.uploadVehiclePhoto(pendingPhoto)
+        } finally {
+          setPhotoUploading(false)
+          setPendingPhoto(null)
+          setPendingPhotoPreview(null)
+        }
+      }
       qc.invalidateQueries({ queryKey: ['me'] })
       setVehicleSuccess(true)
       setVehicleServerError('')
@@ -130,8 +144,44 @@ export default function Profile() {
     },
   })
 
+  const MAX_PHOTO_SIZE = 8 * 1024 * 1024
+
+  async function handleVehiclePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > MAX_PHOTO_SIZE) {
+      setVehicleServerError('La imagen es demasiado grande (máximo 8 MB)')
+      e.target.value = ''
+      return
+    }
+    setPhotoUploading(true)
+    try {
+      await usersApi.uploadVehiclePhoto(file)
+      qc.invalidateQueries({ queryKey: ['me'] })
+    } catch {
+      setVehicleServerError('Error al subir la foto. Intenta de nuevo.')
+    } finally {
+      setPhotoUploading(false)
+      e.target.value = ''
+    }
+  }
+
+  function handlePendingPhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > MAX_PHOTO_SIZE) {
+      setVehicleServerError('La imagen es demasiado grande (máximo 8 MB)')
+      e.target.value = ''
+      return
+    }
+    setVehicleServerError('')
+    setPendingPhoto(file)
+    setPendingPhotoPreview(URL.createObjectURL(file))
+    e.target.value = ''
+  }
+
   const initials = user?.fullName
-    .split(' ')
+    ?.split(' ')
     .slice(0, 2)
     .map((n) => n[0])
     .join('') ?? '?'
@@ -411,20 +461,44 @@ export default function Profile() {
 
               {/* Current vehicle info (read mode) */}
               {hasVehicle && (
-                <div className="mb-8 p-5 bg-surface-container rounded-xl flex items-center gap-6 border border-white/5">
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-primary text-3xl">directions_car</span>
+                <div className="mb-8 bg-surface-container rounded-xl border border-white/5 overflow-hidden">
+                  {/* Vehicle photo */}
+                  <div className="relative h-40 bg-surface-container-high flex items-center justify-center">
+                    {user.vehicle!.photoUrl ? (
+                      <img
+                        src={user.vehicle!.photoUrl}
+                        alt="Foto del vehículo"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="material-symbols-outlined text-on-surface-variant/20 text-[80px]">
+                        directions_car
+                      </span>
+                    )}
+                    <label className={`absolute bottom-3 right-3 flex items-center gap-1.5 bg-surface-container-highest/90 backdrop-blur-sm border border-white/10 text-white text-xs font-bold px-3 py-2 rounded-lg cursor-pointer hover:bg-surface-bright transition-colors ${photoUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      <span className="material-symbols-outlined text-sm">
+                        {photoUploading ? 'hourglass_empty' : 'photo_camera'}
+                      </span>
+                      {photoUploading ? 'Subiendo...' : user.vehicle!.photoUrl ? 'Cambiar foto' : 'Agregar foto'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={photoUploading}
+                        onChange={handleVehiclePhoto}
+                      />
+                    </label>
                   </div>
-                  <div>
-                    <p className="font-headline font-bold text-on-surface">
-                      {user.vehicle!.brand} {user.vehicle!.model} ({user.vehicle!.year})
-                    </p>
-                    <p className="text-on-surface-variant text-sm mt-1">
-                      {user.vehicle!.color} • {user.vehicle!.plateNumber}
-                    </p>
-                  </div>
-                  <div className="ml-auto">
-                    <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg uppercase">
+                  <div className="p-5 flex items-center gap-4">
+                    <div className="flex-1">
+                      <p className="font-headline font-bold text-on-surface">
+                        {user.vehicle!.brand} {user.vehicle!.model} ({user.vehicle!.year})
+                      </p>
+                      <p className="text-on-surface-variant text-sm mt-1">
+                        {user.vehicle!.color} • {user.vehicle!.plateNumber}
+                      </p>
+                    </div>
+                    <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg uppercase flex-shrink-0">
                       Verificado
                     </span>
                   </div>
@@ -435,6 +509,36 @@ export default function Profile() {
                 onSubmit={handleVehicle((data) => vehicleMut.mutate(data))}
                 className="space-y-6"
               >
+                {/* Photo picker — solo al registrar un vehículo nuevo */}
+                {!hasVehicle && (
+                  <div>
+                    <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant mb-2">
+                      Foto del Vehículo <span className="text-zinc-600 normal-case">(opcional)</span>
+                    </label>
+                    <label className="flex flex-col items-center justify-center gap-3 h-40 rounded-xl border-2 border-dashed border-white/10 bg-surface-container cursor-pointer hover:border-primary/40 hover:bg-surface-container-high transition-all overflow-hidden relative">
+                      {pendingPhotoPreview ? (
+                        <>
+                          <img src={pendingPhotoPreview} alt="Preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <span className="material-symbols-outlined text-white text-3xl">photo_camera</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-on-surface-variant/40 text-4xl">photo_camera</span>
+                          <span className="text-sm text-on-surface-variant">Toca para agregar una foto</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handlePendingPhoto}
+                      />
+                    </label>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Marca */}
                   <div>
@@ -537,11 +641,13 @@ export default function Profile() {
 
                 <button
                   type="submit"
-                  disabled={vehicleSaving}
+                  disabled={vehicleSaving || photoUploading}
                   className="w-full bg-gradient-primary text-on-primary py-4 rounded-lg font-headline font-bold text-lg active:scale-[0.98] transition-all shadow-[0_4px_12px_rgba(0,255,65,0.15)] hover:shadow-[0_4px_20px_rgba(0,255,65,0.25)] disabled:opacity-50"
                 >
                   {vehicleSaving
                     ? 'Guardando...'
+                    : photoUploading
+                    ? 'Subiendo foto...'
                     : hasVehicle
                     ? 'Actualizar Vehículo'
                     : 'Registrar Vehículo'}

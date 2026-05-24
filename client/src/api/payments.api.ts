@@ -17,6 +17,21 @@ export interface CreateIntentResponse {
   amount: number
 }
 
+export interface WalletTransaction {
+  id: string
+  amount: number
+  type: 'CREDIT' | 'DEBIT'
+  concept: 'TOPUP' | 'PAYMENT' | 'REFUND' | 'CANCELLATION_FEE' | 'TRIP_EARNING'
+  description: string
+  createdAt: string
+}
+
+export interface WalletInfo {
+  walletBalance: number
+  pendingBalance: number
+  transactions: WalletTransaction[]
+}
+
 export const paymentsApi = {
   createIntent: (tripRequestId: string) =>
     apiClient.post<CreateIntentResponse>('/payments/create-intent', {
@@ -30,4 +45,13 @@ export const paymentsApi = {
 
   getPayment: (tripRequestId: string) =>
     apiClient.get<{ payment: Payment }>(`/payments/${tripRequestId}`),
+
+  getWallet: () =>
+    apiClient.get<WalletInfo>('/payments/wallet'),
+
+  topUp: (amount: number) =>
+    apiClient.post<{ walletBalance: number }>('/payments/wallet/topup', { amount }),
+
+  payWithWallet: (tripRequestId: string) =>
+    apiClient.post<{ amount: number }>('/payments/pay/wallet', { tripRequestId }),
 }

@@ -589,6 +589,15 @@ export class TripsService {
       });
     }
 
+    for (const r of boarded) {
+      emitToUser(r.passenger.id, 'trip:started', {
+        tripId,
+        originZone: trip.originZone,
+        destinationZone: trip.destinationZone,
+        driverName: trip.driver.fullName,
+      });
+    }
+
     return this.prisma.trip.findUnique({ where: { id: tripId } });
   }
 

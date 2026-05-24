@@ -17,6 +17,8 @@ export default function TripDetail() {
   const [requestError, setRequestError] = useState('')
   const [requestDone, setRequestDone] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [showSafetyModal, setShowSafetyModal] = useState(false)
+  const [sendingRequest, setSendingRequest] = useState(false)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['trip', id],
@@ -380,15 +382,7 @@ export default function TripDetail() {
                       <p className="text-xs text-error">{requestError}</p>
                     )}
                     <button
-                      onClick={() => {
-                        setRequestError('')
-                        requestsApi.createRequest(trip.id, message || undefined)
-                          .then(() => { setRequestDone(true); qc.invalidateQueries({ queryKey: ['trip', id] }) })
-                          .catch((err: unknown) => {
-                            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Error al enviar la solicitud'
-                            setRequestError(msg)
-                          })
-                      }}
+                      onClick={() => { setRequestError(''); setShowSafetyModal(true) }}
                       className="w-full bg-gradient-primary hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95 group overflow-hidden"
                     >
                       <span className="flex items-center justify-center gap-3">
@@ -493,5 +487,79 @@ export default function TripDetail() {
         </div>
       </footer>
     </div>
+
+    {/* ── Safety Rules Modal (RF9) ── */}
+    {showSafetyModal && trip && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm"
+        onClick={(e) => { if (e.target === e.currentTarget) setShowSafetyModal(false) }}
+      >
+        <div className="w-full max-w-md bg-surface-container-low rounded-2xl shadow-2xl overflow-hidden">
+          <div className="p-6 border-b border-white/5 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-primary">shield</span>
+            </div>
+            <div>
+              <h2 className="font-headline text-lg font-bold text-white">Reglas de Convivencia U-Ride</h2>
+              <p className="text-xs text-on-surface-variant">Debes aceptar antes de unirte al viaje</p>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-3">
+            {[
+              { icon: 'schedule',       text: 'Puntualidad: llega al punto de encuentro antes de la hora de salida.' },
+              { icon: 'handshake',      text: 'Respeto: mantén un comportamiento cordial con el conductor y pasajeros.' },
+              { icon: 'lock',           text: 'Privacidad: no compartas datos personales (número, ubicación exacta) fuera de la app.' },
+              { icon: 'cancel',         text: 'Cancelaciones: avisa con anticipación para no perjudicar al conductor.' },
+              { icon: 'smartphone',     text: 'Comunicación: usa la plataforma; no pidas ni ofrezcas medios externos de contacto.' },
+              { icon: 'diversity_3',    text: 'Comunidad: somos estudiantes de la misma institución. Cuida el ambiente de confianza.' },
+            ].map((rule, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-surface-container">
+                <span className="material-symbols-outlined text-primary text-base flex-shrink-0 mt-0.5">{rule.icon}</span>
+                <p className="text-sm text-on-surface leading-snug">{rule.text}</p>
+              </div>
+            ))}
+
+            {requestError && (
+              <p className="text-xs text-error flex items-center gap-1 mt-2">
+                <span className="material-symbols-outlined text-sm">error</span>
+                {requestError}
+              </p>
+            )}
+          </div>
+
+          <div className="px-6 pb-6 flex gap-3">
+            <button
+              onClick={() => setShowSafetyModal(false)}
+              className="flex-1 py-3 rounded-xl border border-white/10 text-on-surface-variant font-bold text-sm hover:text-white transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              disabled={sendingRequest}
+              onClick={async () => {
+                setSendingRequest(true)
+                try {
+                  await tripsApi.safetyAck(trip.id)
+                  await requestsApi.createRequest(trip.id, message || undefined)
+                  setRequestDone(true)
+                  setShowSafetyModal(false)
+                  qc.invalidateQueries({ queryKey: ['trip', id] })
+                } catch (err: unknown) {
+                  const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Error al enviar la solicitud'
+                  setRequestError(msg)
+                  setShowSafetyModal(false)
+                } finally {
+                  setSendingRequest(false)
+                }
+              }}
+              className="flex-1 py-3 rounded-xl bg-gradient-primary text-on-primary font-headline font-bold text-sm uppercase tracking-wider hover:shadow-[0_0_20px_rgba(156,255,147,0.3)] transition-all active:scale-95 disabled:opacity-50"
+            >
+              {sendingRequest ? 'Enviando...' : 'Acepto y Solicito'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
   )
 }

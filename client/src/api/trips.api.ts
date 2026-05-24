@@ -88,4 +88,7 @@ export const tripsApi = {
 
   updateTrip: (id: string, data: Partial<CreateTripPayload>) =>
     apiClient.patch<{ trip: Trip }>(`/trips/${id}`, data),
+
+  safetyAck: (id: string) =>
+    apiClient.post<{ acknowledged: boolean }>(`/trips/${id}/safety-ack`),
 }

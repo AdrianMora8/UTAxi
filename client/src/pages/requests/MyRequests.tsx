@@ -387,6 +387,16 @@ export default function MyRequests() {
                               Calificado
                             </div>
                           )}
+
+                          {isCompleted && driver && (
+                            <button
+                              onClick={() => navigate(`/reports?userId=${driver.id}&name=${encodeURIComponent(driver.fullName)}`)}
+                              className="w-full flex items-center justify-center gap-2 border border-error/20 text-error font-headline font-bold py-2 px-4 rounded-lg text-xs uppercase tracking-wider hover:bg-error/10 transition-colors"
+                            >
+                              <span className="material-symbols-outlined text-sm">flag</span>
+                              Reportar conductor
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

@@ -340,6 +340,7 @@ function UserDetailModal({ userId, onClose }: { userId: string; onClose: () => v
 export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>('reports')
   const [reviewTarget, setReviewTarget] = useState<AdminReport | null>(null)
+  const [reportStatusFilter, setReportStatusFilter] = useState('')
   const [userSearch, setUserSearch] = useState('')
   const [eventTypeFilter, setEventTypeFilter] = useState<TripEventType | ''>('')
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
@@ -358,8 +359,8 @@ export default function AdminDashboard() {
   })
 
   const { data: reportsData, isLoading: loadingReports } = useQuery({
-    queryKey: ['admin-reports'],
-    queryFn: () => adminApi.getReports({ limit: 20 }).then((r) => r.data),
+    queryKey: ['admin-reports', reportStatusFilter],
+    queryFn: () => adminApi.getReports({ status: reportStatusFilter || undefined, limit: 50 }).then((r) => r.data),
     refetchInterval: 30_000,
   })
 
@@ -506,6 +507,18 @@ export default function AdminDashboard() {
               Gestión Central de la Comunidad
             </p>
           </div>
+          {tab === 'reports' && (
+            <select
+              value={reportStatusFilter}
+              onChange={(e) => setReportStatusFilter(e.target.value)}
+              className="bg-surface-container-highest border-none rounded-xl px-4 py-2.5 text-sm text-white focus:ring-1 focus:ring-primary/40 outline-none"
+            >
+              <option value="">Todos los reportes</option>
+              <option value="OPEN">Abiertos</option>
+              <option value="REVIEWED">Revisados</option>
+              <option value="RESOLVED">Resueltos</option>
+            </select>
+          )}
           {tab === 'users' && (
             <div className="relative">
               <input
@@ -642,8 +655,13 @@ export default function AdminDashboard() {
                                 <span className="text-white font-medium">{report.reported.fullName}</span>
                               </div>
                             </td>
-                            <td className="px-6 py-4 text-zinc-400">
-                              {REASON_LABEL[report.reason] ?? report.reason}
+                            <td className="px-6 py-4">
+                              <p className="text-zinc-300 text-sm">{REASON_LABEL[report.reason] ?? report.reason}</p>
+                              {report.description && (
+                                <p className="text-zinc-600 text-[11px] mt-0.5 truncate max-w-[200px]" title={report.description}>
+                                  {report.description}
+                                </p>
+                              )}
                             </td>
                             <td className="px-6 py-4">
                               <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter ${badge.className}`}>

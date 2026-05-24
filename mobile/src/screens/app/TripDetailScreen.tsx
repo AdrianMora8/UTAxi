@@ -738,12 +738,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
   },
-  ruleText: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.text,
-    flex: 1,
-  },
   modalBtns: {
     flexDirection: 'row',
     gap: 10,

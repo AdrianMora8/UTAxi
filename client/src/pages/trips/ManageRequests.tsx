@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { requestsApi, type TripRequest } from '@/api/requests.api'
 import { tripsApi } from '@/api/trips.api'
+import { reportsApi, type ReportReason } from '@/api/reports.api'
 import RatingModal from '@/components/ratings/RatingModal'
 import { useNotifications } from '@/hooks/useNotifications'
 
@@ -13,6 +14,9 @@ export default function ManageRequests() {
   const navigate = useNavigate()
   const qc = useQueryClient()
   const [ratingTarget, setRatingTarget] = useState<{ requestId: string; driverName: string } | null>(null)
+  const [reportTarget, setReportTarget] = useState<{ passengerId: string; passengerName: string } | null>(null)
+  const [reportReason, setReportReason] = useState<ReportReason>('INAPPROPRIATE_BEHAVIOR')
+  const [reportDesc, setReportDesc] = useState('')
   const [toast, setToast] = useState<string | null>(null)
   const [boardingOpen, setBoardingOpen] = useState(false)
   const [absentIds, setAbsentIds] = useState<Set<string>>(new Set())
@@ -76,6 +80,23 @@ export default function ManageRequests() {
     mutationFn: ({ id, arrived }: { id: string; arrived: boolean }) =>
       requestsApi.markArrival(id, arrived),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-requests', tripId] }),
+  })
+
+  const reportMut = useMutation({
+    mutationFn: ({ passengerId, reason, description }: { passengerId: string; reason: ReportReason; description: string }) => {
+      const fd = new FormData()
+      fd.append('reportedId', passengerId)
+      fd.append('reason', reason)
+      fd.append('description', description)
+      return reportsApi.createReport(fd)
+    },
+    onSuccess: () => {
+      setReportTarget(null)
+      setReportDesc('')
+      setReportReason('INAPPROPRIATE_BEHAVIOR')
+      showToast('Reporte enviado correctamente')
+    },
+    onError: () => showToast('Error al enviar el reporte'),
   })
 
   const trip = tripData
@@ -423,6 +444,13 @@ export default function ManageRequests() {
                             {req.rating!.score}/5
                           </div>
                         )}
+                        <button
+                          onClick={() => setReportTarget({ passengerId: p.id, passengerName: p.fullName })}
+                          className="flex items-center gap-1 py-2 px-3 rounded-lg text-xs font-bold border border-error/20 text-error hover:bg-error/10 transition-colors"
+                          title="Reportar pasajero"
+                        >
+                          <span className="material-symbols-outlined text-sm">flag</span>
+                        </button>
                       </div>
                     </div>
                   )
@@ -590,6 +618,77 @@ export default function ManageRequests() {
           driverName={ratingTarget.driverName}
           onClose={() => setRatingTarget(null)}
         />
+      )}
+
+      {reportTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-surface-container-low w-full max-w-md rounded-2xl p-6 shadow-2xl border border-white/5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-headline font-bold text-white text-lg flex items-center gap-2">
+                <span className="material-symbols-outlined text-error">flag</span>
+                Reportar pasajero
+              </h3>
+              <button onClick={() => setReportTarget(null)} className="text-on-surface-variant hover:text-white">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <p className="text-sm text-on-surface-variant mb-5">
+              Reporte sobre <strong className="text-white">{reportTarget.passengerName}</strong>
+            </p>
+
+            <div className="space-y-2 mb-4">
+              {([
+                ['INAPPROPRIATE_BEHAVIOR', 'Comportamiento inapropiado'],
+                ['NO_SHOW', 'No se presentó'],
+                ['HARASSMENT', 'Acoso'],
+                ['FRAUD', 'Fraude'],
+                ['OTHER', 'Otro'],
+              ] as [ReportReason, string][]).map(([value, label]) => (
+                <button
+                  key={value}
+                  onClick={() => setReportReason(value)}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all border ${
+                    reportReason === value
+                      ? 'bg-error/15 border-error/40 text-error'
+                      : 'bg-surface-container border-white/5 text-on-surface-variant hover:border-white/20'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              value={reportDesc}
+              onChange={(e) => setReportDesc(e.target.value)}
+              placeholder="Describe lo que ocurrió (mínimo 10 caracteres)..."
+              rows={3}
+              className="w-full bg-surface-container border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-on-surface-variant/50 resize-none focus:outline-none focus:border-primary/40 mb-4"
+            />
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setReportTarget(null)}
+                className="flex-1 py-3 rounded-xl text-on-surface-variant border border-white/10 hover:text-white transition-colors text-sm font-bold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (reportDesc.trim().length < 10) {
+                    showToast('La descripción debe tener al menos 10 caracteres')
+                    return
+                  }
+                  reportMut.mutate({ passengerId: reportTarget.passengerId, reason: reportReason, description: reportDesc.trim() })
+                }}
+                disabled={reportMut.isPending}
+                className="flex-1 bg-error/20 hover:bg-error/30 border border-error/40 text-error font-headline font-bold py-3 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
+              >
+                {reportMut.isPending ? 'Enviando...' : 'Enviar Reporte'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <footer className="w-full py-12 px-8 bg-[#0e0e0e] border-t border-white/5">

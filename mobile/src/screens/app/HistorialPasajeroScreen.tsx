@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +18,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HistorialStackParamList } from '../../navigation/MainTabs';
 import { colors, fonts } from '../../theme';
 import { requestsApi, TripRequest } from '../../api/requests.api';
+import { reportsApi, type ReportReason } from '../../api/reports.api';
 import RatingModal from '../../components/RatingModal';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
@@ -63,11 +66,13 @@ function HistorialCard({
   onRate,
   onRetry,
   retrying,
+  onReport,
 }: {
   item: TripRequest;
   onRate: (item: TripRequest) => void;
   onRetry: (tripId: string) => void;
   retrying: boolean;
+  onReport: (driverId: string, driverName: string) => void;
 }) {
   const trip = item.trip;
   const driver = trip?.driver;
@@ -158,6 +163,16 @@ function HistorialCard({
             </View>
           )}
 
+          {isCompleted && driver && (
+            <TouchableOpacity
+              style={styles.reportBtn}
+              onPress={() => onReport(driver.id, driver.fullName)}
+            >
+              <Ionicons name="flag-outline" size={13} color="#ff6b4a" />
+              <Text style={styles.reportBtnText}>Reportar</Text>
+            </TouchableOpacity>
+          )}
+
           {canRetry && (
             <TouchableOpacity
               style={styles.retryBtn}
@@ -188,6 +203,9 @@ type Props = NativeStackScreenProps<HistorialStackParamList, 'HistorialPasajero'
 export default function HistorialPasajeroScreen(_props: Props) {
   const [ratingTarget, setRatingTarget] = useState<TripRequest | null>(null);
   const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [reportTarget, setReportTarget] = useState<{ driverId: string; driverName: string } | null>(null);
+  const [reportReason, setReportReason] = useState<ReportReason>('INAPPROPRIATE_BEHAVIOR');
+  const [reportDesc, setReportDesc] = useState('');
   const queryClient = useQueryClient();
 
   const { data, isLoading, isError, refetch, isRefetching } = useQuery({
@@ -207,6 +225,20 @@ export default function HistorialPasajeroScreen(_props: Props) {
     onError: (err: any) => {
       const msg = err?.response?.data?.error || 'No se pudo reenviar la solicitud';
       Alert.alert('Error', msg);
+    },
+  });
+
+  const { mutate: submitReport, isPending: reportingPending } = useMutation({
+    mutationFn: (data: { reportedId: string; reason: ReportReason; description: string }) =>
+      reportsApi.createReport(data),
+    onSuccess: () => {
+      setReportTarget(null);
+      setReportDesc('');
+      setReportReason('INAPPROPRIATE_BEHAVIOR');
+      Alert.alert('Reporte enviado', 'El reporte fue enviado correctamente.');
+    },
+    onError: (err: any) => {
+      Alert.alert('Error', err?.response?.data?.error || 'No se pudo enviar el reporte');
     },
   });
 
@@ -243,6 +275,7 @@ export default function HistorialPasajeroScreen(_props: Props) {
               onRate={setRatingTarget}
               onRetry={retryRequest}
               retrying={retryingId === item.tripId}
+              onReport={(driverId, driverName) => setReportTarget({ driverId, driverName })}
             />
           )}
           ListEmptyComponent={
@@ -277,6 +310,94 @@ export default function HistorialPasajeroScreen(_props: Props) {
           }}
         />
       )}
+
+      <Modal
+        visible={!!reportTarget}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setReportTarget(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Ionicons name="flag" size={20} color="#ff6b4a" />
+              <Text style={styles.modalTitle}>Reportar conductor</Text>
+              <TouchableOpacity onPress={() => setReportTarget(null)} style={styles.modalClose}>
+                <Ionicons name="close" size={22} color={colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+            {reportTarget && (
+              <Text style={styles.reportTargetName}>{reportTarget.driverName}</Text>
+            )}
+            <Text style={styles.modalSectionLabel}>MOTIVO</Text>
+            {([
+              ['INAPPROPRIATE_BEHAVIOR', 'Comportamiento inapropiado'],
+              ['UNSAFE_DRIVING', 'Conducción peligrosa'],
+              ['HARASSMENT', 'Acoso'],
+              ['FRAUD', 'Fraude'],
+              ['OTHER', 'Otro'],
+            ] as [ReportReason, string][]).map(([value, label]) => (
+              <TouchableOpacity
+                key={value}
+                style={[styles.reasonOption, reportReason === value && styles.reasonSelected]}
+                onPress={() => setReportReason(value)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={reportReason === value ? 'radio-button-on' : 'radio-button-off'}
+                  size={18}
+                  color={reportReason === value ? '#ff6b4a' : colors.textDim}
+                />
+                <Text style={[styles.reasonText, reportReason === value && styles.reasonTextSelected]}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+            <Text style={[styles.modalSectionLabel, { marginTop: 16 }]}>DESCRIPCIÓN</Text>
+            <TextInput
+              value={reportDesc}
+              onChangeText={setReportDesc}
+              placeholder="Describe lo que ocurrió (mínimo 10 caracteres)..."
+              placeholderTextColor={colors.textDim}
+              multiline
+              numberOfLines={3}
+              style={styles.reportInput}
+              textAlignVertical="top"
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.cancelModalBtn}
+                onPress={() => setReportTarget(null)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.cancelModalBtnText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.submitReportBtn, reportingPending && { opacity: 0.5 }]}
+                onPress={() => {
+                  if (reportDesc.trim().length < 10) {
+                    Alert.alert('Descripción muy corta', 'Escribe al menos 10 caracteres.');
+                    return;
+                  }
+                  submitReport({
+                    reportedId: reportTarget!.driverId,
+                    reason: reportReason,
+                    description: reportDesc.trim(),
+                  });
+                }}
+                disabled={reportingPending}
+                activeOpacity={0.8}
+              >
+                {reportingPending
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Text style={styles.submitReportText}>Enviar Reporte</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -525,5 +646,129 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#888',
     letterSpacing: 0.5,
+  },
+  reportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ff6b4a33',
+    backgroundColor: '#ff6b4a0d',
+  },
+  reportBtnText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: '#ff6b4a',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: colors.surfaceContainer,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 36,
+    gap: 4,
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.surfaceHigh,
+    alignSelf: 'center',
+    marginBottom: 12,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  modalTitle: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    flex: 1,
+  },
+  modalClose: { padding: 4 },
+  reportTargetName: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginBottom: 16,
+  },
+  modalSectionLabel: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 11,
+    color: colors.textDim,
+    letterSpacing: 2,
+    marginBottom: 8,
+  },
+  reasonOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.surfaceHigh,
+    marginBottom: 6,
+  },
+  reasonSelected: {
+    borderColor: '#ff6b4a55',
+    backgroundColor: '#ff6b4a10',
+  },
+  reasonText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  reasonTextSelected: { color: '#ff6b4a' },
+  reportInput: {
+    backgroundColor: colors.surfaceHigh,
+    borderRadius: 12,
+    padding: 12,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.text,
+    minHeight: 80,
+    borderWidth: 1,
+    borderColor: colors.surfaceHigh,
+    marginBottom: 20,
+    marginTop: 4,
+  },
+  modalActions: { flexDirection: 'row', gap: 12 },
+  cancelModalBtn: {
+    flex: 1,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: colors.surfaceHigh,
+  },
+  cancelModalBtnText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  submitReportBtn: {
+    flex: 2,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+    backgroundColor: '#ff6b4a',
+  },
+  submitReportText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: '#fff',
   },
 });

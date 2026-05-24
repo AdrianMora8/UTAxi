@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { adminApi, type AdminReport, type AdminUser, type TripEvent, type TripEventType } from '@/api/admin.api'
+import { adminApi, type AdminReport, type AdminUser, type AdminUserDetail, type AdminTrip, type TripEvent, type TripEventType } from '@/api/admin.api'
 import { useAuthStore } from '@/store/authStore'
 import { useNavigate } from 'react-router-dom'
 
-type Tab = 'reports' | 'users' | 'events'
+type Tab = 'reports' | 'users' | 'trips' | 'events'
 
 const REPORT_STATUS: Record<string, { label: string; className: string }> = {
   OPEN:     { label: 'ABIERTO',  className: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' },
@@ -137,11 +137,215 @@ function ReviewModal({ report, onClose }: { report: AdminReport; onClose: () => 
   )
 }
 
+// ── Suspend Modal ──────────────────────────────────────────────────
+function SuspendModal({ user, onClose }: { user: AdminUser; onClose: () => void }) {
+  const [until, setUntil] = useState('')
+  const qc = useQueryClient()
+  const today = new Date().toISOString().split('T')[0]
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      adminApi.updateUserStatus(user.id, 'SUSPENDED', until ? new Date(until).toISOString() : undefined),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-users'] })
+      qc.invalidateQueries({ queryKey: ['admin-stats'] })
+      onClose()
+    },
+  })
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="w-full max-w-sm bg-surface-container-low rounded-2xl shadow-2xl p-6">
+        <h2 className="font-headline text-lg font-bold text-white mb-1">Suspender Usuario</h2>
+        <p className="text-xs text-on-surface-variant mb-5">
+          Suspendiendo a <span className="text-white font-bold">{user.fullName}</span>
+        </p>
+
+        <div className="space-y-3 mb-6">
+          <label className="text-xs font-bold uppercase tracking-widest text-on-surface-variant block">
+            Suspender hasta (opcional — dejar vacío = indefinido)
+          </label>
+          <input
+            type="date"
+            value={until}
+            min={today}
+            onChange={(e) => setUntil(e.target.value)}
+            className="w-full px-4 py-3 bg-surface-container-highest rounded-xl text-white text-sm outline-none focus:ring-1 focus:ring-error/40 [color-scheme:dark]"
+          />
+          {until && (
+            <p className="text-xs text-yellow-400">
+              El acceso se restaurará automáticamente el {new Date(until + 'T00:00:00').toLocaleDateString('es-EC')}
+            </p>
+          )}
+          {!until && (
+            <p className="text-xs text-zinc-500">Sin fecha: suspensión indefinida hasta revisión manual.</p>
+          )}
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 rounded-xl border border-white/10 text-on-surface-variant font-bold text-sm hover:text-white transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+            className="flex-1 py-3 rounded-xl bg-error/20 border border-error/30 text-error font-bold text-sm hover:bg-error/30 transition-all disabled:opacity-50"
+          >
+            {mutation.isPending ? 'Procesando...' : 'Suspender'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── User Detail Modal ──────────────────────────────────────────────
+function UserDetailModal({ userId, onClose }: { userId: string; onClose: () => void }) {
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-user-detail', userId],
+    queryFn: () => adminApi.getUserDetail(userId).then((r) => r.data.user),
+  })
+
+  const REASON_SHORT: Record<string, string> = {
+    INAPPROPRIATE_BEHAVIOR: 'Comportamiento',
+    NO_SHOW: 'No se presentó',
+    FRAUD: 'Fraude',
+    UNSAFE_DRIVING: 'Conducción',
+    HARASSMENT: 'Hostigamiento',
+    OTHER: 'Otro',
+  }
+
+  const TRIP_STATUS_COLOR: Record<string, string> = {
+    SCHEDULED: 'text-primary', IN_PROGRESS: 'text-tertiary',
+    COMPLETED: 'text-secondary', CANCELLED: 'text-error',
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="w-full max-w-2xl bg-surface-container-low rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="p-6 border-b border-white/5 flex items-center justify-between">
+          <h2 className="font-headline text-lg font-bold text-white">Detalle de Usuario</h2>
+          <button onClick={onClose} className="text-on-surface-variant hover:text-white">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        {isLoading ? (
+          <div className="p-8 space-y-3">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-10 bg-surface-container animate-pulse rounded-xl" />
+            ))}
+          </div>
+        ) : data ? (
+          <div className="overflow-y-auto flex-1 p-6 space-y-6">
+            {/* Header */}
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 rounded-xl bg-surface-container-highest flex items-center justify-center font-bold text-xl text-primary flex-shrink-0">
+                {data.fullName.split(' ').slice(0, 2).map((n: string) => n[0]).join('').toUpperCase()}
+              </div>
+              <div className="flex-1">
+                <h3 className="text-xl font-bold text-white">{data.fullName}</h3>
+                <p className="text-sm text-on-surface-variant">{data.email}</p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${USER_STATUS[data.status]?.className}`}>
+                    {USER_STATUS[data.status]?.label}
+                  </span>
+                  {data.suspendedUntil && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-yellow-500/10 text-yellow-400 border border-yellow-500/20">
+                      hasta {new Date(data.suspendedUntil).toLocaleDateString('es-EC')}
+                    </span>
+                  )}
+                  {data.vehicle && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary/10 text-primary border border-primary/20">
+                      Conductor · {data.vehicle.plateNumber}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="text-right text-xs text-zinc-500">
+                <p>★ {Number(data.reputationScore).toFixed(2)}</p>
+                <p>{data._count.tripsAsDriver} viajes conductor</p>
+                <p>{data._count.tripRequests} como pasajero</p>
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: 'Reportes recibidos', value: data._count.reportsReceived, color: 'text-error' },
+                { label: 'Reportes hechos', value: data._count.reportsFiled, color: 'text-yellow-400' },
+                { label: 'Viajes conductor', value: data._count.tripsAsDriver, color: 'text-primary' },
+                { label: 'Como pasajero', value: data._count.tripRequests, color: 'text-tertiary' },
+              ].map((s) => (
+                <div key={s.label} className="bg-surface-container p-3 rounded-xl text-center">
+                  <p className={`text-2xl font-headline font-bold ${s.color}`}>{s.value}</p>
+                  <p className="text-[10px] text-zinc-500 mt-1">{s.label}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Last trips */}
+            {data.tripsAsDriver.length > 0 && (
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">Últimos viajes publicados</h4>
+                <div className="space-y-2">
+                  {data.tripsAsDriver.map((t: AdminUserDetail['tripsAsDriver'][0]) => (
+                    <div key={t.id} className="flex items-center justify-between bg-surface-container px-4 py-2 rounded-lg">
+                      <p className="text-sm text-white">{t.originZone} → {t.destinationZone}</p>
+                      <span className={`text-xs font-bold ${TRIP_STATUS_COLOR[t.status] ?? 'text-zinc-400'}`}>{t.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Last reports received */}
+            {data.reportsReceived.length > 0 && (
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">Reportes recibidos recientes</h4>
+                <div className="space-y-2">
+                  {data.reportsReceived.map((r: AdminUserDetail['reportsReceived'][0]) => (
+                    <div key={r.id} className="flex items-start gap-3 bg-surface-container px-4 py-3 rounded-lg">
+                      <span className="text-xs font-bold text-error bg-error/10 px-2 py-0.5 rounded-full mt-0.5">
+                        {REASON_SHORT[r.reason] ?? r.reason}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-white truncate">{r.description}</p>
+                        <p className="text-[10px] text-zinc-600">por {r.reporter.fullName}</p>
+                      </div>
+                      <span className={`text-[10px] font-bold flex-shrink-0 ${r.status === 'OPEN' ? 'text-yellow-400' : 'text-zinc-500'}`}>
+                        {r.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
 export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>('reports')
   const [reviewTarget, setReviewTarget] = useState<AdminReport | null>(null)
   const [userSearch, setUserSearch] = useState('')
   const [eventTypeFilter, setEventTypeFilter] = useState<TripEventType | ''>('')
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [suspendTarget, setSuspendTarget] = useState<AdminUser | null>(null)
+  const [tripStatusFilter, setTripStatusFilter] = useState('')
+  const [cancelTripTarget, setCancelTripTarget] = useState<AdminTrip | null>(null)
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const clearAuth = useAuthStore((s) => s.clearAuth)
@@ -173,12 +377,28 @@ export default function AdminDashboard() {
     refetchInterval: 15_000,
   })
 
+  const { data: tripsData, isLoading: loadingTrips } = useQuery({
+    queryKey: ['admin-trips', tripStatusFilter],
+    queryFn: () =>
+      adminApi.getTrips({ status: tripStatusFilter || undefined, limit: 20 }).then((r) => r.data),
+    enabled: tab === 'trips',
+  })
+
   const updateStatusMut = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: 'ACTIVE' | 'WARNED' | 'SUSPENDED' }) =>
+    mutationFn: ({ id, status }: { id: string; status: 'ACTIVE' | 'WARNED' }) =>
       adminApi.updateUserStatus(id, status),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-users'] })
       qc.invalidateQueries({ queryKey: ['admin-stats'] })
+    },
+  })
+
+  const cancelTripMut = useMutation({
+    mutationFn: (id: string) => adminApi.cancelTrip(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-trips'] })
+      qc.invalidateQueries({ queryKey: ['admin-stats'] })
+      setCancelTripTarget(null)
     },
   })
 
@@ -220,9 +440,10 @@ export default function AdminDashboard() {
 
         <nav className="flex flex-col gap-1 grow">
           {([
-            { id: 'reports', icon: 'flag', label: 'Reportes', badge: stats?.reports.open },
+            { id: 'reports', icon: 'flag',          label: 'Reportes',      badge: stats?.reports.open },
             { id: 'users',   icon: 'person_search', label: 'Usuarios' },
-            { id: 'events',  icon: 'history', label: 'Trazabilidad' },
+            { id: 'trips',   icon: 'directions_car',label: 'Viajes' },
+            { id: 'events',  icon: 'history',       label: 'Trazabilidad' },
           ] as const).map((item) => (
             <button
               key={item.id}
@@ -296,6 +517,18 @@ export default function AdminDashboard() {
               />
               <span className="material-symbols-outlined absolute right-4 top-2.5 text-zinc-500">search</span>
             </div>
+          )}
+          {tab === 'trips' && (
+            <select
+              value={tripStatusFilter}
+              onChange={(e) => setTripStatusFilter(e.target.value)}
+              className="bg-surface-container-highest border-none rounded-xl px-4 py-2.5 text-sm text-white focus:ring-1 focus:ring-primary/40 outline-none"
+            >
+              <option value="">Todos los estados</option>
+              {['SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
           )}
           {tab === 'events' && (
             <select
@@ -521,6 +754,12 @@ export default function AdminDashboard() {
                             </td>
                             <td className="px-6 py-4 text-right rounded-r-xl">
                               <div className="flex justify-end gap-2">
+                                <button
+                                  onClick={() => setSelectedUserId(u.id)}
+                                  className="px-3 py-1.5 bg-surface-container-highest text-on-surface-variant text-xs font-bold rounded-lg hover:text-white transition-all"
+                                >
+                                  Ver
+                                </button>
                                 {u.status !== 'ACTIVE' && (
                                   <button
                                     onClick={() => updateStatusMut.mutate({ id: u.id, status: 'ACTIVE' })}
@@ -541,8 +780,7 @@ export default function AdminDashboard() {
                                 )}
                                 {u.status !== 'SUSPENDED' && (
                                   <button
-                                    onClick={() => updateStatusMut.mutate({ id: u.id, status: 'SUSPENDED' })}
-                                    disabled={updateStatusMut.isPending}
+                                    onClick={() => setSuspendTarget(u)}
                                     className="px-3 py-1.5 bg-error/10 text-error text-xs font-bold rounded-lg hover:bg-error/20 transition-all"
                                   >
                                     Suspender
@@ -560,6 +798,115 @@ export default function AdminDashboard() {
 
               <div className="px-8 py-4 border-t border-white/5 text-xs text-zinc-500">
                 Mostrando {usersData?.users.length ?? 0} de {usersData?.total ?? 0} usuarios
+              </div>
+            </section>
+          )}
+
+          {/* ── Tab: Trips ── */}
+          {tab === 'trips' && (
+            <section className="bg-surface-container-low rounded-2xl overflow-hidden">
+              <div className="px-8 py-4 border-b border-white/5 flex items-center justify-between">
+                <h3 className="font-headline font-bold text-white uppercase tracking-widest text-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">directions_car</span>
+                  Gestión de Viajes
+                </h3>
+                <span className="text-xs text-on-surface-variant">{tripsData?.total ?? 0} viajes</span>
+              </div>
+
+              {loadingTrips ? (
+                <div className="p-8 space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="h-14 bg-surface-container animate-pulse rounded-xl" />
+                  ))}
+                </div>
+              ) : (tripsData?.trips.length ?? 0) === 0 ? (
+                <div className="py-24 flex flex-col items-center justify-center gap-4">
+                  <span className="material-symbols-outlined text-5xl text-zinc-600">directions_car</span>
+                  <p className="text-on-surface-variant">No hay viajes con ese filtro.</p>
+                </div>
+              ) : (
+                <div className="p-4 overflow-x-auto">
+                  <table className="w-full text-left border-separate border-spacing-y-2">
+                    <thead>
+                      <tr className="text-zinc-500 text-[10px] uppercase tracking-widest font-label">
+                        <th className="px-6 py-3 font-medium">Ruta</th>
+                        <th className="px-6 py-3 font-medium">Conductor</th>
+                        <th className="px-6 py-3 font-medium">Salida</th>
+                        <th className="px-6 py-3 font-medium">Cupos</th>
+                        <th className="px-6 py-3 font-medium">Estado</th>
+                        <th className="px-6 py-3 font-medium text-right">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm">
+                      {tripsData?.trips.map((trip: AdminTrip) => {
+                        const statusColor: Record<string, string> = {
+                          SCHEDULED: 'bg-primary/10 text-primary border-primary/20',
+                          IN_PROGRESS: 'bg-tertiary/10 text-tertiary border-tertiary/20',
+                          COMPLETED: 'bg-secondary/10 text-secondary border-secondary/20',
+                          CANCELLED: 'bg-error/10 text-error border-error/20',
+                        }
+                        const isCancellable = ['SCHEDULED', 'IN_PROGRESS'].includes(trip.status)
+                        return (
+                          <tr key={trip.id} className={`bg-surface-container hover:bg-surface-container-high transition-colors ${trip.status === 'CANCELLED' ? 'opacity-50' : ''}`}>
+                            <td className="px-6 py-4 rounded-l-xl">
+                              <p className="text-white font-medium text-sm">{trip.originZone}</p>
+                              <p className="text-zinc-400 text-xs">→ {trip.destinationZone}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                              <p className="text-white text-sm">{trip.driver.fullName}</p>
+                              <p className="text-zinc-500 text-xs">{trip.driver.email}</p>
+                            </td>
+                            <td className="px-6 py-4 text-zinc-400 text-xs">
+                              {new Date(trip.departureTime).toLocaleString('es-EC', {
+                                dateStyle: 'short', timeStyle: 'short',
+                              })}
+                            </td>
+                            <td className="px-6 py-4 text-white font-bold">
+                              {trip.availableSeats}/{trip.totalSeats}
+                              <span className="text-[10px] text-zinc-500 ml-1">({trip._count.requests} sol.)</span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusColor[trip.status] ?? ''}`}>
+                                {trip.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right rounded-r-xl">
+                              {isCancellable && (
+                                cancelTripTarget?.id === trip.id ? (
+                                  <div className="flex justify-end gap-2">
+                                    <button
+                                      onClick={() => cancelTripMut.mutate(trip.id)}
+                                      disabled={cancelTripMut.isPending}
+                                      className="px-3 py-1.5 bg-error/20 border border-error/30 text-error text-xs font-bold rounded-lg hover:bg-error/30 transition-all disabled:opacity-50"
+                                    >
+                                      {cancelTripMut.isPending ? '...' : 'Confirmar'}
+                                    </button>
+                                    <button
+                                      onClick={() => setCancelTripTarget(null)}
+                                      className="px-3 py-1.5 text-zinc-500 hover:text-white text-xs font-bold rounded-lg transition-colors"
+                                    >
+                                      No
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => setCancelTripTarget(trip)}
+                                    className="px-3 py-1.5 bg-error/10 text-error text-xs font-bold rounded-lg hover:bg-error/20 transition-all"
+                                  >
+                                    Cancelar
+                                  </button>
+                                )
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              <div className="px-8 py-4 border-t border-white/5 text-xs text-zinc-500">
+                Mostrando {tripsData?.trips.length ?? 0} de {tripsData?.total ?? 0} viajes
               </div>
             </section>
           )}
@@ -657,6 +1004,12 @@ export default function AdminDashboard() {
 
       {reviewTarget && (
         <ReviewModal report={reviewTarget} onClose={() => setReviewTarget(null)} />
+      )}
+      {suspendTarget && (
+        <SuspendModal user={suspendTarget} onClose={() => setSuspendTarget(null)} />
+      )}
+      {selectedUserId && (
+        <UserDetailModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
       )}
     </div>
   )

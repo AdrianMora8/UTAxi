@@ -47,10 +47,39 @@ export async function getUsers(req: Request, res: Response) {
   res.json(result);
 }
 
+const suspendSchema = z.object({
+  status: z.nativeEnum(UserStatus),
+  suspendedUntil: z.string().datetime().optional(),
+});
+
 export async function updateUserStatus(req: Request, res: Response) {
-  const { status } = updateUserStatusSchema.parse(req.body);
-  const user = await svc.updateUserStatus(String(req.params.id), status);
+  const { status, suspendedUntil } = suspendSchema.parse(req.body);
+  const user = await svc.updateUserStatus(
+    String(req.params.id),
+    status,
+    suspendedUntil ? new Date(suspendedUntil) : undefined,
+  );
   res.json({ user });
+}
+
+export async function getUserDetail(req: Request, res: Response) {
+  const user = await svc.getUserDetail(String(req.params.id));
+  res.json({ user });
+}
+
+export async function getAdminTrips(req: Request, res: Response) {
+  const { status, page, limit } = req.query;
+  const result = await svc.getTrips({
+    status: status as string,
+    page: page ? Number(page) : 1,
+    limit: limit ? Number(limit) : 15,
+  });
+  res.json(result);
+}
+
+export async function cancelAdminTrip(req: Request, res: Response) {
+  const result = await svc.cancelTrip(String(req.params.id), req.user!.id);
+  res.json(result);
 }
 
 export async function getStats(_req: Request, res: Response) {

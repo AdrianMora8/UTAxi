@@ -18,6 +18,32 @@ export interface AdminReport extends Report {
   reported: { id: string; fullName: string }
 }
 
+export interface AdminUserDetail extends AdminUser {
+  suspendedUntil: string | null
+  phone: string | null
+  neighborhood: string | null
+  emailVerified: boolean
+  vehicle: { brand: string; model: string; year: number; plateNumber: string; color: string } | null
+  tripsAsDriver: { id: string; originZone: string; destinationZone: string; departureTime: string; status: string }[]
+  ratingsReceived: { score: number; comment: string | null; raterRole: string; createdAt: string }[]
+  reportsReceived: { id: string; reason: string; description: string; status: string; createdAt: string; reporter: { fullName: string } }[]
+  _count: { reportsFiled: number; reportsReceived: number; tripsAsDriver: number; tripRequests: number }
+}
+
+export interface AdminTrip {
+  id: string
+  originZone: string
+  destinationZone: string
+  departureTime: string
+  totalSeats: number
+  availableSeats: number
+  pricePerSeat: number
+  status: string
+  createdAt: string
+  driver: { id: string; fullName: string; email: string; status: string }
+  _count: { requests: number }
+}
+
 export type TripEventType =
   | 'TRIP_PUBLISHED'
   | 'TRIP_STARTED'
@@ -76,4 +102,16 @@ export const adminApi = {
       '/admin/events',
       { params },
     ),
+
+  getUserDetail: (id: string) =>
+    apiClient.get<{ user: AdminUserDetail }>(`/admin/users/${id}`),
+
+  getTrips: (params?: { status?: string; page?: number; limit?: number }) =>
+    apiClient.get<{ trips: AdminTrip[]; total: number; page: number; limit: number }>(
+      '/admin/trips',
+      { params },
+    ),
+
+  cancelTrip: (id: string) =>
+    apiClient.delete<{ cancelled: boolean; refundedPassengers: number }>(`/admin/trips/${id}`),
 }

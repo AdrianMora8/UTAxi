@@ -2,8 +2,9 @@ import { Router } from 'express';
 import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
 import {
   getReports, getReportById, reviewReport,
-  getUsers, updateUserStatus,
+  getUsers, updateUserStatus, getUserDetail,
   getStats, getEvents,
+  getAdminTrips, cancelAdminTrip,
 } from '../controllers/admin.controller';
 
 export const adminRouter = Router();
@@ -19,3 +20,8 @@ adminRouter.patch('/users/:id/status', updateUserStatus);
 
 adminRouter.get('/stats', getStats);
 adminRouter.get('/events', getEvents);
+
+adminRouter.get('/users/:id', getUserDetail);
+
+adminRouter.get('/trips', getAdminTrips);
+adminRouter.delete('/trips/:id', cancelAdminTrip);

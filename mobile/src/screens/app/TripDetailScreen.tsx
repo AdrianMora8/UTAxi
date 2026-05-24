@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,6 +18,7 @@ import type { BuscarStackParamList } from '../../navigation/MainTabs';
 import { colors, fonts } from '../../theme';
 import { tripsApi } from '../../api/trips.api';
 import { requestsApi } from '../../api/requests.api';
+import { reportsApi, type ReportReason } from '../../api/reports.api';
 import { useAuthStore } from '../../store/authStore';
 
 type Props = NativeStackScreenProps<BuscarStackParamList, 'TripDetail'>;
@@ -50,6 +52,11 @@ export default function TripDetailScreen({ navigation, route }: Props) {
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
   const [requesting, setRequesting] = useState(false);
+  const [showSafetyModal, setShowSafetyModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedReason, setSelectedReason] = useState<ReportReason>('INAPPROPRIATE_BEHAVIOR');
+  const [reportDesc, setReportDesc] = useState('');
+  const [submittingReport, setSubmittingReport] = useState(false);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['trip', tripId],
@@ -79,14 +86,50 @@ export default function TripDetailScreen({ navigation, route }: Props) {
       Alert.alert('No disponible', 'No puedes solicitar tu propio viaje');
       return;
     }
-    Alert.alert(
-      'Confirmar solicitud',
-      `¿Confirmas tu solicitud para el viaje de ${data.driver.fullName}?\n${data.originZone} → ${data.destinationZone}`,
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Solicitar', onPress: () => sendRequest() },
-      ]
-    );
+    setShowSafetyModal(true);
+  }
+
+  async function handleAcceptSafety() {
+    if (!data) return;
+    try {
+      setRequesting(true);
+      await tripsApi.safetyAck(tripId);
+      await requestsApi.createRequest(tripId);
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      setShowSafetyModal(false);
+      Alert.alert('¡Solicitud enviada!', 'El conductor revisará tu solicitud pronto.', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (err: any) {
+      setShowSafetyModal(false);
+      const msg = err?.response?.data?.error || err?.response?.data?.message || 'No se pudo enviar la solicitud';
+      Alert.alert('Error', msg);
+    } finally {
+      setRequesting(false);
+    }
+  }
+
+  async function handleSubmitReport() {
+    if (!data || reportDesc.trim().length < 10) {
+      Alert.alert('Descripción requerida', 'Agrega al menos 10 caracteres de descripción.');
+      return;
+    }
+    try {
+      setSubmittingReport(true);
+      await reportsApi.createReport({
+        reportedId: data.driverId,
+        reason: selectedReason,
+        description: reportDesc.trim(),
+      });
+      setShowReportModal(false);
+      setReportDesc('');
+      Alert.alert('Reporte enviado', 'El equipo de administración revisará tu reporte.');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Error al enviar el reporte';
+      Alert.alert('Error', msg);
+    } finally {
+      setSubmittingReport(false);
+    }
   }
 
   const rules = data?.rules
@@ -280,7 +323,118 @@ export default function TripDetailScreen({ navigation, route }: Props) {
             )}
           </LinearGradient>
         </TouchableOpacity>
+
+        {!isOwnTrip && (
+          <TouchableOpacity onPress={() => setShowReportModal(true)} style={styles.reportBtn}>
+            <Ionicons name="flag-outline" size={15} color={colors.textMuted} />
+            <Text style={styles.reportBtnText}>Reportar conductor</Text>
+          </TouchableOpacity>
+        )}
       </View>
+
+      {/* ── Safety Rules Modal (RF9) ── */}
+      <Modal visible={showSafetyModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalHeader}>
+              <Ionicons name="shield-checkmark-outline" size={22} color={colors.primary} />
+              <Text style={styles.modalTitle}>Reglas de Convivencia U-Ride</Text>
+            </View>
+            <Text style={styles.modalSub}>Acepta las reglas antes de unirte al viaje</Text>
+
+            {[
+              { icon: 'time-outline',        text: 'Puntualidad: llega a tiempo al punto de encuentro.' },
+              { icon: 'happy-outline',       text: 'Respeto: trato cordial con conductor y pasajeros.' },
+              { icon: 'lock-closed-outline', text: 'Privacidad: no compartas datos personales fuera de la app.' },
+              { icon: 'close-circle-outline',text: 'Cancelaciones: avisa con anticipación si no puedes ir.' },
+              { icon: 'chatbubble-outline',  text: 'Comunicación: usa la plataforma para coordinar.' },
+              { icon: 'people-outline',      text: 'Comunidad: somos estudiantes de la misma institución.' },
+            ].map((r, i) => (
+              <View key={i} style={styles.ruleRow}>
+                <Ionicons name={r.icon as any} size={16} color={colors.primary} style={{ marginTop: 2 }} />
+                <Text style={styles.ruleText}>{r.text}</Text>
+              </View>
+            ))}
+
+            <View style={styles.modalBtns}>
+              <TouchableOpacity onPress={() => setShowSafetyModal(false)} style={styles.modalBtnSecondary}>
+                <Text style={styles.modalBtnSecText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleAcceptSafety} disabled={requesting} style={styles.modalBtnPrimary}>
+                {requesting
+                  ? <ActivityIndicator color={colors.primaryDark} />
+                  : <Text style={styles.modalBtnPrimText}>Acepto y Solicito</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── Report Modal (RF10) ── */}
+      <Modal visible={showReportModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalHeader}>
+              <Ionicons name="flag-outline" size={22} color="#ef4444" />
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Reportar Conductor</Text>
+            </View>
+            <Text style={styles.modalSub}>Reportando a {data.driver.fullName}</Text>
+
+            <Text style={styles.fieldLabel}>Motivo</Text>
+            {([
+              ['INAPPROPRIATE_BEHAVIOR', 'Comportamiento inapropiado'],
+              ['NO_SHOW',               'No se presentó'],
+              ['FRAUD',                 'Fraude / pago'],
+              ['UNSAFE_DRIVING',        'Conducción peligrosa'],
+              ['HARASSMENT',            'Hostigamiento'],
+              ['OTHER',                 'Otro'],
+            ] as [ReportReason, string][]).map(([val, label]) => (
+              <TouchableOpacity
+                key={val}
+                onPress={() => setSelectedReason(val)}
+                style={[styles.reasonOpt, selectedReason === val && styles.reasonOptActive]}
+              >
+                <Text style={[styles.reasonText, selectedReason === val && { color: colors.primary }]}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+
+            <Text style={[styles.fieldLabel, { marginTop: 12 }]}>Descripción (min. 10 caracteres)</Text>
+            <View style={styles.descInput}>
+              <Text
+                style={{ color: reportDesc ? colors.text : colors.textMuted, fontSize: 13 }}
+                onPress={() => {/* tap to focus handled by TextInput */}}
+              />
+              {/* Use Alert-based input workaround */}
+              <TouchableOpacity
+                onPress={() => Alert.prompt
+                  ? Alert.prompt('Descripción', 'Describe lo ocurrido:', (text) => setReportDesc(text), 'plain-text', reportDesc)
+                  : undefined
+                }
+                style={{ flex: 1, minHeight: 60, justifyContent: 'center' }}
+              >
+                <Text style={{ color: reportDesc ? colors.text : colors.textMuted, fontSize: 13 }}>
+                  {reportDesc || 'Toca para escribir...'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBtns}>
+              <TouchableOpacity onPress={() => { setShowReportModal(false); setReportDesc(''); }} style={styles.modalBtnSecondary}>
+                <Text style={styles.modalBtnSecText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSubmitReport} disabled={submittingReport} style={[styles.modalBtnPrimary, { backgroundColor: '#ef444420', borderColor: '#ef4444' }]}>
+                {submittingReport
+                  ? <ActivityIndicator color="#ef4444" />
+                  : <Text style={[styles.modalBtnPrimText, { color: '#ef4444' }]}>Enviar Reporte</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -533,5 +687,125 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemiBold,
     fontSize: 17,
     color: colors.primaryDark,
+  },
+  reportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    marginTop: 4,
+  },
+  reportBtnText: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'flex-end',
+  },
+  modalBox: {
+    backgroundColor: colors.surfaceContainer,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    gap: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 2,
+  },
+  modalTitle: {
+    fontFamily: fonts.displayMedium,
+    fontSize: 17,
+    color: colors.text,
+  },
+  modalSub: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    marginBottom: 8,
+  },
+  ruleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: colors.surfaceHigh,
+    borderRadius: 10,
+    padding: 10,
+  },
+  ruleText: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.text,
+    flex: 1,
+  },
+  modalBtns: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 8,
+  },
+  modalBtnSecondary: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+  },
+  modalBtnSecText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  modalBtnPrimary: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    backgroundColor: `${colors.primary}20`,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    alignItems: 'center',
+  },
+  modalBtnPrimText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: colors.primary,
+  },
+  fieldLabel: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 11,
+    color: colors.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  reasonOpt: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    marginBottom: 4,
+  },
+  reasonOptActive: {
+    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}15`,
+  },
+  reasonText: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textDim,
+  },
+  descInput: {
+    backgroundColor: colors.surfaceHigh,
+    borderRadius: 10,
+    padding: 12,
+    minHeight: 70,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
   },
 });

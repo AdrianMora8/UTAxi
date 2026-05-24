@@ -97,6 +97,7 @@ model User {
   neighborhood         String?
   role                 Role       @default(STUDENT)
   status               UserStatus @default(ACTIVE)
+  suspendedUntil       DateTime?
   emailVerified        Boolean    @default(false)
   emailVerifyToken     String?
   emailVerifyExpiry    DateTime?

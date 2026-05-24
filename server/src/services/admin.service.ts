@@ -114,15 +114,124 @@ export class AdminService {
     return { users, total, page, limit };
   }
 
-  async updateUserStatus(userId: string, status: UserStatus) {
+  async updateUserStatus(userId: string, status: UserStatus, suspendedUntil?: Date) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new AppError(404, 'Usuario no encontrado');
 
+    const data: any = { status };
+    if (status === 'SUSPENDED' && suspendedUntil) {
+      data.suspendedUntil = suspendedUntil;
+    } else if (status !== 'SUSPENDED') {
+      data.suspendedUntil = null;
+    }
+
     return this.prisma.user.update({
       where: { id: userId },
-      data: { status },
-      select: { id: true, fullName: true, email: true, status: true },
+      data,
+      select: { id: true, fullName: true, email: true, status: true, suspendedUntil: true },
     });
+  }
+
+  async getUserDetail(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true, email: true, fullName: true, career: true, phone: true,
+        neighborhood: true, role: true, status: true, suspendedUntil: true,
+        reputationScore: true, totalTrips: true, emailVerified: true, createdAt: true,
+        vehicle: { select: { brand: true, model: true, year: true, plateNumber: true, color: true } },
+        tripsAsDriver: {
+          orderBy: { createdAt: 'desc' }, take: 5,
+          select: { id: true, originZone: true, destinationZone: true, departureTime: true, status: true },
+        },
+        ratingsReceived: {
+          orderBy: { createdAt: 'desc' }, take: 5,
+          select: { score: true, comment: true, raterRole: true, createdAt: true },
+        },
+        reportsReceived: {
+          orderBy: { createdAt: 'desc' }, take: 5,
+          select: {
+            id: true, reason: true, description: true, status: true, createdAt: true,
+            reporter: { select: { fullName: true } },
+          },
+        },
+        _count: { select: { reportsFiled: true, reportsReceived: true, tripsAsDriver: true, tripRequests: true } },
+      },
+    });
+    if (!user) throw new AppError(404, 'Usuario no encontrado');
+    return user;
+  }
+
+  // ─── Trips ──────────────────────────────────────────────────────────────────
+
+  async getTrips(filters: { status?: string; page?: number; limit?: number }) {
+    const page = filters.page ?? 1;
+    const limit = Math.min(filters.limit ?? 15, 50);
+    const skip = (page - 1) * limit;
+    const where: any = {};
+    if (filters.status) where.status = filters.status;
+
+    const [trips, total] = await this.prisma.$transaction([
+      this.prisma.trip.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          driver: { select: { id: true, fullName: true, email: true, status: true } },
+          _count: { select: { requests: true } },
+        },
+      }),
+      this.prisma.trip.count({ where }),
+    ]);
+
+    return { trips, total, page, limit };
+  }
+
+  async cancelTrip(tripId: string, adminId: string) {
+    const trip = await this.prisma.trip.findUnique({
+      where: { id: tripId },
+      include: {
+        requests: {
+          where: { status: { in: ['ACCEPTED', 'PENDING'] } },
+          include: { payment: true, passenger: { select: { id: true } } },
+        },
+      },
+    });
+    if (!trip) throw new AppError(404, 'Viaje no encontrado');
+    if (trip.status === 'CANCELLED') throw new AppError(400, 'El viaje ya está cancelado');
+    if (trip.status === 'COMPLETED') throw new AppError(400, 'No se puede cancelar un viaje completado');
+
+    const ops: any[] = [
+      this.prisma.trip.update({ where: { id: tripId }, data: { status: 'CANCELLED' } }),
+      this.prisma.tripRequest.updateMany({
+        where: { tripId, status: { in: ['ACCEPTED', 'PENDING'] } },
+        data: { status: 'CANCELLED' },
+      }),
+      this.prisma.tripEvent.create({
+        data: { tripId, type: 'TRIP_CANCELLED', actorId: adminId, metadata: { reason: 'admin_action' } as any },
+      }),
+    ];
+
+    const paidRequests = trip.requests.filter((r: any) => r.payment?.status === 'CONFIRMED');
+    for (const r of paidRequests) {
+      const amount = r.payment!.amount;
+      ops.push(
+        this.prisma.payment.update({ where: { id: r.payment!.id }, data: { status: 'REFUNDED' } }),
+        this.prisma.user.update({ where: { id: r.passenger.id }, data: { walletBalance: { increment: amount } } }),
+        this.prisma.user.update({ where: { id: trip.driverId }, data: { pendingBalance: { decrement: amount } } }),
+        this.prisma.walletTransaction.create({
+          data: {
+            userId: r.passenger.id, amount, type: 'CREDIT', concept: 'REFUND',
+            description: `Viaje cancelado por administrador: ${trip.originZone} → ${trip.destinationZone}`,
+            relatedRequestId: r.id,
+          },
+        }),
+      );
+    }
+
+    await this.prisma.$transaction(ops);
+    return { cancelled: true, refundedPassengers: paidRequests.length };
   }
 
   // ─── Estadísticas ──────────────────────────────────────────────────────────

@@ -90,4 +90,7 @@ export const tripsApi = {
 
   confirmSchedule: (id: string) =>
     apiClient.post<{ confirmed: boolean }>(`/trips/${id}/confirm-schedule`),
+
+  safetyAck: (id: string) =>
+    apiClient.post<{ acknowledged: boolean }>(`/trips/${id}/safety-ack`),
 };

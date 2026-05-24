@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { adminApi, type AdminReport, type AdminUser } from '@/api/admin.api'
+import { adminApi, type AdminReport, type AdminUser, type TripEvent, type TripEventType } from '@/api/admin.api'
 import { useAuthStore } from '@/store/authStore'
 import { useNavigate } from 'react-router-dom'
 
-type Tab = 'reports' | 'users'
+type Tab = 'reports' | 'users' | 'events'
 
-// ── Status configs ────────────────────────────────────────────────
 const REPORT_STATUS: Record<string, { label: string; className: string }> = {
   OPEN:     { label: 'ABIERTO',  className: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' },
   REVIEWED: { label: 'REVISADO', className: 'bg-tertiary/10 text-tertiary border border-tertiary/20' },
@@ -28,19 +27,24 @@ const REASON_LABEL: Record<string, string> = {
   OTHER: 'Otro',
 }
 
-// ── Initials helper ───────────────────────────────────────────────
+const EVENT_META: Record<TripEventType, { label: string; icon: string; color: string }> = {
+  TRIP_PUBLISHED:       { label: 'Viaje publicado',    icon: 'add_circle',       color: 'text-primary' },
+  TRIP_STARTED:         { label: 'Viaje iniciado',     icon: 'play_circle',      color: 'text-tertiary' },
+  TRIP_COMPLETED:       { label: 'Viaje completado',   icon: 'check_circle',     color: 'text-tertiary' },
+  TRIP_CANCELLED:       { label: 'Viaje cancelado',    icon: 'cancel',           color: 'text-error' },
+  TRIP_SCHEDULE_CHANGED:{ label: 'Horario cambiado',   icon: 'schedule',         color: 'text-yellow-400' },
+  REQUEST_SENT:         { label: 'Solicitud enviada',  icon: 'send',             color: 'text-secondary' },
+  REQUEST_ACCEPTED:     { label: 'Solicitud aceptada', icon: 'check',            color: 'text-primary' },
+  REQUEST_REJECTED:     { label: 'Solicitud rechazada',icon: 'close',            color: 'text-error' },
+  REQUEST_CANCELLED:    { label: 'Solicitud cancelada',icon: 'cancel',           color: 'text-zinc-400' },
+  PASSENGER_NO_SHOW:    { label: 'No se presentó',     icon: 'person_off',       color: 'text-error' },
+}
+
 function initials(name: string) {
   return name.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
 }
 
-// ── Review modal ──────────────────────────────────────────────────
-function ReviewModal({
-  report,
-  onClose,
-}: {
-  report: AdminReport
-  onClose: () => void
-}) {
+function ReviewModal({ report, onClose }: { report: AdminReport; onClose: () => void }) {
   const [action, setAction] = useState<'WARNED' | 'SUSPENDED' | 'DISMISSED'>('WARNED')
   const [notes, setNotes] = useState('')
   const qc = useQueryClient()
@@ -49,6 +53,7 @@ function ReviewModal({
     mutationFn: () => adminApi.reviewReport(report.id, { action, notes: notes || undefined }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-reports'] })
+      qc.invalidateQueries({ queryKey: ['admin-stats'] })
       onClose()
     },
   })
@@ -132,15 +137,21 @@ function ReviewModal({
   )
 }
 
-// ── Main component ────────────────────────────────────────────────
 export default function AdminDashboard() {
   const [tab, setTab] = useState<Tab>('reports')
   const [reviewTarget, setReviewTarget] = useState<AdminReport | null>(null)
   const [userSearch, setUserSearch] = useState('')
+  const [eventTypeFilter, setEventTypeFilter] = useState<TripEventType | ''>('')
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const clearAuth = useAuthStore((s) => s.clearAuth)
   const qc = useQueryClient()
+
+  const { data: stats, isLoading: loadingStats } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: () => adminApi.getStats().then((r) => r.data),
+    refetchInterval: 60_000,
+  })
 
   const { data: reportsData, isLoading: loadingReports } = useQuery({
     queryKey: ['admin-reports'],
@@ -154,64 +165,83 @@ export default function AdminDashboard() {
     enabled: tab === 'users',
   })
 
+  const { data: eventsData, isLoading: loadingEvents } = useQuery({
+    queryKey: ['admin-events', eventTypeFilter],
+    queryFn: () =>
+      adminApi.getEvents({ type: eventTypeFilter || undefined, limit: 30 }).then((r) => r.data),
+    enabled: tab === 'events',
+    refetchInterval: 15_000,
+  })
+
   const updateStatusMut = useMutation({
     mutationFn: ({ id, status }: { id: string; status: 'ACTIVE' | 'WARNED' | 'SUSPENDED' }) =>
       adminApi.updateUserStatus(id, status),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-users'] })
+      qc.invalidateQueries({ queryKey: ['admin-stats'] })
+    },
   })
 
   const adminInitials = user ? initials(user.fullName) : 'AK'
 
-  const openReports  = reportsData?.reports.filter((r) => r.status === 'OPEN').length ?? 0
-  const totalUsers   = usersData?.total ?? reportsData?.total ?? 0
+  const StatCard = ({
+    label, value, icon, borderColor, sub,
+  }: { label: string; value: string | number; icon: string; borderColor: string; sub: string }) => (
+    <div className={`bg-surface-container p-6 rounded-xl flex flex-col justify-between border-l-4 ${borderColor}`}>
+      <div className="flex justify-between items-start">
+        <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">{label}</span>
+        <span className={`material-symbols-outlined ${borderColor.replace('border-', 'text-')}`}>{icon}</span>
+      </div>
+      <div className="mt-4">
+        {loadingStats ? (
+          <div className="h-10 w-20 bg-surface-container-high animate-pulse rounded-lg" />
+        ) : (
+          <span className="text-4xl font-headline font-bold text-white">{value}</span>
+        )}
+        <p className="text-[10px] text-zinc-500 mt-2">{sub}</p>
+      </div>
+    </div>
+  )
 
   return (
     <div className="bg-background text-on-surface font-body min-h-screen flex">
 
       {/* ── Sidebar ── */}
       <aside className="h-screen w-72 fixed left-0 top-0 bg-surface-container-low flex flex-col p-6 gap-2 z-50">
-        {/* Logo */}
         <div className="mb-10 flex items-center gap-3">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
             <span className="material-symbols-outlined text-on-primary material-symbols-filled">navigation</span>
           </div>
           <div>
             <h1 className="text-xl font-black text-white font-headline leading-tight">U-Ride</h1>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-label">
-              The Academic Kinetic
-            </p>
+            <p className="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant font-label">Admin Panel</p>
           </div>
         </div>
 
-        {/* Nav */}
         <nav className="flex flex-col gap-1 grow">
-          <button
-            onClick={() => setTab('reports')}
-            className={`rounded-lg px-4 py-3 flex items-center gap-3 font-headline font-medium transition-all text-left ${
-              tab === 'reports'
-                ? 'bg-primary/10 text-primary'
-                : 'text-zinc-500 hover:bg-surface-container hover:text-primary'
-            }`}
-          >
-            <span className="material-symbols-outlined">flag</span>
-            <span>Reportes</span>
-            {openReports > 0 && (
-              <span className="ml-auto text-[10px] font-black bg-error/20 text-error px-2 py-0.5 rounded-full">
-                {openReports}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setTab('users')}
-            className={`rounded-lg px-4 py-3 flex items-center gap-3 font-headline font-medium transition-all text-left ${
-              tab === 'users'
-                ? 'bg-primary/10 text-primary'
-                : 'text-zinc-500 hover:bg-surface-container hover:text-primary'
-            }`}
-          >
-            <span className="material-symbols-outlined">person_search</span>
-            <span>Usuarios</span>
-          </button>
+          {([
+            { id: 'reports', icon: 'flag', label: 'Reportes', badge: stats?.reports.open },
+            { id: 'users',   icon: 'person_search', label: 'Usuarios' },
+            { id: 'events',  icon: 'history', label: 'Trazabilidad' },
+          ] as const).map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setTab(item.id)}
+              className={`rounded-lg px-4 py-3 flex items-center gap-3 font-headline font-medium transition-all text-left ${
+                tab === item.id
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-zinc-500 hover:bg-surface-container hover:text-primary'
+              }`}
+            >
+              <span className="material-symbols-outlined">{item.icon}</span>
+              <span>{item.label}</span>
+              {'badge' in item && item.badge && item.badge > 0 && (
+                <span className="ml-auto text-[10px] font-black bg-error/20 text-error px-2 py-0.5 rounded-full">
+                  {item.badge}
+                </span>
+              )}
+            </button>
+          ))}
 
           <div className="h-px bg-white/5 my-4 mx-4" />
 
@@ -224,7 +254,6 @@ export default function AdminDashboard() {
           </button>
         </nav>
 
-        {/* Bottom */}
         <div className="mt-auto border-t border-white/5 pt-6 flex flex-col gap-2">
           <div className="px-4 py-2 flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center text-xs font-bold text-primary">
@@ -247,7 +276,6 @@ export default function AdminDashboard() {
       {/* ── Main content ── */}
       <main className="ml-72 flex-1 flex flex-col min-h-screen">
 
-        {/* Header */}
         <header className="sticky top-0 z-40 bg-surface/80 backdrop-blur-md px-8 py-4 flex justify-between items-center border-b border-white/5">
           <div>
             <h2 className="font-headline text-2xl font-bold tracking-tight text-white">
@@ -269,68 +297,52 @@ export default function AdminDashboard() {
               <span className="material-symbols-outlined absolute right-4 top-2.5 text-zinc-500">search</span>
             </div>
           )}
+          {tab === 'events' && (
+            <select
+              value={eventTypeFilter}
+              onChange={(e) => setEventTypeFilter(e.target.value as TripEventType | '')}
+              className="bg-surface-container-highest border-none rounded-xl px-4 py-2.5 text-sm text-white focus:ring-1 focus:ring-primary/40 outline-none"
+            >
+              <option value="">Todos los eventos</option>
+              {(Object.keys(EVENT_META) as TripEventType[]).map((t) => (
+                <option key={t} value={t}>{EVENT_META[t].label}</option>
+              ))}
+            </select>
+          )}
         </header>
 
         <div className="px-8 py-8 flex-1">
 
           {/* Stats bento */}
           <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-            <div className="bg-surface-container p-6 rounded-xl flex flex-col justify-between border-l-4 border-primary">
-              <div className="flex justify-between items-start">
-                <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Reportes Abiertos</span>
-                <span className="material-symbols-outlined text-primary">flag</span>
-              </div>
-              <div className="mt-4">
-                <span className="text-4xl font-headline font-bold text-white">{openReports}</span>
-                <div className="flex items-center gap-1 text-[10px] text-error mt-2">
-                  <span className="material-symbols-outlined text-sm">priority_high</span>
-                  <span>Requieren revisión</span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-surface-container p-6 rounded-xl flex flex-col justify-between border-l-4 border-tertiary">
-              <div className="flex justify-between items-start">
-                <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Total Reportes</span>
-                <span className="material-symbols-outlined text-tertiary">analytics</span>
-              </div>
-              <div className="mt-4">
-                <span className="text-4xl font-headline font-bold text-white">
-                  {reportsData?.total ?? '—'}
-                </span>
-                <div className="flex items-center gap-1 text-[10px] text-zinc-500 mt-2">
-                  <span className="material-symbols-outlined text-sm">history</span>
-                  <span>Histórico total</span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-surface-container p-6 rounded-xl flex flex-col justify-between border-l-4 border-secondary">
-              <div className="flex justify-between items-start">
-                <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Usuarios</span>
-                <span className="material-symbols-outlined text-secondary">group</span>
-              </div>
-              <div className="mt-4">
-                <span className="text-4xl font-headline font-bold text-white">
-                  {reportsData ? '—' : '—'}
-                </span>
-                <div className="flex items-center gap-1 text-[10px] text-zinc-500 mt-2">
-                  <span className="material-symbols-outlined text-sm">person_add</span>
-                  <span>Comunidad activa</span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-surface-container p-6 rounded-xl flex flex-col justify-between border-l-4 border-yellow-500">
-              <div className="flex justify-between items-start">
-                <span className="text-zinc-500 text-xs font-bold uppercase tracking-widest">Reputación Avg</span>
-                <span className="material-symbols-outlined text-yellow-500">stars</span>
-              </div>
-              <div className="mt-4">
-                <span className="text-4xl font-headline font-bold text-white">4.8</span>
-                <div className="flex items-center gap-1 text-[10px] text-secondary mt-2">
-                  <span className="material-symbols-outlined text-sm">check_circle</span>
-                  <span>Comunidad saludable</span>
-                </div>
-              </div>
-            </div>
+            <StatCard
+              label="Reportes Abiertos"
+              value={stats?.reports.open ?? '—'}
+              icon="flag"
+              borderColor="border-error"
+              sub={`${stats?.reports.total ?? 0} en total`}
+            />
+            <StatCard
+              label="Usuarios Activos"
+              value={stats?.users.active ?? '—'}
+              icon="group"
+              borderColor="border-primary"
+              sub={`${stats?.users.total ?? 0} registrados · ${stats?.users.suspended ?? 0} susp.`}
+            />
+            <StatCard
+              label="Viajes Completados"
+              value={stats?.trips.completed ?? '—'}
+              icon="check_circle"
+              borderColor="border-tertiary"
+              sub={`${stats?.trips.active ?? 0} activos · ${stats?.trips.cancelled ?? 0} cancelados`}
+            />
+            <StatCard
+              label="Reputación Promedio"
+              value={stats ? `${stats.avgReputation}★` : '—'}
+              icon="stars"
+              borderColor="border-yellow-500"
+              sub={`$${stats?.revenue.toFixed(2) ?? '0.00'} recargado en wallets`}
+            />
           </section>
 
           {/* ── Tab: Reports ── */}
@@ -474,7 +486,7 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody className="text-sm">
-                      {usersData?.users.map((u) => {
+                      {usersData?.users.map((u: AdminUser) => {
                         const badge = USER_STATUS[u.status] ?? USER_STATUS.ACTIVE
                         return (
                           <tr
@@ -552,70 +564,100 @@ export default function AdminDashboard() {
             </section>
           )}
 
-          {/* Security insight */}
-          <section className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="md:col-span-2 bg-surface-container p-8 rounded-2xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
-                <span className="material-symbols-outlined text-[80px] text-primary">security</span>
+          {/* ── Tab: Events ── */}
+          {tab === 'events' && (
+            <section className="bg-surface-container-low rounded-2xl overflow-hidden">
+              <div className="px-8 py-4 border-b border-white/5 flex items-center justify-between">
+                <h3 className="font-headline font-bold text-white uppercase tracking-widest text-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined text-secondary">history</span>
+                  Registro de Eventos
+                </h3>
+                <span className="text-xs text-on-surface-variant">
+                  {eventsData?.total ?? 0} eventos registrados
+                </span>
               </div>
-              <h3 className="font-headline text-xl font-bold text-white mb-2">Protocolo de Seguridad Kinetic</h3>
-              <p className="text-zinc-400 text-sm max-w-lg mb-6 leading-relaxed">
-                Monitoreo continuo de la comunidad U-Ride. Los reportes abiertos requieren revisión en menos de 24 horas hábiles para mantener la seguridad institucional.
-              </p>
-              <button className="flex items-center gap-2 text-primary font-bold text-xs uppercase tracking-widest hover:translate-x-1 transition-transform">
-                Ver análisis <span className="material-symbols-outlined text-sm">arrow_forward</span>
-              </button>
-            </div>
-            <div className="bg-surface-container p-8 rounded-2xl border border-white/5">
-              <h3 className="font-headline text-sm font-bold text-zinc-500 uppercase tracking-widest mb-6">Logs del Sistema</h3>
-              <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-white font-medium">Sistema operativo</p>
-                    <p className="text-[10px] text-zinc-500">Backend v1.0 activo</p>
-                  </div>
+
+              {loadingEvents ? (
+                <div className="p-8 space-y-3">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="h-14 bg-surface-container animate-pulse rounded-xl" />
+                  ))}
                 </div>
-                <div className="flex gap-4">
-                  <div className="w-1.5 h-1.5 rounded-full bg-tertiary mt-1.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-white font-medium">Socket.io conectado</p>
-                    <p className="text-[10px] text-zinc-500">GPS tracking activo</p>
-                  </div>
+              ) : (eventsData?.events.length ?? 0) === 0 ? (
+                <div className="py-24 flex flex-col items-center justify-center gap-4">
+                  <span className="material-symbols-outlined text-5xl text-zinc-600">history</span>
+                  <p className="text-on-surface-variant">No hay eventos registrados aún.</p>
                 </div>
-                <div className="flex gap-4">
-                  <div className="w-1.5 h-1.5 rounded-full bg-secondary mt-1.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-xs text-white font-medium">Pagos simulados</p>
-                    <p className="text-[10px] text-zinc-500">Entorno académico</p>
-                  </div>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {eventsData?.events.map((ev: TripEvent) => {
+                    const meta = EVENT_META[ev.type]
+                    return (
+                      <div
+                        key={ev.id}
+                        className="flex items-start gap-4 px-8 py-4 hover:bg-surface-container transition-colors"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className={`material-symbols-outlined text-sm ${meta.color}`}>
+                            {meta.icon}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-bold text-white">{meta.label}</span>
+                            <span className="text-xs text-zinc-500 font-mono">
+                              {ev.trip.originZone} → {ev.trip.destinationZone}
+                            </span>
+                          </div>
+                          {ev.actor && (
+                            <p className="text-xs text-on-surface-variant mt-0.5">
+                              por <span className="text-white">{ev.actor.fullName}</span>
+                              <span className="text-zinc-600"> · {ev.actor.email}</span>
+                            </p>
+                          )}
+                          {ev.metadata && Object.keys(ev.metadata).length > 0 && (
+                            <p className="text-[10px] text-zinc-600 mt-1 font-mono">
+                              {JSON.stringify(ev.metadata)
+                                .replace(/[{}"]/g, '')
+                                .replace(/,/g, ' · ')}
+                            </p>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-zinc-500 whitespace-nowrap flex-shrink-0 mt-1">
+                          {new Date(ev.createdAt).toLocaleString('es-EC', {
+                            dateStyle: 'short',
+                            timeStyle: 'short',
+                          })}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
+              )}
+
+              <div className="px-8 py-4 border-t border-white/5 text-xs text-zinc-500 flex items-center justify-between">
+                <span>Mostrando {eventsData?.events.length ?? 0} de {eventsData?.total ?? 0} eventos</span>
+                <span className="flex items-center gap-1 text-primary">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                  Actualización automática cada 15s
+                </span>
               </div>
-            </div>
-          </section>
+            </section>
+          )}
 
         </div>
 
         <footer className="px-8 py-10 border-t border-white/5 bg-surface flex flex-col md:flex-row justify-between items-center gap-4">
           <span className="font-headline font-bold text-primary text-xl">U-Ride Institutional</span>
           <p className="font-label text-xs uppercase tracking-widest text-zinc-600">
-            © 2024 U-Ride Institutional. Powered by Academic Kinetic.
+            © 2025 U-Ride Institutional. Plataforma académica de transporte seguro.
           </p>
         </footer>
       </main>
 
-      {/* Review modal */}
       {reviewTarget && (
         <ReviewModal report={reviewTarget} onClose={() => setReviewTarget(null)} />
       )}
-
-      {/* Emergency FAB */}
-      <button className="fixed bottom-8 right-8 w-14 h-14 bg-error text-on-error rounded-full shadow-[0_0_32px_rgba(255,115,81,0.2)] flex items-center justify-center group hover:scale-110 active:scale-95 transition-all duration-300 z-50">
-        <span className="material-symbols-outlined material-symbols-filled">emergency_home</span>
-        <span className="absolute right-full mr-4 px-3 py-1 bg-surface-container-highest text-white text-[10px] font-bold uppercase tracking-widest rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-          Alerta Global
-        </span>
-      </button>
     </div>
   )
 }

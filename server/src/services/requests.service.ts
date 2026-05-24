@@ -1,8 +1,17 @@
-import { PrismaClient, RequestStatus, TripStatus, PaymentStatus, TransactionType, TransactionConcept } from '@prisma/client';
+import { PrismaClient, RequestStatus, TripStatus, PaymentStatus, TransactionType, TransactionConcept, TripEventType } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 
 export class RequestsService {
   constructor(private readonly prisma: PrismaClient) {}
+
+  private logEvent(
+    tripId: string,
+    type: TripEventType,
+    actorId?: string,
+    metadata?: object,
+  ) {
+    return this.prisma.tripEvent.create({ data: { tripId, type, actorId, metadata: metadata as any } });
+  }
 
   async create(tripId: string, passengerId: string, message?: string) {
     const trip = await this.prisma.trip.findUnique({ where: { id: tripId } });
@@ -83,6 +92,10 @@ export class RequestsService {
         trip: { select: { id: true, originZone: true, destinationZone: true, departureTime: true } },
       },
     });
+    await this.logEvent(tripId, TripEventType.REQUEST_SENT, passengerId, {
+      requestId: request.id,
+      passengerName: request.passenger.fullName,
+    });
     return request;
   }
 
@@ -142,10 +155,15 @@ export class RequestsService {
           data: { availableSeats: { decrement: 1 } },
         }),
       ]);
+      await this.logEvent(request.tripId, TripEventType.REQUEST_ACCEPTED, driverId, {
+        requestId,
+        passengerId: request.passengerId,
+        passengerName: updated.passenger.fullName,
+      });
       return updated;
     }
 
-    return this.prisma.tripRequest.update({
+    const rejected = await this.prisma.tripRequest.update({
       where: { id: requestId },
       data: {
         status: RequestStatus.REJECTED,
@@ -155,6 +173,12 @@ export class RequestsService {
         passenger: { select: { id: true, fullName: true } },
       },
     });
+    await this.logEvent(request.tripId, TripEventType.REQUEST_REJECTED, driverId, {
+      requestId,
+      passengerId: request.passengerId,
+      passengerName: rejected.passenger.fullName,
+    });
+    return rejected;
   }
 
   async cancelRequest(requestId: string, passengerId: string) {
@@ -175,6 +199,9 @@ export class RequestsService {
         where: { id: requestId },
         data: { status: RequestStatus.CANCELLED },
       });
+      await this.logEvent(request.tripId, TripEventType.REQUEST_CANCELLED, passengerId, {
+        requestId, reason: 'passenger_cancelled_pending',
+      });
       return { refunded: false, message: 'Solicitud cancelada' };
     }
 
@@ -190,6 +217,9 @@ export class RequestsService {
           data: { availableSeats: { increment: 1 } },
         }),
       ]);
+      await this.logEvent(request.tripId, TripEventType.REQUEST_CANCELLED, passengerId, {
+        requestId, reason: 'passenger_cancelled_no_payment',
+      });
       return { refunded: false, message: 'Reserva cancelada y cupo devuelto al viaje' };
     }
 
@@ -236,6 +266,9 @@ export class RequestsService {
           },
         }),
       ]);
+      await this.logEvent(request.tripId, TripEventType.REQUEST_CANCELLED, passengerId, {
+        requestId, reason: 'passenger_cancelled_refunded', refunded: Number(amount),
+      });
       return {
         refunded: true,
         amount: Number(amount),
@@ -273,6 +306,9 @@ export class RequestsService {
         },
       }),
     ]);
+    await this.logEvent(request.tripId, TripEventType.REQUEST_CANCELLED, passengerId, {
+      requestId, reason: 'passenger_cancelled_no_refund',
+    });
     return {
       refunded: false,
       message: 'Cancelación fuera del plazo permitido. No se realizó reembolso.',

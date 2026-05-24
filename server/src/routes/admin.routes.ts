@@ -3,6 +3,7 @@ import { requireAuth, requireAdmin } from '../middleware/auth.middleware';
 import {
   getReports, getReportById, reviewReport,
   getUsers, updateUserStatus,
+  getStats, getEvents,
 } from '../controllers/admin.controller';
 
 export const adminRouter = Router();
@@ -15,3 +16,6 @@ adminRouter.patch('/reports/:id', reviewReport);
 
 adminRouter.get('/users', getUsers);
 adminRouter.patch('/users/:id/status', updateUserStatus);
+
+adminRouter.get('/stats', getStats);
+adminRouter.get('/events', getEvents);

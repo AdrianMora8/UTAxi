@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { ReportStatus, UserStatus } from '@prisma/client';
+import { ReportStatus, UserStatus, TripEventType } from '@prisma/client';
 import { prisma } from '../config/database';
 import { AdminService } from '../services/admin.service';
 
@@ -51,4 +51,20 @@ export async function updateUserStatus(req: Request, res: Response) {
   const { status } = updateUserStatusSchema.parse(req.body);
   const user = await svc.updateUserStatus(String(req.params.id), status);
   res.json({ user });
+}
+
+export async function getStats(_req: Request, res: Response) {
+  const stats = await svc.getStats();
+  res.json(stats);
+}
+
+export async function getEvents(req: Request, res: Response) {
+  const { tripId, type, page, limit } = req.query;
+  const result = await svc.getEvents({
+    tripId: tripId as string,
+    type: type as TripEventType,
+    page: page ? Number(page) : 1,
+    limit: limit ? Number(limit) : 20,
+  });
+  res.json(result);
 }

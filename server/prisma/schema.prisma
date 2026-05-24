@@ -71,6 +71,19 @@ enum ReportReason {
   OTHER
 }
 
+enum TripEventType {
+  TRIP_PUBLISHED
+  TRIP_STARTED
+  TRIP_COMPLETED
+  TRIP_CANCELLED
+  TRIP_SCHEDULE_CHANGED
+  REQUEST_SENT
+  REQUEST_ACCEPTED
+  REQUEST_REJECTED
+  REQUEST_CANCELLED
+  PASSENGER_NO_SHOW
+}
+
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 model User {
@@ -107,6 +120,7 @@ model User {
   reportReviews       ReportReview[]
   payments            Payment[]
   walletTransactions  WalletTransaction[]
+  tripEvents          TripEvent[]          @relation("TripEventActor")
 
   @@index([email])
   @@map("users")
@@ -151,6 +165,7 @@ model Trip {
 
   requests TripRequest[]
   payments Payment[]
+  events   TripEvent[]
 
   @@index([destinationZone, departureTime, availableSeats, status])
   @@index([driverId])
@@ -272,4 +287,19 @@ model SafetyAcknowledgment {
 
   @@unique([userId, tripId])
   @@map("safety_acknowledgments")
+}
+
+model TripEvent {
+  id        String        @id @default(cuid())
+  tripId    String
+  trip      Trip          @relation(fields: [tripId], references: [id])
+  actorId   String?
+  actor     User?         @relation("TripEventActor", fields: [actorId], references: [id])
+  type      TripEventType
+  metadata  Json?
+  createdAt DateTime      @default(now())
+
+  @@index([tripId])
+  @@index([createdAt])
+  @@map("trip_events")
 }

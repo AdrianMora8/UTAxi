@@ -1,9 +1,18 @@
-import { PrismaClient, TripStatus, PaymentStatus, TransactionType, TransactionConcept, RequestStatus, Prisma } from '@prisma/client';
+import { PrismaClient, TripStatus, PaymentStatus, TransactionType, TransactionConcept, RequestStatus, TripEventType, Prisma } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 import { emitToUser } from '../socket/tracking.gateway';
 
 export class TripsService {
   constructor(private readonly prisma: PrismaClient) {}
+
+  private logEvent(
+    tripId: string,
+    type: TripEventType,
+    actorId?: string,
+    metadata?: object,
+  ) {
+    return this.prisma.tripEvent.create({ data: { tripId, type, actorId, metadata: metadata as any } });
+  }
 
   async create(driverId: string, data: {
     originZone: string;
@@ -67,6 +76,10 @@ export class TripsService {
         availableSeats: data.totalSeats,
       },
       include: { driver: { select: { id: true, fullName: true, reputationScore: true } } },
+    });
+    await this.logEvent(trip.id, TripEventType.TRIP_PUBLISHED, driverId, {
+      originZone: trip.originZone,
+      destinationZone: trip.destinationZone,
     });
     return trip;
   }
@@ -248,6 +261,13 @@ export class TripsService {
       }
     }
 
+    if (changingTime) {
+      await this.logEvent(tripId, TripEventType.TRIP_SCHEDULE_CHANGED, driverId, {
+        oldTime: trip.departureTime.toISOString(),
+        newTime: data.departureTime!.toISOString(),
+      });
+    }
+
     // No exponer la lista de requests en la respuesta
     const { requests: _r, ...result } = updated;
     return result;
@@ -308,6 +328,12 @@ export class TripsService {
     }
 
     await this.prisma.$transaction(ops);
+
+    await this.logEvent(tripId, TripEventType.TRIP_CANCELLED, driverId, {
+      originZone: trip.originZone,
+      destinationZone: trip.destinationZone,
+      refundedPassengers: paidRequests.length,
+    });
 
     // Notificar a todos los pasajeros activos
     for (const r of activeRequests) {
@@ -394,6 +420,13 @@ export class TripsService {
     ]);
 
     const completedTrip = await this.prisma.trip.findUnique({ where: { id: tripId } });
+
+    await this.logEvent(tripId, TripEventType.TRIP_COMPLETED, driverId, {
+      originZone: trip.originZone,
+      destinationZone: trip.destinationZone,
+      passengers: acceptedRequests.length,
+      totalEarned,
+    });
 
     // Notificar a cada pasajero para que califiquen al conductor
     for (const req of acceptedRequests) {
@@ -595,6 +628,20 @@ export class TripsService {
         originZone: trip.originZone,
         destinationZone: trip.destinationZone,
         driverName: trip.driver.fullName,
+      });
+    }
+
+    await this.logEvent(tripId, TripEventType.TRIP_STARTED, driverId, {
+      originZone: trip.originZone,
+      destinationZone: trip.destinationZone,
+      boardedPassengers: boarded.length,
+      noShows: noShows.length,
+    });
+
+    for (const r of noShows) {
+      await this.logEvent(tripId, TripEventType.PASSENGER_NO_SHOW, driverId, {
+        passengerId: r.passenger.id,
+        passengerName: r.passenger.fullName,
       });
     }
 

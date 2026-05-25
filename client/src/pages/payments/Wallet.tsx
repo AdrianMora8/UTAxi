@@ -35,7 +35,7 @@ export default function Wallet() {
       showToast('Saldo recargado exitosamente')
     },
     onError: (e: { response?: { data?: { message?: string } } }) => {
-      showToast(e.response?.data?.message ?? 'Error al recargar', false)
+      showToast(e?.response?.data?.error ?? e?.response?.data?.message ?? 'Error al recargar', false)
     },
   })
 
@@ -123,6 +123,8 @@ export default function Wallet() {
                   dateStyle: 'short',
                   timeStyle: 'short',
                 })
+                const isCard = tx.concept === 'PAYMENT' && tx.description?.includes('(tarjeta)')
+                const isWallet = tx.concept === 'PAYMENT' && tx.description?.includes('(U-Wallet)')
                 return (
                   <div
                     key={tx.id}
@@ -139,9 +141,21 @@ export default function Wallet() {
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-white">{meta.text}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-white">{meta.text}</p>
+                          {isCard && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-400 uppercase tracking-wide">
+                              Tarjeta
+                            </span>
+                          )}
+                          {isWallet && (
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/15 text-primary uppercase tracking-wide">
+                              Wallet
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-on-surface-variant truncate max-w-[200px]">
-                          {tx.description}
+                          {tx.description?.replace(' (tarjeta)', '').replace(' (U-Wallet)', '')}
                         </p>
                         <p className="text-[10px] text-zinc-600 mt-0.5">{date}</p>
                       </div>

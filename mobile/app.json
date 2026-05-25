@@ -29,7 +29,14 @@
     },
     "plugins": [
       "expo-font",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.utaxi.app",
+          "enableGooglePay": false
+        }
+      ]
     ]
   }
 }

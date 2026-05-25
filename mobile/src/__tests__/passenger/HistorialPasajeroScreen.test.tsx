@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert } from 'react-native';
 import { requestsApi } from '../../api/requests.api';
+import { reportsApi } from '../../api/reports.api';
 import { renderWithProviders, screen, fireEvent, waitFor } from '../test-utils';
 import HistorialPasajeroScreen from '../../screens/app/HistorialPasajeroScreen';
 
@@ -9,6 +10,10 @@ jest.mock('../../api/requests.api', () => ({
     getMyRequests: jest.fn(),
     createRequest: jest.fn(),
   },
+}));
+
+jest.mock('../../api/reports.api', () => ({
+  reportsApi: { createReport: jest.fn() },
 }));
 
 jest.mock('../../components/RatingModal', () => ({
@@ -26,6 +31,7 @@ jest.mock('../../components/RatingModal', () => ({
 
 const mockGetMyRequests = requestsApi.getMyRequests as jest.Mock;
 const mockCreateRequest = requestsApi.createRequest as jest.Mock;
+const mockCreateReport = reportsApi.createReport as jest.Mock;
 
 const nav = {} as any;
 const route = {} as any;
@@ -60,6 +66,7 @@ const makeRequest = (overrides: Record<string, unknown> = {}) => ({
 beforeEach(() => {
   jest.clearAllMocks();
   jest.spyOn(Alert, 'alert');
+  mockCreateReport.mockResolvedValue({});
 });
 
 describe('HistorialPasajeroScreen — renderizado', () => {
@@ -184,5 +191,83 @@ describe('HistorialPasajeroScreen — tarjeta CANCELADO', () => {
     });
     renderWithProviders(<HistorialPasajeroScreen navigation={nav} route={route} />);
     await waitFor(() => expect(screen.getByText('CANCELADO')).toBeTruthy());
+  });
+});
+
+describe('HistorialPasajeroScreen — reportar conductor', () => {
+  it('muestra el botón Reportar para viajes COMPLETADOS con conductor', async () => {
+    mockGetMyRequests.mockResolvedValue({
+      data: { requests: [makeRequest({ status: 'COMPLETED' })] },
+    });
+    renderWithProviders(<HistorialPasajeroScreen navigation={nav} route={route} />);
+    await waitFor(() => expect(screen.getByTestId('report-driver-btn')).toBeTruthy());
+  });
+
+  it('presionar Reportar abre el modal con título "Reportar conductor"', async () => {
+    mockGetMyRequests.mockResolvedValue({
+      data: { requests: [makeRequest({ status: 'COMPLETED' })] },
+    });
+    renderWithProviders(<HistorialPasajeroScreen navigation={nav} route={route} />);
+    await waitFor(() => expect(screen.getByTestId('report-driver-btn')).toBeTruthy());
+    fireEvent.press(screen.getByTestId('report-driver-btn'));
+    await waitFor(() => expect(screen.getByText('Reportar conductor')).toBeTruthy());
+    expect(screen.getByText('Enviar Reporte')).toBeTruthy();
+  });
+
+  it('muestra Alert de validación si la descripción es muy corta', async () => {
+    mockGetMyRequests.mockResolvedValue({
+      data: { requests: [makeRequest({ status: 'COMPLETED' })] },
+    });
+    renderWithProviders(<HistorialPasajeroScreen navigation={nav} route={route} />);
+    await waitFor(() => expect(screen.getByTestId('report-driver-btn')).toBeTruthy());
+    fireEvent.press(screen.getByTestId('report-driver-btn'));
+    await waitFor(() => expect(screen.getByText('Enviar Reporte')).toBeTruthy());
+
+    const input = screen.getByPlaceholderText(/Describe lo que ocurrió/i);
+    fireEvent.changeText(input, 'corta');
+    fireEvent.press(screen.getByText('Enviar Reporte'));
+
+    expect(Alert.alert).toHaveBeenCalledWith('Descripción muy corta', expect.any(String));
+    expect(mockCreateReport).not.toHaveBeenCalled();
+  });
+
+  it('llama a reportsApi.createReport con los datos correctos al enviar', async () => {
+    mockGetMyRequests.mockResolvedValue({
+      data: { requests: [makeRequest({ status: 'COMPLETED' })] },
+    });
+    renderWithProviders(<HistorialPasajeroScreen navigation={nav} route={route} />);
+    await waitFor(() => expect(screen.getByTestId('report-driver-btn')).toBeTruthy());
+    fireEvent.press(screen.getByTestId('report-driver-btn'));
+    await waitFor(() => expect(screen.getByText('Enviar Reporte')).toBeTruthy());
+
+    const input = screen.getByPlaceholderText(/Describe lo que ocurrió/i);
+    fireEvent.changeText(input, 'El conductor manejó de forma peligrosa todo el viaje');
+    fireEvent.press(screen.getByText('Enviar Reporte'));
+
+    await waitFor(() =>
+      expect(mockCreateReport).toHaveBeenCalledWith({
+        reportedId: 'driver-1',
+        reason: 'INAPPROPRIATE_BEHAVIOR',
+        description: 'El conductor manejó de forma peligrosa todo el viaje',
+      }),
+    );
+  });
+
+  it('muestra Alert de éxito y cierra el modal tras enviar', async () => {
+    mockGetMyRequests.mockResolvedValue({
+      data: { requests: [makeRequest({ status: 'COMPLETED' })] },
+    });
+    renderWithProviders(<HistorialPasajeroScreen navigation={nav} route={route} />);
+    await waitFor(() => expect(screen.getByTestId('report-driver-btn')).toBeTruthy());
+    fireEvent.press(screen.getByTestId('report-driver-btn'));
+    await waitFor(() => expect(screen.getByText('Enviar Reporte')).toBeTruthy());
+
+    const input = screen.getByPlaceholderText(/Describe lo que ocurrió/i);
+    fireEvent.changeText(input, 'El conductor manejó de forma peligrosa todo el viaje');
+    fireEvent.press(screen.getByText('Enviar Reporte'));
+
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith('Reporte enviado', expect.any(String)),
+    );
   });
 });

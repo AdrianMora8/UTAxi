@@ -1,0 +1,88 @@
+appId: host.exp.exponent
+name: "07 — Conductor reporta pasajero (SolicitudesScreen)"
+tags:
+  - conductor
+  - reportes
+
+---
+
+# ── Login como conductor E2E ──────────────────────────────────────
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "U-Ride"
+    timeout: 8000
+
+- runFlow:
+    file: ../subflows/login.yaml
+    env:
+      EMAIL: "e2e.driver@uta.edu.ec"
+      PASSWORD: "E2ETest123!"
+
+# ── Verificar Panel del Conductor ────────────────────────────────
+- assertVisible:
+    text: "Panel del Conductor"
+    timeout: 5000
+
+# ── Ir a tab Activos y abrir Solicitudes del primer viaje ─────────
+- tapOn:
+    text: "Activos"
+- assertVisible:
+    text: "Mis Viajes Activos"
+    timeout: 5000
+
+# ── Condicional: si hay viajes activos, gestionar solicitudes ─────
+- runFlow:
+    when:
+      visible: "Gestionar"
+    commands:
+      - tapOn:
+          text: "Gestionar"
+      - assertVisible:
+          text: "Solicitudes"
+          timeout: 5000
+
+      # Condicional: si hay pasajeros aceptados, reportar al primero
+      - runFlow:
+          when:
+            id: "report-passenger-btn"
+          commands:
+            - tapOn:
+                id: "report-passenger-btn"
+            - assertVisible:
+                text: "Reportar pasajero"
+                timeout: 5000
+            # Seleccionar motivo
+            - tapOn:
+                text: "Comportamiento inapropiado"
+            # Escribir descripción
+            - tapOn:
+                placeholder: "Describe lo que ocurrió (mínimo 10 caracteres)..."
+            - inputText: "El pasajero tuvo un comportamiento muy inapropiado durante el viaje compartido."
+            # Enviar
+            - tapOn:
+                text: "Enviar Reporte"
+            - assertVisible:
+                text: "Reporte enviado"
+                timeout: 8000
+            - tapOn:
+                text: "OK"
+
+      # Volver al Panel del Conductor
+      - swipe:
+          direction: RIGHT
+          duration: 400
+      - assertVisible:
+          text: "Panel del Conductor"
+          timeout: 5000
+
+# ── Condicional: sin viajes activos (saltar) ──────────────────────
+- runFlow:
+    when:
+      visible: "No tienes viajes activos"
+    commands:
+      - assertVisible: "No tienes viajes activos"
+
+# ── Logout ────────────────────────────────────────────────────────
+- runFlow:
+    file: ../subflows/logout.yaml

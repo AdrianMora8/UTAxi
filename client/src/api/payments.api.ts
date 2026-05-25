@@ -52,6 +52,26 @@ export const paymentsApi = {
   topUp: (amount: number) =>
     apiClient.post<{ walletBalance: number }>('/payments/wallet/topup', { amount }),
 
+  confirmCardPayment: (tripRequestId: string) =>
+    apiClient.post<{ amount: number }>('/payments/confirm-card', { tripRequestId }),
+
   payWithWallet: (tripRequestId: string) =>
     apiClient.post<{ amount: number }>('/payments/pay/wallet', { tripRequestId }),
+
+  markAsCash: (tripRequestId: string) =>
+    apiClient.post<{ amount: number }>('/payments/pay/cash', { tripRequestId }),
+
+  confirmCashPayment: (tripRequestId: string) =>
+    apiClient.post<{ amount: number }>('/payments/confirm-cash', { tripRequestId }),
+
+  getTripPaymentStatus: (tripId: string) =>
+    apiClient.get<{ passengers: PassengerPaymentStatus[] }>(`/payments/trip/${tripId}/status`),
+}
+
+export interface PassengerPaymentStatus {
+  requestId: string
+  passengerName: string
+  paymentStatus: 'PENDING' | 'CONFIRMED' | 'FAILED' | null
+  paymentMethod: 'CARD' | 'WALLET' | 'CASH' | null
+  amount: number | null
 }

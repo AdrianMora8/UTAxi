@@ -34,7 +34,7 @@ export default function Login() {
       navigate('/trips')
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ??
         'Credenciales incorrectas'
       setServerError(msg)
     }

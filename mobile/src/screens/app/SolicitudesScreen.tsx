@@ -191,7 +191,7 @@ function AcceptedCard({
           </View>
         )}
 
-        <TouchableOpacity style={styles.reportBtn} onPress={onReport} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.reportBtn} onPress={onReport} activeOpacity={0.7} testID="report-passenger-btn">
           <Ionicons name="flag-outline" size={16} color="#ff6b4a" />
         </TouchableOpacity>
       </View>

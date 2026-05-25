@@ -1,4 +1,4 @@
-import { PrismaClient, RequestStatus, PaymentStatus, TransactionType, TransactionConcept, Prisma } from '@prisma/client';
+import { PrismaClient, RequestStatus, PaymentStatus, PaymentMethod, TransactionType, TransactionConcept, Prisma } from '@prisma/client';
 import Stripe from 'stripe';
 import { AppError } from '../middleware/errorHandler';
 
@@ -69,10 +69,13 @@ export class PaymentsService {
 
     if (event.type === 'payment_intent.succeeded') {
       const intent = event.data.object as Stripe.PaymentIntent;
-      await this.prisma.payment.updateMany({
+      const payment = await this.prisma.payment.findFirst({
         where: { stripePaymentId: intent.id, status: { not: PaymentStatus.CONFIRMED } },
-        data: { status: PaymentStatus.CONFIRMED, confirmedAt: new Date() },
+        include: { trip: true },
       });
+      if (payment) {
+        await this._finalizePayment(payment.tripRequestId, payment.payerId, payment.tripId, payment.trip.driverId, payment.amount, PaymentMethod.CARD);
+      }
     }
 
     if (event.type === 'payment_intent.payment_failed') {
@@ -84,6 +87,155 @@ export class PaymentsService {
     }
 
     return { received: true };
+  }
+
+  private async _finalizePayment(
+    tripRequestId: string,
+    payerId: string,
+    tripId: string,
+    driverId: string,
+    amount: Prisma.Decimal,
+    method: PaymentMethod,
+  ) {
+    const existing = await this.prisma.walletTransaction.findFirst({
+      where: { relatedRequestId: tripRequestId, concept: TransactionConcept.PAYMENT },
+    });
+    if (existing) return;
+
+    const trip = await this.prisma.trip.findUnique({
+      where: { id: tripId },
+      select: { originZone: true, destinationZone: true },
+    });
+
+    const methodLabel = method === PaymentMethod.CASH ? 'efectivo' : 'tarjeta';
+    const route = `${trip?.originZone ?? ''} → ${trip?.destinationZone ?? ''}`;
+
+    await this.prisma.$transaction([
+      this.prisma.payment.updateMany({
+        where: { tripRequestId, status: { not: PaymentStatus.CONFIRMED } },
+        data: { status: PaymentStatus.CONFIRMED, confirmedAt: new Date() },
+      }),
+      this.prisma.walletTransaction.create({
+        data: {
+          userId: payerId,
+          amount,
+          type: TransactionType.DEBIT,
+          concept: TransactionConcept.PAYMENT,
+          description: `${route} (${methodLabel})`,
+          relatedRequestId: tripRequestId,
+        },
+      }),
+      this.prisma.walletTransaction.create({
+        data: {
+          userId: driverId,
+          amount,
+          type: TransactionType.CREDIT,
+          concept: TransactionConcept.TRIP_EARNING,
+          description: `${route} (${methodLabel})`,
+          relatedRequestId: tripRequestId,
+        },
+      }),
+      this.prisma.user.update({
+        where: { id: driverId },
+        data: { pendingBalance: { increment: amount } },
+      }),
+    ]);
+  }
+
+  async confirmCardPayment(tripRequestId: string, payerId: string) {
+    const tripRequest = await this.prisma.tripRequest.findUnique({
+      where: { id: tripRequestId },
+      include: { trip: true, payment: true },
+    });
+
+    if (!tripRequest) throw new AppError(404, 'Solicitud no encontrada');
+    if (tripRequest.passengerId !== payerId) throw new AppError(403, 'Sin acceso');
+    if (tripRequest.payment?.status === PaymentStatus.CONFIRMED) return { amount: Number(tripRequest.trip.pricePerSeat) };
+
+    await this._finalizePayment(
+      tripRequestId, payerId,
+      tripRequest.tripId, tripRequest.trip.driverId,
+      tripRequest.trip.pricePerSeat, PaymentMethod.CARD,
+    );
+
+    return { amount: Number(tripRequest.trip.pricePerSeat) };
+  }
+
+  async markAsCash(tripRequestId: string, passengerId: string) {
+    const tripRequest = await this.prisma.tripRequest.findUnique({
+      where: { id: tripRequestId },
+      include: { trip: true, payment: true },
+    });
+
+    if (!tripRequest) throw new AppError(404, 'Solicitud no encontrada');
+    if (tripRequest.passengerId !== passengerId) throw new AppError(403, 'Sin acceso');
+    if (tripRequest.status !== RequestStatus.ACCEPTED) throw new AppError(400, 'Solo se puede pagar una solicitud aceptada');
+    if (tripRequest.payment?.status === PaymentStatus.CONFIRMED) throw new AppError(409, 'Esta solicitud ya fue pagada');
+
+    await this.prisma.payment.upsert({
+      where: { tripRequestId },
+      create: {
+        tripRequestId,
+        tripId: tripRequest.tripId,
+        payerId: passengerId,
+        amount: tripRequest.trip.pricePerSeat,
+        method: PaymentMethod.CASH,
+        status: PaymentStatus.PENDING,
+      },
+      update: {
+        method: PaymentMethod.CASH,
+        status: PaymentStatus.PENDING,
+        stripePaymentId: null,
+      },
+    });
+
+    return { amount: Number(tripRequest.trip.pricePerSeat) };
+  }
+
+  async confirmCashPayment(tripRequestId: string, driverId: string) {
+    const tripRequest = await this.prisma.tripRequest.findUnique({
+      where: { id: tripRequestId },
+      include: { trip: true, payment: true },
+    });
+
+    if (!tripRequest) throw new AppError(404, 'Solicitud no encontrada');
+    if (tripRequest.trip.driverId !== driverId) throw new AppError(403, 'Solo el conductor puede confirmar pagos en efectivo');
+    if (!tripRequest.payment || tripRequest.payment.method !== PaymentMethod.CASH) {
+      throw new AppError(400, 'Este pasajero no eligió pago en efectivo');
+    }
+    if (tripRequest.payment.status === PaymentStatus.CONFIRMED) {
+      return { amount: Number(tripRequest.payment.amount) };
+    }
+
+    await this._finalizePayment(
+      tripRequestId, tripRequest.passengerId,
+      tripRequest.tripId, driverId,
+      tripRequest.trip.pricePerSeat, PaymentMethod.CASH,
+    );
+
+    return { amount: Number(tripRequest.trip.pricePerSeat) };
+  }
+
+  async getTripPaymentStatus(tripId: string, driverId: string) {
+    const trip = await this.prisma.trip.findUnique({ where: { id: tripId } });
+    if (!trip) throw new AppError(404, 'Viaje no encontrado');
+    if (trip.driverId !== driverId) throw new AppError(403, 'Sin acceso');
+
+    const requests = await this.prisma.tripRequest.findMany({
+      where: { tripId, status: RequestStatus.ACCEPTED },
+      include: {
+        passenger: { select: { fullName: true } },
+        payment: { select: { status: true, method: true, amount: true } },
+      },
+    });
+
+    return requests.map(r => ({
+      requestId: r.id,
+      passengerName: r.passenger.fullName,
+      paymentStatus: r.payment?.status ?? null,
+      paymentMethod: r.payment?.method ?? null,
+      amount: r.payment ? Number(r.payment.amount) : null,
+    }));
   }
 
   async simulateConfirm(tripRequestId: string, payerId: string) {
@@ -169,7 +321,7 @@ export class PaymentsService {
             amount,
             type: TransactionType.DEBIT,
             concept: TransactionConcept.PAYMENT,
-            description: `${tripRequest.trip.originZone} → ${tripRequest.trip.destinationZone}`,
+            description: `${tripRequest.trip.originZone} → ${tripRequest.trip.destinationZone} (U-Wallet)`,
             relatedRequestId: tripRequestId,
           },
         }),

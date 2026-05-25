@@ -1,0 +1,83 @@
+appId: host.exp.exponent
+name: "06 — Reportar conductor (pasajero)"
+tags:
+  - pasajero
+  - reportes
+
+---
+
+# ── Login como pasajero E2E ──────────────────────────────────────
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "U-Ride"
+    timeout: 8000
+
+- runFlow:
+    file: ../subflows/login.yaml
+    env:
+      EMAIL: "e2e.passenger@uta.edu.ec"
+      PASSWORD: "E2ETest123!"
+
+# ── Navegar: Perfil → Historial → Mis Viajes → tab Historial ─────
+- tapOn:
+    text: "Perfil"
+- assertVisible:
+    text: "U-RIDE"
+    timeout: 5000
+
+- tapOn:
+    text: "Historial"
+- assertVisible:
+    text: "Mis Viajes"
+    timeout: 5000
+
+# Mis Viajes abre en tab "Activas". Cambiar a tab "Historial"
+- tapOn:
+    text: "Historial"
+- wait:
+    timeout: 1500
+
+# ── Condicional: si hay viajes completados, reportar conductor ────
+- runFlow:
+    when:
+      visible: "Reportar"
+    commands:
+      - tapOn:
+          text: "Reportar"
+      - assertVisible:
+          text: "Reportar conductor"
+          timeout: 5000
+      # Seleccionar motivo
+      - tapOn:
+          text: "Comportamiento inapropiado"
+      # Escribir descripción
+      - tapOn:
+          placeholder: "Describe lo que ocurrió (mínimo 10 caracteres)..."
+      - inputText: "El conductor tuvo un comportamiento muy inapropiado durante el trayecto compartido."
+      # Enviar
+      - tapOn:
+          text: "Enviar Reporte"
+      - assertVisible:
+          text: "Reporte enviado"
+          timeout: 8000
+      - tapOn:
+          text: "OK"
+
+# ── Condicional: estado vacío ────────────────────────────────────
+- runFlow:
+    when:
+      visible: "Sin viajes completados"
+    commands:
+      - assertVisible: "Sin viajes completados"
+
+# ── Logout ────────────────────────────────────────────────────────
+- swipe:
+    direction: RIGHT
+    duration: 400
+- assertVisible:
+    text: "U-RIDE"
+    timeout: 5000
+
+- runFlow:
+    file: ../subflows/logout.yaml

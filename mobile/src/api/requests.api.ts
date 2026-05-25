@@ -31,7 +31,7 @@ export interface TripRequest {
     driver?: { id: string; fullName: string; reputationScore: number };
   };
   rating?: { id: string; score: number; comment?: string | null } | null;
-  payment?: { id: string; amount: number; status: string } | null;
+  payment?: { id: string; amount: number; status: string; method?: string | null } | null;
 }
 
 export const requestsApi = {

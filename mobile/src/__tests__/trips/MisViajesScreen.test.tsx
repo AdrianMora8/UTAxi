@@ -2,6 +2,7 @@ import React from 'react';
 import { Alert } from 'react-native';
 import { requestsApi } from '../../api/requests.api';
 import { paymentsApi } from '../../api/payments.api';
+import { reportsApi } from '../../api/reports.api';
 import { renderWithProviders, screen, fireEvent, waitFor } from '../test-utils';
 import MisViajesScreen from '../../screens/app/MisViajesScreen';
 
@@ -17,6 +18,10 @@ jest.mock('../../api/payments.api', () => ({
   paymentsApi: {
     payWithWallet: jest.fn(),
   },
+}));
+
+jest.mock('../../api/reports.api', () => ({
+  reportsApi: { createReport: jest.fn() },
 }));
 
 jest.mock('../../hooks/useNotifications', () => ({
@@ -40,6 +45,7 @@ const mockGetMyRequests = requestsApi.getMyRequests as jest.Mock;
 const mockCancelRequest = requestsApi.cancelRequest as jest.Mock;
 const mockCreateRequest = requestsApi.createRequest as jest.Mock;
 const mockPayWithWallet = paymentsApi.payWithWallet as jest.Mock;
+const mockCreateReport = reportsApi.createReport as jest.Mock;
 
 const nav = { navigate: jest.fn(), goBack: jest.fn() } as any;
 const route = {} as any;
@@ -79,6 +85,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   jest.spyOn(Alert, 'alert');
   mockGetMyRequests.mockResolvedValue({ data: { requests: [] } });
+  mockCreateReport.mockResolvedValue({});
 });
 
 // ─────────────────────────────────────────────
@@ -346,6 +353,98 @@ describe('MisViajesScreen — tab Historial (COMPLETADO)', () => {
     switchToHistory();
     await waitFor(() => expect(screen.getByText('COMPLETADO')).toBeTruthy());
     expect(screen.queryByText('Calificar')).toBeNull();
+  });
+});
+
+// ─────────────────────────────────────────────
+// Reportar conductor (tab Historial)
+// ─────────────────────────────────────────────
+describe('MisViajesScreen — reportar conductor', () => {
+  const completedRequest = makeRequest({
+    id: 'req-done',
+    status: 'COMPLETED',
+    trip: makeTripData({ status: 'COMPLETED' }),
+    rating: null,
+  });
+
+  function switchToHistory() {
+    fireEvent.press(screen.getByText('Historial'));
+  }
+
+  it('muestra el botón Reportar para viajes COMPLETADOS en Historial', async () => {
+    mockGetMyRequests.mockResolvedValue({ data: { requests: [completedRequest] } });
+    renderWithProviders(<MisViajesScreen navigation={nav} route={route} />);
+    await waitFor(() => expect(screen.getByText('Activas')).toBeTruthy());
+    switchToHistory();
+    await waitFor(() => expect(screen.getByText('Reportar')).toBeTruthy());
+  });
+
+  it('presionar Reportar abre el modal de reporte', async () => {
+    mockGetMyRequests.mockResolvedValue({ data: { requests: [completedRequest] } });
+    renderWithProviders(<MisViajesScreen navigation={nav} route={route} />);
+    await waitFor(() => expect(screen.getByText('Activas')).toBeTruthy());
+    switchToHistory();
+    await waitFor(() => expect(screen.getByText('Reportar')).toBeTruthy());
+    fireEvent.press(screen.getByText('Reportar'));
+    await waitFor(() => expect(screen.getByText('Reportar conductor')).toBeTruthy());
+    expect(screen.getByText('Enviar Reporte')).toBeTruthy();
+  });
+
+  it('muestra Alert de validación si la descripción es muy corta', async () => {
+    mockGetMyRequests.mockResolvedValue({ data: { requests: [completedRequest] } });
+    renderWithProviders(<MisViajesScreen navigation={nav} route={route} />);
+    await waitFor(() => expect(screen.getByText('Activas')).toBeTruthy());
+    switchToHistory();
+    await waitFor(() => expect(screen.getByText('Reportar')).toBeTruthy());
+    fireEvent.press(screen.getByText('Reportar'));
+    await waitFor(() => expect(screen.getByText('Enviar Reporte')).toBeTruthy());
+
+    const input = screen.getByPlaceholderText(/Describe lo que ocurrió/i);
+    fireEvent.changeText(input, 'corta');
+    fireEvent.press(screen.getByText('Enviar Reporte'));
+
+    expect(Alert.alert).toHaveBeenCalledWith('Descripción muy corta', expect.any(String));
+    expect(mockCreateReport).not.toHaveBeenCalled();
+  });
+
+  it('llama a reportsApi.createReport con los datos correctos', async () => {
+    mockGetMyRequests.mockResolvedValue({ data: { requests: [completedRequest] } });
+    renderWithProviders(<MisViajesScreen navigation={nav} route={route} />);
+    await waitFor(() => expect(screen.getByText('Activas')).toBeTruthy());
+    switchToHistory();
+    await waitFor(() => expect(screen.getByText('Reportar')).toBeTruthy());
+    fireEvent.press(screen.getByText('Reportar'));
+    await waitFor(() => expect(screen.getByText('Enviar Reporte')).toBeTruthy());
+
+    const input = screen.getByPlaceholderText(/Describe lo que ocurrió/i);
+    fireEvent.changeText(input, 'El conductor manejó peligrosamente durante todo el trayecto');
+    fireEvent.press(screen.getByText('Enviar Reporte'));
+
+    await waitFor(() =>
+      expect(mockCreateReport).toHaveBeenCalledWith({
+        reportedId: 'driver-1',
+        reason: 'INAPPROPRIATE_BEHAVIOR',
+        description: 'El conductor manejó peligrosamente durante todo el trayecto',
+      }),
+    );
+  });
+
+  it('muestra Alert de éxito tras enviar el reporte', async () => {
+    mockGetMyRequests.mockResolvedValue({ data: { requests: [completedRequest] } });
+    renderWithProviders(<MisViajesScreen navigation={nav} route={route} />);
+    await waitFor(() => expect(screen.getByText('Activas')).toBeTruthy());
+    switchToHistory();
+    await waitFor(() => expect(screen.getByText('Reportar')).toBeTruthy());
+    fireEvent.press(screen.getByText('Reportar'));
+    await waitFor(() => expect(screen.getByText('Enviar Reporte')).toBeTruthy());
+
+    const input = screen.getByPlaceholderText(/Describe lo que ocurrió/i);
+    fireEvent.changeText(input, 'El conductor manejó peligrosamente durante todo el trayecto');
+    fireEvent.press(screen.getByText('Enviar Reporte'));
+
+    await waitFor(() =>
+      expect(Alert.alert).toHaveBeenCalledWith('Reporte enviado', expect.any(String)),
+    );
   });
 });
 

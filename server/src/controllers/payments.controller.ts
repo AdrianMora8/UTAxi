@@ -52,6 +52,29 @@ export async function payWithWallet(req: Request, res: Response) {
   res.status(201).json(result);
 }
 
+export async function confirmCardPayment(req: Request, res: Response) {
+  const { tripRequestId } = z.object({ tripRequestId: z.string().min(1) }).parse(req.body);
+  const result = await svc.confirmCardPayment(tripRequestId, req.user!.id);
+  res.json(result);
+}
+
+export async function markAsCash(req: Request, res: Response) {
+  const { tripRequestId } = z.object({ tripRequestId: z.string().min(1) }).parse(req.body);
+  const result = await svc.markAsCash(tripRequestId, req.user!.id);
+  res.json(result);
+}
+
+export async function confirmCashPayment(req: Request, res: Response) {
+  const { tripRequestId } = z.object({ tripRequestId: z.string().min(1) }).parse(req.body);
+  const result = await svc.confirmCashPayment(tripRequestId, req.user!.id);
+  res.json(result);
+}
+
+export async function getTripPaymentStatus(req: Request, res: Response) {
+  const result = await svc.getTripPaymentStatus(String(req.params.tripId), req.user!.id);
+  res.json({ passengers: result });
+}
+
 export async function getWallet(req: Request, res: Response) {
   const result = await svc.getWallet(req.user!.id);
   res.json(result);

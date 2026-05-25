@@ -383,7 +383,13 @@ export class TripsService {
       },
     });
 
-    const paidRequests = acceptedRequests.filter(r => r.payment?.status === PaymentStatus.CONFIRMED);
+    const unpaid = acceptedRequests.filter(r => r.payment?.status !== PaymentStatus.CONFIRMED);
+    if (unpaid.length > 0) {
+      const names = unpaid.map(r => r.passenger.fullName.split(' ')[0]).join(', ');
+      throw new AppError(400, `Faltan pagos por confirmar: ${names}`);
+    }
+
+    const paidRequests = acceptedRequests;
 
     const totalEarned = paidRequests.reduce(
       (sum, r) => sum + Number(r.payment!.amount),

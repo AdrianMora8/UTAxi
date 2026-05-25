@@ -3,12 +3,15 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { requestsApi } from '@/api/requests.api'
 import { paymentsApi } from '@/api/payments.api'
+import { StripeWrapper } from './StripeWrapper'
+import { CardForm } from './CardForm'
 
 export default function Payment() {
   const { requestId } = useParams<{ requestId: string }>()
   const navigate = useNavigate()
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [paymentError, setPaymentError] = useState('')
   const [confirmed, setConfirmed] = useState(false)
-  const [serverError, setServerError] = useState('')
 
   const { data: reqData, isLoading } = useQuery({
     queryKey: ['request-for-payment', requestId],
@@ -19,25 +22,24 @@ export default function Payment() {
     enabled: !!requestId,
   })
 
-  // Check if payment already exists for this request
   const { data: existingPayment, isLoading: paymentLoading } = useQuery({
     queryKey: ['payment', requestId],
     queryFn: () => paymentsApi.getPayment(requestId!).then((r) => r.data.payment),
     enabled: !!requestId,
-    retry: false, // 404 means no payment yet — don't retry
+    retry: false,
   })
 
-  const confirmMut = useMutation({
-    mutationFn: () => paymentsApi.simulateConfirm(requestId!),
-    onSuccess: () => {
-      setConfirmed(true)
-      setTimeout(() => navigate('/requests'), 3000)
+  const createIntentMut = useMutation({
+    mutationFn: () => paymentsApi.createIntent(requestId!),
+    onSuccess: (res) => {
+      setClientSecret(res.data.clientSecret)
+      setPaymentError('')
     },
     onError: (err: unknown) => {
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
-        'Error al procesar el pago'
-      setServerError(msg)
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ??
+        'Error al iniciar el pago'
+      setPaymentError(msg)
     },
   })
 
@@ -51,8 +53,6 @@ export default function Payment() {
 
   const req = reqData
   const trip = req?.trip
-
-  // Already paid — show confirmation state immediately
   const alreadyPaid = existingPayment?.status === 'CONFIRMED'
 
   if (!req || !trip) {
@@ -65,7 +65,6 @@ export default function Payment() {
     )
   }
 
-  // Already paid state (came back to this page after paying)
   if (alreadyPaid || confirmed) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6">
@@ -79,7 +78,7 @@ export default function Payment() {
             ¡Pago Confirmado!
           </h1>
           <p className="text-on-surface-variant">
-            Tu pago ha sido procesado. Redirigiendo a tus solicitudes...
+            Tu pago ha sido procesado exitosamente por Stripe.
           </p>
           <div className="bg-surface-container-low rounded-xl p-6 text-left space-y-3">
             <div className="flex justify-between text-sm">
@@ -118,23 +117,22 @@ export default function Payment() {
       <main className="flex-grow flex items-center justify-center pt-6 pb-12 px-6">
         <div className="w-full max-w-lg space-y-8">
 
-          {/* Security header */}
+          {/* Header */}
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-tertiary/10 text-tertiary mb-4"
-              style={{ animation: 'pulse 2s cubic-bezier(0.4,0,0.6,1) infinite' }}>
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-tertiary/10 text-tertiary mb-4">
               <span className="material-symbols-outlined material-symbols-filled">shield_with_heart</span>
             </div>
             <h1 className="font-headline text-3xl font-bold tracking-tight text-on-surface">
-              Confirmar Pago
+              Pagar con Tarjeta
             </h1>
             <p className="text-on-surface-variant text-sm">
-              Transacción cifrada punto a punto con seguridad académica.
+              Pago seguro procesado por Stripe.
             </p>
           </div>
 
-          {/* Trip summary card */}
+          {/* Trip summary */}
           <div className="bg-surface-container-low rounded-xl overflow-hidden shadow-2xl">
-            <div className="h-32 relative bg-surface-container-high flex items-center justify-center">
+            <div className="h-28 relative bg-surface-container-high flex items-center justify-center">
               <span className="material-symbols-outlined text-on-surface-variant/10 text-[80px]">map</span>
               <div className="absolute inset-0 bg-gradient-to-t from-surface-container-low to-transparent" />
               <div className="absolute bottom-4 left-6 right-6 flex justify-between items-end">
@@ -152,7 +150,6 @@ export default function Payment() {
             </div>
 
             <div className="p-6 space-y-4">
-              {/* Route */}
               <div className="flex items-start gap-4">
                 <div className="flex flex-col items-center gap-1 mt-1">
                   <div className="w-2 h-2 rounded-full bg-primary" />
@@ -171,7 +168,6 @@ export default function Payment() {
                 </div>
               </div>
 
-              {/* Driver + time */}
               <div className="pt-4 border-t border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-lg bg-surface-container-highest flex items-center justify-center">
@@ -192,111 +188,66 @@ export default function Payment() {
             </div>
           </div>
 
-          {/* Decorative card form */}
-          <div className="space-y-4">
-            <div>
-              <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 px-1">
-                Número de Tarjeta
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <span className="material-symbols-outlined text-on-surface-variant text-xl">credit_card</span>
+          {/* Stripe card form o botón para iniciar */}
+          {!clientSecret ? (
+            <div className="space-y-4">
+              {paymentError && (
+                <div className="flex items-center gap-2 bg-error/10 border border-error/20 rounded-lg px-4 py-3">
+                  <span className="material-symbols-outlined text-error text-sm">error</span>
+                  <p className="text-sm text-error">{paymentError}</p>
                 </div>
-                <input
-                  type="text"
-                  readOnly
-                  value="•••• •••• •••• 4242"
-                  className="w-full bg-surface-container-highest border-none rounded-xl py-4 pl-12 pr-4 text-on-surface font-mono tracking-widest cursor-default outline-none"
-                />
-              </div>
+              )}
+              <button
+                onClick={() => createIntentMut.mutate()}
+                disabled={createIntentMut.isPending}
+                className="w-full bg-gradient-primary py-4 rounded-xl text-on-primary font-bold font-headline text-lg shadow-[0_4px_24px_rgba(0,252,64,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                <span className="material-symbols-outlined">credit_card</span>
+                {createIntentMut.isPending ? 'Iniciando...' : 'Continuar con tarjeta'}
+              </button>
+              <Link
+                to="/requests"
+                className="block w-full text-center py-2 text-on-surface-variant hover:text-white transition-colors text-sm font-medium"
+              >
+                Cancelar
+              </Link>
             </div>
-
-            <div>
-              <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 px-1">
-                Titular de la Tarjeta
-              </label>
-              <input
-                type="text"
-                defaultValue="ESTUDIANTE UTA"
-                className="w-full bg-surface-container-highest border-none rounded-xl py-4 px-4 text-on-surface uppercase tracking-wide focus:ring-1 focus:ring-primary/40 outline-none"
+          ) : (
+            <StripeWrapper>
+              <CardForm
+                clientSecret={clientSecret}
+                amount={Number(trip.pricePerSeat)}
+                onSuccess={async () => {
+                  try {
+                    await paymentsApi.confirmCardPayment(requestId!)
+                  } catch {
+                    // el webhook lo procesará como fallback
+                  }
+                  setConfirmed(true)
+                  setTimeout(() => navigate('/requests'), 3000)
+                }}
+                onError={(msg) => setPaymentError(msg)}
+                isLoading={false}
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 px-1">
-                  Vencimiento
-                </label>
-                <input
-                  type="text"
-                  defaultValue="12/26"
-                  maxLength={5}
-                  className="w-full bg-surface-container-highest border-none rounded-xl py-4 px-4 text-on-surface text-center font-mono focus:ring-1 focus:ring-primary/40 outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 px-1">
-                  CVV
-                </label>
-                <input
-                  type="password"
-                  defaultValue="123"
-                  maxLength={3}
-                  className="w-full bg-surface-container-highest border-none rounded-xl py-4 px-4 text-on-surface text-center font-mono focus:ring-1 focus:ring-primary/40 outline-none"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Demo disclaimer */}
-          <div className="flex items-center gap-3 px-4 py-3 bg-error-container/10 rounded-lg border border-error-container/20">
-            <span className="material-symbols-outlined text-error text-xl">info</span>
-            <p className="text-xs text-on-error-container font-medium">
-              Entorno de demostración — no se realizan cobros reales.
-            </p>
-          </div>
-
-          {serverError && (
-            <div className="flex items-center gap-2 bg-error/10 border border-error/20 rounded-lg px-4 py-3">
-              <span className="material-symbols-outlined text-error text-sm">error</span>
-              <p className="text-sm text-error">{serverError}</p>
-            </div>
+              {paymentError && (
+                <div className="flex items-center gap-2 bg-error/10 border border-error/20 rounded-lg px-4 py-3 mt-4">
+                  <span className="material-symbols-outlined text-error text-sm">error</span>
+                  <p className="text-sm text-error">{paymentError}</p>
+                </div>
+              )}
+            </StripeWrapper>
           )}
 
-          {/* Actions */}
-          <div className="space-y-4">
-            <button
-              onClick={() => confirmMut.mutate()}
-              disabled={confirmMut.isPending || alreadyPaid}
-              className="w-full bg-gradient-primary py-4 rounded-xl text-on-primary font-bold font-headline text-lg shadow-[0_4px_24px_rgba(0,252,64,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <span className="material-symbols-outlined">lock</span>
-              {confirmMut.isPending ? 'Procesando...' : 'Confirmar Pago'}
-            </button>
-            <Link
-              to="/requests"
-              className="block w-full text-center py-2 text-on-surface-variant hover:text-white transition-colors text-sm font-medium"
-            >
-              Cancelar Transacción
-            </Link>
+          {/* Test mode hint */}
+          <div className="flex items-center gap-3 px-4 py-3 bg-primary/5 rounded-lg border border-primary/10">
+            <span className="material-symbols-outlined text-primary text-xl">info</span>
+            <div className="text-xs text-on-surface-variant">
+              <span className="text-primary font-bold">Modo prueba</span> — usa la tarjeta{' '}
+              <span className="font-mono text-white">4242 4242 4242 4242</span>, cualquier fecha futura y cualquier CVV.
+            </div>
           </div>
         </div>
       </main>
-
-      <footer className="w-full py-12 px-8 bg-[#0e0e0e] border-t border-white/5">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-          <div>
-            <span className="font-headline font-bold text-primary text-xl">U-Ride</span>
-            <p className="font-label text-xs uppercase tracking-widest text-zinc-600 mt-4">
-              © 2024 U-Ride Institutional. Powered by Academic Kinetic.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-6 md:justify-end">
-            <span className="font-label text-xs uppercase tracking-widest text-zinc-600">Centro de Ayuda</span>
-            <span className="font-label text-xs uppercase tracking-widest text-zinc-600">Privacidad</span>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

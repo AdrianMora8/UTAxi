@@ -171,5 +171,102 @@ test.describe('Manage Requests - E2E', () => {
 
       await expect(page.locator('text="Monitoreo U-Ride"')).toBeVisible({ timeout: 8000 });
     });
+
+    test('confirmed passenger shows flag (report) button', async ({ page }) => {
+      const reached = await navigateToManageRequests(page);
+      if (!reached) { test.skip(); return; }
+
+      const flagBtn = page.locator('[title="Reportar pasajero"]').first();
+      const hasAccepted = await flagBtn.isVisible({ timeout: 4000 }).catch(() => false);
+
+      if (!hasAccepted) {
+        test.skip();
+        return;
+      }
+
+      await expect(flagBtn).toBeVisible();
+    });
+
+    test('clicking flag button opens report modal', async ({ page }) => {
+      const reached = await navigateToManageRequests(page);
+      if (!reached) { test.skip(); return; }
+
+      const flagBtn = page.locator('[title="Reportar pasajero"]').first();
+      const hasAccepted = await flagBtn.isVisible({ timeout: 4000 }).catch(() => false);
+
+      if (!hasAccepted) {
+        test.skip();
+        return;
+      }
+
+      await flagBtn.click();
+      await expect(page.locator('text="Reportar pasajero"').last()).toBeVisible({ timeout: 5000 });
+      await expect(page.locator('button:has-text("Enviar Reporte")')).toBeVisible();
+    });
+
+    test('report modal validates minimum description length', async ({ page }) => {
+      const reached = await navigateToManageRequests(page);
+      if (!reached) { test.skip(); return; }
+
+      const flagBtn = page.locator('[title="Reportar pasajero"]').first();
+      const hasAccepted = await flagBtn.isVisible({ timeout: 4000 }).catch(() => false);
+
+      if (!hasAccepted) {
+        test.skip();
+        return;
+      }
+
+      await flagBtn.click();
+      await expect(page.locator('button:has-text("Enviar Reporte")')).toBeVisible({ timeout: 5000 });
+
+      // descripción corta y enviar
+      await page.fill('textarea', 'corta');
+      await page.click('button:has-text("Enviar Reporte")');
+
+      // debe mostrar el toast de error, no llamar a la API
+      await expect(page.locator('text=/al menos 10 caracteres/i')).toBeVisible({ timeout: 5000 });
+    });
+
+    test('report modal submits successfully with valid data', async ({ page }) => {
+      const reached = await navigateToManageRequests(page);
+      if (!reached) { test.skip(); return; }
+
+      const flagBtn = page.locator('[title="Reportar pasajero"]').first();
+      const hasAccepted = await flagBtn.isVisible({ timeout: 4000 }).catch(() => false);
+
+      if (!hasAccepted) {
+        test.skip();
+        return;
+      }
+
+      await flagBtn.click();
+      await expect(page.locator('button:has-text("Enviar Reporte")')).toBeVisible({ timeout: 5000 });
+
+      await page.fill('textarea', 'El pasajero tuvo un comportamiento muy inapropiado durante el viaje compartido.');
+      await page.click('button:has-text("Enviar Reporte")');
+
+      // tras éxito: toast de confirmación y modal cerrado
+      const toast = page.locator('text="Reporte enviado correctamente"');
+      const modalClosed = page.locator('button:has-text("Enviar Reporte")').not();
+      await expect(toast.or(modalClosed)).toBeVisible({ timeout: 8000 });
+    });
+
+    test('report modal closes on Cancelar click', async ({ page }) => {
+      const reached = await navigateToManageRequests(page);
+      if (!reached) { test.skip(); return; }
+
+      const flagBtn = page.locator('[title="Reportar pasajero"]').first();
+      const hasAccepted = await flagBtn.isVisible({ timeout: 4000 }).catch(() => false);
+
+      if (!hasAccepted) {
+        test.skip();
+        return;
+      }
+
+      await flagBtn.click();
+      await expect(page.locator('button:has-text("Enviar Reporte")')).toBeVisible({ timeout: 5000 });
+      await page.click('button:has-text("Cancelar")');
+      await expect(page.locator('button:has-text("Enviar Reporte")')).not.toBeVisible({ timeout: 3000 });
+    });
   });
 });

@@ -138,7 +138,7 @@ export default function Profile() {
     },
     onError: (err: unknown) => {
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ??
         'Error al guardar el vehículo'
       setVehicleServerError(msg)
     },
@@ -424,7 +424,7 @@ export default function Profile() {
                     <span className="material-symbols-outlined text-error text-sm">error</span>
                     <p className="text-sm text-error">
                       {(updateMeMut.error as { response?: { data?: { message?: string } } })
-                        ?.response?.data?.message ?? 'Error al actualizar el perfil'}
+                        ?.response?.data?.error ?? (err as any)?.response?.data?.message ?? 'Error al actualizar el perfil'}
                     </p>
                   </div>
                 )}

@@ -21,6 +21,7 @@ import { paymentsApi } from '../../api/payments.api';
 import { reportsApi, type ReportReason } from '../../api/reports.api';
 import RatingModal from '../../components/RatingModal';
 import { useNotifications } from '../../hooks/useNotifications';
+import { useStripePayment } from '../../hooks/useStripePayment';
 
 type Props = NativeStackScreenProps<PerfilStackParamList, 'MisViajes'>;
 
@@ -80,8 +81,9 @@ function TripRequestCard({
 
   const tripInProgress = item.trip?.status === 'IN_PROGRESS';
   const alreadyPaid = !!item.payment && item.payment.status === 'CONFIRMED';
-  const canPayBefore = isAccepted && !tripInProgress && !alreadyPaid;
-  const canPayDuring = isAccepted && tripInProgress && !alreadyPaid;
+  const isCashPending = !!item.payment && item.payment.method === 'CASH' && item.payment.status === 'PENDING';
+  const canPayBefore = isAccepted && !tripInProgress && !alreadyPaid && !isCashPending;
+  const canPayDuring = isAccepted && tripInProgress && !alreadyPaid && !isCashPending;
   const canCancel = isAccepted && item.trip?.status === 'SCHEDULED';
 
   const trip = item.trip;
@@ -285,6 +287,13 @@ function TripRequestCard({
           </View>
         )}
 
+        {isCashPending && (
+          <View style={styles.cashPendingBadge}>
+            <Ionicons name="cash-outline" size={14} color="#f5a623" />
+            <Text style={styles.cashPendingText}>EFECTIVO</Text>
+          </View>
+        )}
+
         {canPayBefore && (
           <TouchableOpacity
             style={styles.payBeforeBtn}
@@ -377,7 +386,7 @@ export default function MisViajesScreen({ navigation }: Props) {
     },
   });
 
-  const { mutate: payRequest } = useMutation({
+  const { mutate: walletPay } = useMutation({
     mutationFn: (requestId: string) => paymentsApi.payWithWallet(requestId),
     onMutate: (id) => setPayingId(id),
     onSettled: () => setPayingId(null),
@@ -391,6 +400,60 @@ export default function MisViajesScreen({ navigation }: Props) {
       Alert.alert('Error al pagar', msg);
     },
   });
+
+  const { mutate: cashPay } = useMutation({
+    mutationFn: (requestId: string) => paymentsApi.markAsCash(requestId),
+    onMutate: (id) => setPayingId(id),
+    onSettled: () => setPayingId(null),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+      Alert.alert('Efectivo registrado', 'El conductor confirmará tu pago en efectivo al finalizar el viaje.');
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.error || 'No se pudo registrar el pago en efectivo';
+      Alert.alert('Error', msg);
+    },
+  });
+
+  const { payWithCard } = useStripePayment();
+
+  function handlePay(requestId: string) {
+    Alert.alert(
+      '¿Cómo quieres pagar?',
+      '',
+      [
+        {
+          text: 'U-Wallet',
+          onPress: () => walletPay(requestId),
+        },
+        {
+          text: 'Tarjeta de crédito',
+          onPress: () => {
+            setPayingId(requestId);
+            payWithCard(requestId, () => {
+              setPayingId(null);
+              queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+              Alert.alert('¡Pago exitoso!', 'Tu pago con tarjeta fue procesado por Stripe.');
+            }).finally(() => setPayingId(null));
+          },
+        },
+        {
+          text: 'Pagar en efectivo',
+          onPress: () => {
+            Alert.alert(
+              'Pago en efectivo',
+              'Deberás pagar en efectivo al conductor antes de que termine el viaje. ¿Confirmas?',
+              [
+                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Confirmar', onPress: () => cashPay(requestId) },
+              ],
+            );
+          },
+        },
+        { text: 'Cancelar', style: 'cancel' },
+      ],
+    );
+  }
 
   const { mutate: submitReport, isPending: reportingPending } = useMutation({
     mutationFn: (data: { reportedId: string; reason: ReportReason; description: string }) =>
@@ -487,7 +550,7 @@ export default function MisViajesScreen({ navigation }: Props) {
               onRate={(requestId, driverName) => setRatingTarget({ requestId, driverName })}
               onRetry={retryRequest}
               retrying={retryingTripId === item.trip?.id}
-              onPay={payRequest}
+              onPay={handlePay}
               paying={payingId === item.id}
               onReport={(driverId, driverName) => setReportTarget({ driverId, driverName })}
             />
@@ -897,6 +960,21 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemiBold,
     fontSize: 12,
     color: colors.primary,
+    letterSpacing: 0.5,
+  },
+  cashPendingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: '#2a2010',
+  },
+  cashPendingText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
+    color: '#f5a623',
     letterSpacing: 0.5,
   },
   payBeforeBtn: {

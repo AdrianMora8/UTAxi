@@ -75,6 +75,7 @@ export default function TripDetail() {
     .join('')
 
   return (
+    <>
     <div className="min-h-screen bg-surface text-on-surface font-body">
       <main className="pt-6 pb-12 px-8 max-w-7xl mx-auto">
         {/* Breadcrumb */}
@@ -489,6 +490,7 @@ export default function TripDetail() {
     </div>
 
     {/* ── Safety Rules Modal (RF9) ── */}
+
     {showSafetyModal && trip && (
       <div
         className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm"
@@ -546,7 +548,7 @@ export default function TripDetail() {
                   setShowSafetyModal(false)
                   qc.invalidateQueries({ queryKey: ['trip', id] })
                 } catch (err: unknown) {
-                  const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Error al enviar la solicitud'
+                  const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ?? 'Error al enviar la solicitud'
                   setRequestError(msg)
                   setShowSafetyModal(false)
                 } finally {
@@ -561,5 +563,6 @@ export default function TripDetail() {
         </div>
       </div>
     )}
+    </>
   )
 }

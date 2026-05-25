@@ -1,10 +1,12 @@
 import { render, screen, waitFor } from '@/test/test-utils'
 import userEvent from '@testing-library/user-event'
 
-const { mockGetMyRequests, mockCancelRequest, mockNavigate } = vi.hoisted(() => ({
+const { mockGetMyRequests, mockCancelRequest, mockNavigate, mockGetWallet, mockPayWithWallet } = vi.hoisted(() => ({
   mockGetMyRequests: vi.fn(),
   mockCancelRequest: vi.fn(),
   mockNavigate: vi.fn(),
+  mockGetWallet: vi.fn(),
+  mockPayWithWallet: vi.fn(),
 }))
 
 vi.mock('@/api/requests.api', () => ({
@@ -12,6 +14,13 @@ vi.mock('@/api/requests.api', () => ({
     getMyRequests: mockGetMyRequests,
     cancelRequest: mockCancelRequest,
     createRequest: vi.fn(),
+  },
+}))
+
+vi.mock('@/api/payments.api', () => ({
+  paymentsApi: {
+    getWallet: mockGetWallet,
+    payWithWallet: mockPayWithWallet,
   },
 }))
 
@@ -65,6 +74,8 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockGetMyRequests.mockResolvedValue({ data: { requests: [] } })
   mockCancelRequest.mockResolvedValue({})
+  mockGetWallet.mockResolvedValue({ walletBalance: 5.00, pendingBalance: 0 })
+  mockPayWithWallet.mockResolvedValue({})
 })
 
 describe('MyRequests — renderizado', () => {
@@ -89,9 +100,12 @@ describe('MyRequests — renderizado', () => {
     await waitFor(() => expect(screen.getByText('Saldo U-Wallet')).toBeInTheDocument())
   })
 
-  it('muestra el botón "Recargar Saldo"', async () => {
+  it('muestra el link "Recargar" hacia /wallet', async () => {
     render(<MyRequests />)
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Recargar Saldo' })).toBeInTheDocument())
+    await waitFor(() => {
+      const links = screen.getAllByRole('link', { name: 'Recargar' })
+      expect(links.length).toBeGreaterThan(0)
+    })
   })
 })
 
@@ -146,8 +160,9 @@ describe('MyRequests — solicitud PENDIENTE', () => {
     )
   })
 
-  it('llama cancelRequest al hacer click en "Cancelar Solicitud"', async () => {
+  it('llama cancelRequest al confirmar en el modal de cancelación', async () => {
     const user = userEvent.setup()
+    mockCancelRequest.mockResolvedValue({ data: { message: 'Cancelado' } })
     mockGetMyRequests.mockResolvedValue({
       data: { requests: [makeRequest({ status: 'PENDING', id: 'req-001' })] },
     })
@@ -155,6 +170,8 @@ describe('MyRequests — solicitud PENDIENTE', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Cancelar Solicitud' })).toBeInTheDocument())
 
     await user.click(screen.getByRole('button', { name: 'Cancelar Solicitud' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /Sí, cancelar/i })).toBeInTheDocument())
+    await user.click(screen.getByRole('button', { name: /Sí, cancelar/i }))
 
     await waitFor(() => expect(mockCancelRequest).toHaveBeenCalledWith('req-001'))
   })
@@ -174,26 +191,26 @@ describe('MyRequests — solicitud ACEPTADA sin pago', () => {
     await waitFor(() => expect(screen.getByText('ACEPTADO')).toBeInTheDocument())
   })
 
-  it('muestra el botón "Pagar Ahora"', async () => {
+  it('muestra el botón "Pagar con U-Wallet"', async () => {
     render(<MyRequests />)
     await waitFor(() =>
-      expect(screen.getByRole('button', { name: 'Pagar Ahora' })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Pagar con U-Wallet/i })).toBeInTheDocument()
     )
   })
 
-  it('"Pagar Ahora" navega a /pay/:requestId', async () => {
+  it('"Pagar con Tarjeta" navega a /pay/:requestId', async () => {
     const user = userEvent.setup()
     render(<MyRequests />)
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Pagar Ahora' })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: /Pagar con Tarjeta/i })).toBeInTheDocument())
 
-    await user.click(screen.getByRole('button', { name: 'Pagar Ahora' }))
+    await user.click(screen.getByRole('button', { name: /Pagar con Tarjeta/i }))
 
     expect(mockNavigate).toHaveBeenCalledWith('/pay/req-001')
   })
 })
 
 describe('MyRequests — solicitud ACEPTADA con pago confirmado', () => {
-  it('muestra "Pago Confirmado" en lugar del botón Pagar Ahora', async () => {
+  it('muestra "Pago Confirmado" en lugar del botón de pago', async () => {
     mockGetMyRequests.mockResolvedValue({
       data: {
         requests: [
@@ -203,7 +220,7 @@ describe('MyRequests — solicitud ACEPTADA con pago confirmado', () => {
     })
     render(<MyRequests />)
     await waitFor(() => expect(screen.getByText('Pago Confirmado')).toBeInTheDocument())
-    expect(screen.queryByRole('button', { name: 'Pagar Ahora' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Pagar con U-Wallet/i })).not.toBeInTheDocument()
   })
 })
 
@@ -264,5 +281,39 @@ describe('MyRequests — solicitud COMPLETADA', () => {
 
     await user.click(screen.getByRole('button', { name: 'Historial' }))
     await waitFor(() => expect(screen.getByText('Calificado')).toBeInTheDocument())
+  })
+
+  it('muestra el botón "Reportar conductor" para solicitudes COMPLETADAS con conductor', async () => {
+    const user = userEvent.setup()
+    mockGetMyRequests.mockResolvedValue({
+      data: {
+        requests: [makeRequest({ status: 'COMPLETED', rating: null })],
+      },
+    })
+    render(<MyRequests />)
+
+    await user.click(screen.getByRole('button', { name: 'Historial' }))
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /Reportar conductor/i })).toBeInTheDocument()
+    )
+  })
+
+  it('navega a /reports?userId=... al hacer click en "Reportar conductor"', async () => {
+    const user = userEvent.setup()
+    mockGetMyRequests.mockResolvedValue({
+      data: {
+        requests: [makeRequest({ status: 'COMPLETED', rating: null })],
+      },
+    })
+    render(<MyRequests />)
+
+    await user.click(screen.getByRole('button', { name: 'Historial' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: /Reportar conductor/i })).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: /Reportar conductor/i }))
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      `/reports?userId=${mockDriver.id}&name=${encodeURIComponent(mockDriver.fullName)}`
+    )
   })
 })

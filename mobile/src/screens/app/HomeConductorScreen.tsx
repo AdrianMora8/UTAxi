@@ -21,6 +21,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors, fonts } from '../../theme';
 import { tripsApi, Trip } from '../../api/trips.api';
 import { requestsApi, TripRequest } from '../../api/requests.api';
+import { paymentsApi, PassengerPaymentStatus } from '../../api/payments.api';
 import { useAuthStore } from '../../store/authStore';
 import type { PublicarStackParamList } from '../../navigation/MainTabs';
 import { useLocationTracking } from '../../hooks/useLocationTracking';
@@ -164,6 +165,126 @@ function TripCard({
         )}
       </View>
     </View>
+  );
+}
+
+function PaymentsModal({
+  tripId,
+  onAllConfirmed,
+  onClose,
+}: {
+  tripId: string;
+  onAllConfirmed: () => void;
+  onClose: () => void;
+}) {
+  const queryClient = useQueryClient();
+
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['trip-payment-status', tripId],
+    queryFn: () => paymentsApi.getTripPaymentStatus(tripId).then(r => r.data.passengers),
+  });
+
+  const { mutate: confirmCash, isPending: confirmingId } = useMutation({
+    mutationFn: (requestId: string) => paymentsApi.confirmCashPayment(requestId),
+    onSuccess: () => {
+      refetch();
+      queryClient.invalidateQueries({ queryKey: ['my-trips'] });
+    },
+    onError: (err: any) => Alert.alert('Error', err?.response?.data?.error || 'No se pudo confirmar el pago'),
+  });
+
+  const passengers = data ?? [];
+  const allConfirmed = passengers.length > 0 && passengers.every(p => p.paymentStatus === 'CONFIRMED');
+
+  function statusLabel(p: PassengerPaymentStatus) {
+    if (p.paymentStatus === 'CONFIRMED') {
+      const methodLabel = p.paymentMethod === 'CASH' ? 'Efectivo' : p.paymentMethod === 'WALLET' ? 'U-Wallet' : 'Tarjeta';
+      return { label: `Pagado · ${methodLabel}`, color: colors.primary, bg: '#1a3322' };
+    }
+    if (p.paymentMethod === 'CASH' && p.paymentStatus === 'PENDING') {
+      return { label: 'Efectivo pendiente', color: '#f5a623', bg: '#2a2010' };
+    }
+    return { label: 'Sin pago', color: '#ff6b4a', bg: '#2a1a15' };
+  }
+
+  return (
+    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
+      <View style={pmStyles.overlay}>
+        <View style={pmStyles.sheet}>
+          <View style={pmStyles.handle} />
+
+          <View style={pmStyles.titleRow}>
+            <Ionicons name="cash" size={20} color={colors.primary} />
+            <Text style={pmStyles.title}>Estado de Pagos</Text>
+          </View>
+          <Text style={pmStyles.subtitle}>Confirma todos los pagos antes de completar el viaje</Text>
+
+          {isLoading ? (
+            <ActivityIndicator color={colors.primary} style={{ marginVertical: 24 }} />
+          ) : passengers.length === 0 ? (
+            <Text style={pmStyles.emptyText}>No hay pasajeros en este viaje.</Text>
+          ) : (
+            <ScrollView style={pmStyles.list} showsVerticalScrollIndicator={false}>
+              {passengers.map(p => {
+                const { label, color, bg } = statusLabel(p);
+                const isCashPending = p.paymentMethod === 'CASH' && p.paymentStatus === 'PENDING';
+                return (
+                  <View key={p.requestId} style={pmStyles.row}>
+                    <View style={pmStyles.avatar}>
+                      <Text style={pmStyles.avatarText}>{p.passengerName[0]?.toUpperCase() ?? '?'}</Text>
+                    </View>
+                    <View style={pmStyles.rowInfo}>
+                      <Text style={pmStyles.passengerName}>{p.passengerName}</Text>
+                      <View style={[pmStyles.statusBadge, { backgroundColor: bg }]}>
+                        <Text style={[pmStyles.statusBadgeText, { color }]}>{label}</Text>
+                      </View>
+                    </View>
+                    {isCashPending && (
+                      <TouchableOpacity
+                        style={pmStyles.confirmBtn}
+                        onPress={() => confirmCash(p.requestId)}
+                        disabled={confirmingId}
+                      >
+                        {confirmingId ? (
+                          <ActivityIndicator size="small" color={colors.primaryDark} />
+                        ) : (
+                          <Text style={pmStyles.confirmBtnText}>Confirmar</Text>
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })}
+            </ScrollView>
+          )}
+
+          {!allConfirmed && passengers.length > 0 && (
+            <View style={pmStyles.warningBox}>
+              <Ionicons name="warning-outline" size={14} color="#f5a623" />
+              <Text style={pmStyles.warningText}>
+                Aún hay pagos pendientes. Confirma todos antes de completar el viaje.
+              </Text>
+            </View>
+          )}
+
+          <View style={pmStyles.actions}>
+            <TouchableOpacity style={pmStyles.cancelBtn} onPress={onClose}>
+              <Text style={pmStyles.cancelBtnText}>Cancelar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[pmStyles.completeBtn, !allConfirmed && pmStyles.completeBtnDisabled]}
+              onPress={onAllConfirmed}
+              disabled={!allConfirmed}
+            >
+              <Ionicons name="checkmark-circle" size={16} color={allConfirmed ? colors.primaryDark : colors.textDim} />
+              <Text style={[pmStyles.completeBtnText, !allConfirmed && pmStyles.completeBtnTextDisabled]}>
+                Completar viaje
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -313,6 +434,7 @@ export default function HomeConductorScreen() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<TabMode>('active');
   const [boardingTrip, setBoardingTrip] = useState<Trip | null>(null);
+  const [paymentsTrip, setPaymentsTrip] = useState<Trip | null>(null);
 
   const { data, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['my-trips', user?.id],
@@ -353,11 +475,8 @@ export default function HomeConductorScreen() {
     ]);
   }
 
-  function handleComplete(id: string) {
-    Alert.alert('Completar viaje', '¿Confirmas que el viaje ha finalizado?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Sí, completar', onPress: () => completeTrip(id) },
-    ]);
+  function handleComplete(trip: Trip) {
+    setPaymentsTrip(trip);
   }
 
   const trips = data?.trips ?? [];
@@ -459,7 +578,7 @@ export default function HomeConductorScreen() {
             trip={item}
             onManage={() => navigation.navigate('Solicitudes', { tripId: item.id })}
             onStart={() => handleStart(item)}
-            onComplete={() => handleComplete(item.id)}
+            onComplete={() => handleComplete(item)}
             onEdit={() => navigation.navigate('EditTrip', { tripId: item.id })}
             onCancel={() => handleCancel(item.id)}
             onViewMap={() => navigation.navigate('TripTracking', {
@@ -502,6 +621,17 @@ export default function HomeConductorScreen() {
           isLoading={startingTrip}
           onConfirm={(boardedIds) => startTrip({ id: boardingTrip.id, boardedRequestIds: boardedIds })}
           onClose={() => setBoardingTrip(null)}
+        />
+      )}
+
+      {paymentsTrip && (
+        <PaymentsModal
+          tripId={paymentsTrip.id}
+          onAllConfirmed={() => {
+            setPaymentsTrip(null);
+            completeTrip(paymentsTrip.id);
+          }}
+          onClose={() => setPaymentsTrip(null)}
         />
       )}
     </SafeAreaView>
@@ -807,6 +937,168 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 12,
     color: colors.primary,
+  },
+});
+
+const pmStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: colors.surfaceContainer,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 36,
+    maxHeight: '80%',
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.surfaceHigh,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  title: {
+    fontFamily: fonts.display,
+    fontSize: 20,
+    color: colors.text,
+  },
+  subtitle: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    marginBottom: 16,
+  },
+  list: {
+    maxHeight: 260,
+    marginBottom: 12,
+  },
+  emptyText: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textDim,
+    textAlign: 'center',
+    marginVertical: 24,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surfaceHigh,
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.surfaceHigh,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 17,
+    color: colors.primary,
+  },
+  rowInfo: {
+    flex: 1,
+    gap: 4,
+  },
+  passengerName: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.text,
+  },
+  statusBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  statusBadgeText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    letterSpacing: 0.3,
+  },
+  confirmBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    minWidth: 90,
+    alignItems: 'center',
+  },
+  confirmBtnText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDark,
+  },
+  warningBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: '#2a2010',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+  },
+  warningText: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: '#f5a623',
+    lineHeight: 17,
+  },
+  actions: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 4,
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 50,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.surfaceHigh,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.textMuted,
+  },
+  completeBtn: {
+    flex: 2,
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  completeBtnDisabled: {
+    backgroundColor: colors.surfaceHigh,
+  },
+  completeBtnText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 15,
+    color: colors.primaryDark,
+  },
+  completeBtnTextDisabled: {
+    color: colors.textDim,
   },
 });
 

@@ -17,6 +17,7 @@ import type { AvisosStackParamList } from '../../navigation/MainTabs';
 import { colors, fonts } from '../../theme';
 import { requestsApi, TripRequest } from '../../api/requests.api';
 import { paymentsApi } from '../../api/payments.api';
+import { useStripePayment } from '../../hooks/useStripePayment';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   PENDING:   { label: 'PENDIENTE',  color: '#f5c518', bg: '#2a2510' },
@@ -277,7 +278,7 @@ export default function AvisosScreen({ navigation }: Props) {
     onError: () => Alert.alert('Error', 'No se pudo cancelar la solicitud'),
   });
 
-  const { mutate: payRequest } = useMutation({
+  const { mutate: walletPay } = useMutation({
     mutationFn: (requestId: string) => paymentsApi.payWithWallet(requestId),
     onMutate: (id) => setPayingId(id),
     onSettled: () => setPayingId(null),
@@ -291,6 +292,33 @@ export default function AvisosScreen({ navigation }: Props) {
       Alert.alert('Error al pagar', msg);
     },
   });
+
+  const { payWithCard } = useStripePayment();
+
+  function handlePay(requestId: string) {
+    Alert.alert(
+      '¿Cómo quieres pagar?',
+      '',
+      [
+        {
+          text: 'U-Wallet',
+          onPress: () => walletPay(requestId),
+        },
+        {
+          text: 'Tarjeta de crédito',
+          onPress: () => {
+            setPayingId(requestId);
+            payWithCard(requestId, () => {
+              setPayingId(null);
+              queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+              Alert.alert('¡Pago exitoso!', 'Tu pago con tarjeta fue procesado por Stripe.');
+            }).finally(() => setPayingId(null));
+          },
+        },
+        { text: 'Cancelar', style: 'cancel' },
+      ],
+    );
+  }
 
   const requests = data ?? [];
   const activas = requests.filter(r => r.status === 'PENDING' || r.status === 'ACCEPTED');
@@ -325,7 +353,7 @@ export default function AvisosScreen({ navigation }: Props) {
               item={item}
               onCancel={cancelRequest}
               cancelling={cancellingId === item.id}
-              onPay={payRequest}
+              onPay={handlePay}
               paying={payingId === item.id}
               onTrack={(req) => navigation.navigate('TripTracking', {
                 tripId: req.trip!.id,

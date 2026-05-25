@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { requestsApi, type TripRequest } from '@/api/requests.api'
 import { tripsApi } from '@/api/trips.api'
 import { reportsApi, type ReportReason } from '@/api/reports.api'
+import { paymentsApi, type PassengerPaymentStatus } from '@/api/payments.api'
 import RatingModal from '@/components/ratings/RatingModal'
 import { useNotifications } from '@/hooks/useNotifications'
 
@@ -20,6 +21,7 @@ export default function ManageRequests() {
   const [toast, setToast] = useState<string | null>(null)
   const [boardingOpen, setBoardingOpen] = useState(false)
   const [absentIds, setAbsentIds] = useState<Set<string>>(new Set())
+  const [paymentsOpen, setPaymentsOpen] = useState(false)
 
   const showToast = useCallback((msg: string) => {
     setToast(msg)
@@ -64,7 +66,7 @@ export default function ManageRequests() {
       navigate(`/trips/${tripId}/active`)
     },
     onError: (err: { response?: { data?: { message?: string } } }) => {
-      showToast(err.response?.data?.message ?? 'Error al iniciar el viaje')
+      showToast(err?.response?.data?.error ?? err?.response?.data?.message ?? 'Error al iniciar el viaje')
     },
   })
 
@@ -80,6 +82,18 @@ export default function ManageRequests() {
     mutationFn: ({ id, arrived }: { id: string; arrived: boolean }) =>
       requestsApi.markArrival(id, arrived),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-requests', tripId] }),
+  })
+
+  const { data: paymentStatusData, refetch: refetchPayments } = useQuery({
+    queryKey: ['trip-payment-status', tripId],
+    queryFn: () => paymentsApi.getTripPaymentStatus(tripId!).then(r => r.data.passengers),
+    enabled: !!tripId && paymentsOpen,
+  })
+
+  const confirmCashMut = useMutation({
+    mutationFn: (requestId: string) => paymentsApi.confirmCashPayment(requestId),
+    onSuccess: () => refetchPayments(),
+    onError: () => showToast('Error al confirmar el pago en efectivo'),
   })
 
   const reportMut = useMutation({
@@ -213,11 +227,7 @@ export default function ManageRequests() {
                 Ir al Mapa GPS
               </button>
               <button
-                onClick={() => {
-                  if (window.confirm('¿Confirmas que el viaje ha finalizado?')) {
-                    completeTripMut.mutate()
-                  }
-                }}
+                onClick={() => setPaymentsOpen(true)}
                 disabled={completeTripMut.isPending}
                 className="w-full bg-surface-container hover:bg-surface-container-high border border-primary/30 text-primary font-headline font-bold py-4 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
               >
@@ -599,6 +609,101 @@ export default function ManageRequests() {
               >
                 <span className="material-symbols-outlined text-sm">play_arrow</span>
                 {startTripMut.isPending ? 'Iniciando...' : 'Iniciar Viaje'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payments modal */}
+      {paymentsOpen && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-surface-container-low w-full max-w-md rounded-t-2xl md:rounded-2xl p-6 shadow-2xl border border-white/5">
+            <div className="flex items-center gap-3 mb-1">
+              <span className="material-symbols-outlined text-primary text-xl">payments</span>
+              <h3 className="font-headline font-bold text-white text-lg">Estado de Pagos</h3>
+            </div>
+            <p className="text-on-surface-variant text-sm mb-5">
+              Confirma todos los pagos antes de completar el viaje.
+            </p>
+
+            {!paymentStatusData ? (
+              <div className="flex justify-center py-6">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : paymentStatusData.length === 0 ? (
+              <p className="text-on-surface-variant text-sm text-center py-4">No hay pasajeros en este viaje.</p>
+            ) : (
+              <div className="space-y-3 mb-5 max-h-60 overflow-y-auto">
+                {paymentStatusData.map((p: PassengerPaymentStatus) => {
+                  const isConfirmed = p.paymentStatus === 'CONFIRMED'
+                  const isCashPending = p.paymentMethod === 'CASH' && p.paymentStatus === 'PENDING'
+                  const methodLabel = p.paymentMethod === 'CASH' ? 'Efectivo' : p.paymentMethod === 'WALLET' ? 'U-Wallet' : 'Tarjeta'
+                  return (
+                    <div key={p.requestId} className="flex items-center justify-between p-3 rounded-xl bg-surface-container border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-surface-container-highest flex items-center justify-center flex-shrink-0">
+                          <span className="font-headline font-bold text-xs text-on-surface-variant">
+                            {p.passengerName[0]?.toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-white">{p.passengerName}</p>
+                          {isConfirmed ? (
+                            <span className="text-xs text-primary font-bold">Pagado · {methodLabel}</span>
+                          ) : isCashPending ? (
+                            <span className="text-xs text-amber-400 font-bold">Efectivo pendiente</span>
+                          ) : (
+                            <span className="text-xs text-error font-bold">Sin pago</span>
+                          )}
+                        </div>
+                      </div>
+                      {isCashPending && (
+                        <button
+                          onClick={() => confirmCashMut.mutate(p.requestId)}
+                          disabled={confirmCashMut.isPending}
+                          className="bg-gradient-primary text-on-primary font-bold text-xs uppercase tracking-wider px-3 py-2 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          Confirmar
+                        </button>
+                      )}
+                      {isConfirmed && (
+                        <span className="material-symbols-outlined text-primary material-symbols-filled text-xl">check_circle</span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {paymentStatusData && paymentStatusData.some((p: PassengerPaymentStatus) => p.paymentStatus !== 'CONFIRMED') && (
+              <div className="flex items-start gap-2 bg-amber-900/20 border border-amber-500/30 rounded-xl p-3 mb-4">
+                <span className="material-symbols-outlined text-amber-400 text-sm">warning</span>
+                <p className="text-amber-300 text-xs">Aún hay pagos pendientes. Confirma todos antes de completar.</p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setPaymentsOpen(false)}
+                className="flex-1 py-3 rounded-xl text-on-surface-variant border border-white/10 hover:text-white transition-colors text-sm font-bold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  setPaymentsOpen(false)
+                  completeTripMut.mutate()
+                }}
+                disabled={
+                  completeTripMut.isPending ||
+                  !paymentStatusData ||
+                  paymentStatusData.some((p: PassengerPaymentStatus) => p.paymentStatus !== 'CONFIRMED')
+                }
+                className="flex-1 bg-gradient-primary text-on-primary font-headline font-bold py-3 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+                {completeTripMut.isPending ? 'Completando...' : 'Completar Viaje'}
               </button>
             </div>
           </div>

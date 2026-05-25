@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event'
 
 const { mockGetRequestsByTrip, mockRespondToRequest, mockMarkArrival,
         mockGetTripById, mockUpdateTripStatus,
-        mockUseParams, mockNavigate } = vi.hoisted(() => ({
+        mockUseParams, mockNavigate,
+        mockCreateReport } = vi.hoisted(() => ({
   mockGetRequestsByTrip: vi.fn(),
   mockRespondToRequest: vi.fn(),
   mockMarkArrival: vi.fn(),
@@ -11,6 +12,7 @@ const { mockGetRequestsByTrip, mockRespondToRequest, mockMarkArrival,
   mockUpdateTripStatus: vi.fn(),
   mockUseParams: vi.fn(() => ({ id: 'trip-1' })),
   mockNavigate: vi.fn(),
+  mockCreateReport: vi.fn(),
 }))
 
 vi.mock('@/api/requests.api', () => ({
@@ -44,6 +46,12 @@ vi.mock('@/components/ratings/RatingModal', () => ({
       <button onClick={onClose}>Cerrar</button>
     </div>
   ),
+}))
+
+vi.mock('@/api/reports.api', () => ({
+  reportsApi: {
+    createReport: mockCreateReport,
+  },
 }))
 
 vi.mock('@/hooks/useNotifications', () => ({
@@ -101,6 +109,7 @@ beforeEach(() => {
   mockRespondToRequest.mockResolvedValue({})
   mockMarkArrival.mockResolvedValue({})
   mockUpdateTripStatus.mockResolvedValue({})
+  mockCreateReport.mockResolvedValue({})
 })
 
 describe('ManageRequests — estado vacío', () => {
@@ -196,6 +205,89 @@ describe('ManageRequests — pasajeros confirmados', () => {
     await waitFor(() =>
       expect(screen.getByTestId('rating-modal')).toBeInTheDocument()
     )
+  })
+})
+
+describe('ManageRequests — reportar pasajero', () => {
+  it('muestra el botón de reportar (flag) para pasajeros aceptados', async () => {
+    mockGetRequestsByTrip.mockResolvedValue({ data: { requests: [makeAcceptedRequest()] } })
+    render(<ManageRequests />)
+
+    await waitFor(() =>
+      expect(screen.getByTitle('Reportar pasajero')).toBeInTheDocument()
+    )
+  })
+
+  it('abre el modal de reporte al hacer clic en el botón flag', async () => {
+    const user = userEvent.setup()
+    mockGetRequestsByTrip.mockResolvedValue({ data: { requests: [makeAcceptedRequest('req-2', 'Luis Vera')] } })
+    render(<ManageRequests />)
+
+    await waitFor(() => expect(screen.getByTitle('Reportar pasajero')).toBeInTheDocument())
+    await user.click(screen.getByTitle('Reportar pasajero'))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Enviar Reporte/i })).toBeInTheDocument()
+      expect(screen.getByText(/Reporte sobre/i)).toBeInTheDocument()
+    })
+  })
+
+  it('muestra toast de error si la descripción tiene menos de 10 caracteres', async () => {
+    const user = userEvent.setup()
+    mockGetRequestsByTrip.mockResolvedValue({ data: { requests: [makeAcceptedRequest()] } })
+    render(<ManageRequests />)
+
+    await waitFor(() => expect(screen.getByTitle('Reportar pasajero')).toBeInTheDocument())
+    await user.click(screen.getByTitle('Reportar pasajero'))
+
+    await waitFor(() => expect(screen.getByText('Enviar Reporte')).toBeInTheDocument())
+    const textarea = screen.getByPlaceholderText(/Describe lo que ocurrió/i)
+    await user.type(textarea, 'corta')
+    await user.click(screen.getByRole('button', { name: /Enviar Reporte/i }))
+
+    await waitFor(() =>
+      expect(screen.getByText(/al menos 10 caracteres/i)).toBeInTheDocument()
+    )
+    expect(mockCreateReport).not.toHaveBeenCalled()
+  })
+
+  it('llama reportsApi.createReport con los datos correctos al enviar', async () => {
+    const user = userEvent.setup()
+    mockGetRequestsByTrip.mockResolvedValue({ data: { requests: [makeAcceptedRequest('req-2', 'Luis Vera')] } })
+    render(<ManageRequests />)
+
+    await waitFor(() => expect(screen.getByTitle('Reportar pasajero')).toBeInTheDocument())
+    await user.click(screen.getByTitle('Reportar pasajero'))
+
+    await waitFor(() => expect(screen.getByText('Enviar Reporte')).toBeInTheDocument())
+    const textarea = screen.getByPlaceholderText(/Describe lo que ocurrió/i)
+    await user.type(textarea, 'Conducta inapropiada durante el viaje compartido')
+    await user.click(screen.getByRole('button', { name: /Enviar Reporte/i }))
+
+    await waitFor(() => expect(mockCreateReport).toHaveBeenCalledTimes(1))
+    const fd = mockCreateReport.mock.calls[0][0] as FormData
+    expect(fd.get('reportedId')).toBe('p2')
+    expect(fd.get('reason')).toBe('INAPPROPRIATE_BEHAVIOR')
+    expect(fd.get('description')).toBe('Conducta inapropiada durante el viaje compartido')
+  })
+
+  it('cierra el modal y muestra toast de éxito tras enviar el reporte', async () => {
+    const user = userEvent.setup()
+    mockGetRequestsByTrip.mockResolvedValue({ data: { requests: [makeAcceptedRequest()] } })
+    render(<ManageRequests />)
+
+    await waitFor(() => expect(screen.getByTitle('Reportar pasajero')).toBeInTheDocument())
+    await user.click(screen.getByTitle('Reportar pasajero'))
+
+    await waitFor(() => expect(screen.getByText('Enviar Reporte')).toBeInTheDocument())
+    const textarea = screen.getByPlaceholderText(/Describe lo que ocurrió/i)
+    await user.type(textarea, 'Conducta inapropiada durante el viaje compartido')
+    await user.click(screen.getByRole('button', { name: /Enviar Reporte/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('Enviar Reporte')).not.toBeInTheDocument()
+      expect(screen.getByText('Reporte enviado correctamente')).toBeInTheDocument()
+    })
   })
 })
 

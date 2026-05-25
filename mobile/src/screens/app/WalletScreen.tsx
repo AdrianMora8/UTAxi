@@ -36,15 +36,30 @@ function formatDate(dateStr: string) {
 function TransactionRow({ item }: { item: WalletTransaction }) {
   const cfg = CONCEPT_CONFIG[item.concept];
   const isCredit = item.type === 'CREDIT';
+  const isCard = item.concept === 'PAYMENT' && item.description?.includes('(tarjeta)');
+  const isWallet = item.concept === 'PAYMENT' && item.description?.includes('(U-Wallet)');
+  const cleanDesc = item.description?.replace(' (tarjeta)', '').replace(' (U-Wallet)', '') ?? null;
   return (
     <View style={styles.txRow}>
       <View style={[styles.txIcon, { backgroundColor: isCredit ? '#1a3322' : '#2a1515' }]}>
         <Ionicons name={cfg.icon as any} size={18} color={cfg.color} />
       </View>
       <View style={styles.txInfo}>
-        <Text style={styles.txLabel}>{cfg.label}</Text>
-        {item.description ? (
-          <Text style={styles.txDescription} numberOfLines={1}>{item.description}</Text>
+        <View style={styles.txLabelRow}>
+          <Text style={styles.txLabel}>{cfg.label}</Text>
+          {isCard && (
+            <View style={styles.methodBadgeCard}>
+              <Text style={styles.methodBadgeCardText}>Tarjeta</Text>
+            </View>
+          )}
+          {isWallet && (
+            <View style={styles.methodBadgeWallet}>
+              <Text style={styles.methodBadgeWalletText}>Wallet</Text>
+            </View>
+          )}
+        </View>
+        {cleanDesc ? (
+          <Text style={styles.txDescription} numberOfLines={1}>{cleanDesc}</Text>
         ) : null}
         <Text style={styles.txDate}>{formatDate(item.createdAt)}</Text>
       </View>
@@ -301,7 +316,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   txInfo: { flex: 1, gap: 3 },
+  txLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   txLabel: { fontFamily: fonts.bodyMedium, fontSize: 14, color: colors.text },
+  methodBadgeCard: {
+    backgroundColor: 'rgba(96,165,250,0.15)',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  methodBadgeCardText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 9,
+    color: '#60a5fa',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  methodBadgeWallet: {
+    backgroundColor: 'rgba(156,255,147,0.12)',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  methodBadgeWalletText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 9,
+    color: colors.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   txDescription: { fontFamily: fonts.body, fontSize: 12, color: colors.textMuted },
   txDate: { fontFamily: fonts.body, fontSize: 11, color: colors.textDim },
   txAmount: { fontFamily: fonts.display, fontSize: 16 },

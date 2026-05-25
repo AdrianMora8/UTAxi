@@ -167,6 +167,7 @@ function HistorialCard({
             <TouchableOpacity
               style={styles.reportBtn}
               onPress={() => onReport(driver.id, driver.fullName)}
+              testID="report-driver-btn"
             >
               <Ionicons name="flag-outline" size={13} color="#ff6b4a" />
               <Text style={styles.reportBtnText}>Reportar</Text>

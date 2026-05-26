@@ -20,6 +20,12 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum VehicleStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum TripStatus {
   SCHEDULED
   IN_PROGRESS
@@ -128,23 +134,29 @@ model User {
   payments            Payment[]
   walletTransactions  WalletTransaction[]
   tripEvents          TripEvent[]          @relation("TripEventActor")
+  warningsReceived    UserWarning[]        @relation("WarnedUser")
+  warningsIssued      UserWarning[]        @relation("AdminIssuer")
 
   @@index([email])
   @@map("users")
 }
 
 model Vehicle {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  brand       String
-  model       String
-  year        Int
-  plateNumber String
-  color       String
-  photoUrl    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String        @id @default(cuid())
+  userId         String        @unique
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand          String
+  model          String
+  year           Int
+  plateNumber    String
+  color          String
+  photoUrl       String?
+  status         VehicleStatus @default(PENDING)
+  rejectionNotes String?
+  rejectionCount Int           @default(0)
+  blockedUntil   DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@map("vehicles")
 }
@@ -295,6 +307,19 @@ model SafetyAcknowledgment {
 
   @@unique([userId, tripId])
   @@map("safety_acknowledgments")
+}
+
+model UserWarning {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("WarnedUser", fields: [userId], references: [id])
+  adminId   String
+  admin     User     @relation("AdminIssuer", fields: [adminId], references: [id])
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("user_warnings")
 }
 
 model TripEvent {

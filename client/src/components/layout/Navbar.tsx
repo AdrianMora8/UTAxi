@@ -14,7 +14,7 @@ export default function Navbar() {
     enabled: !!user,
     staleTime: 60_000,
   })
-  const hasVehicle = !!profileData?.user?.vehicle
+  const hasVehicle = profileData?.user?.vehicle?.status === 'APPROVED'
 
   const handleLogout = async () => {
     await logout()
@@ -111,7 +111,7 @@ export default function Navbar() {
                       : 'border-sky-500/40 text-sky-400 bg-sky-500/10'
                   }`}
                 >
-                  {hasVehicle ? 'Conductor / Pasajero' : 'Pasajero'}
+                  {hasVehicle ? 'Conductor / Pasajero' : profileData?.user?.vehicle ? 'Vehículo en revisión' : 'Pasajero'}
                 </span>
                 <Link
                   to="/profile"

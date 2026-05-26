@@ -27,6 +27,11 @@ export class TripsService {
     notes?: string;
     rules?: string;
   }) {
+    const vehicle = await this.prisma.vehicle.findUnique({ where: { userId: driverId } });
+    if (!vehicle) throw new AppError(400, 'Debes registrar un vehículo antes de publicar viajes.');
+    if (vehicle.status === 'PENDING') throw new AppError(403, 'Tu vehículo está pendiente de aprobación. Espera la revisión del administrador.');
+    if (vehicle.status === 'REJECTED') throw new AppError(403, 'Tu vehículo fue rechazado. Corrige los datos y vuelve a registrarlo.');
+
     const bufferHours = 2;
     const bufferStart = new Date(data.departureTime);
     bufferStart.setHours(bufferStart.getHours() - bufferHours);

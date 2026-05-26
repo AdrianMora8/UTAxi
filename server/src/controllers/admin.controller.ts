@@ -56,6 +56,7 @@ export async function updateUserStatus(req: Request, res: Response) {
   const { status, suspendedUntil } = suspendSchema.parse(req.body);
   const user = await svc.updateUserStatus(
     String(req.params.id),
+    req.user!.id,
     status,
     suspendedUntil ? new Date(suspendedUntil) : undefined,
   );
@@ -80,6 +81,29 @@ export async function getAdminTrips(req: Request, res: Response) {
 export async function cancelAdminTrip(req: Request, res: Response) {
   const result = await svc.cancelTrip(String(req.params.id), req.user!.id);
   res.json(result);
+}
+
+export async function getVehicles(req: Request, res: Response) {
+  const { status, page, limit } = req.query;
+  const result = await svc.getVehicles({
+    status: status as string,
+    page: page ? Number(page) : 1,
+    limit: limit ? Number(limit) : 20,
+  });
+  res.json(result);
+}
+
+export async function approveVehicle(req: Request, res: Response) {
+  const vehicle = await svc.approveVehicle(String(req.params.id));
+  res.json({ vehicle });
+}
+
+const rejectVehicleSchema = z.object({ notes: z.string().min(1).max(500) });
+
+export async function rejectVehicle(req: Request, res: Response) {
+  const { notes } = rejectVehicleSchema.parse(req.body);
+  const vehicle = await svc.rejectVehicle(String(req.params.id), notes);
+  res.json({ vehicle });
 }
 
 export async function getStats(_req: Request, res: Response) {

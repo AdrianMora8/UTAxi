@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { adminApi, type AdminReport, type AdminUser, type AdminUserDetail, type AdminTrip, type TripEvent, type TripEventType } from '@/api/admin.api'
+import { adminApi, type AdminReport, type AdminUser, type AdminUserDetail, type AdminTrip, type AdminVehicle, type TripEvent, type TripEventType } from '@/api/admin.api'
 import { useAuthStore } from '@/store/authStore'
 import { useNavigate } from 'react-router-dom'
 
-type Tab = 'reports' | 'users' | 'trips' | 'events'
+type Tab = 'reports' | 'users' | 'trips' | 'events' | 'vehicles'
 
 const REPORT_STATUS: Record<string, { label: string; className: string }> = {
   OPEN:     { label: 'ABIERTO',  className: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' },
@@ -308,6 +308,40 @@ function UserDetailModal({ userId, onClose }: { userId: string; onClose: () => v
               </div>
             )}
 
+            {/* Warnings history */}
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3 flex items-center gap-2">
+                <span className="material-symbols-outlined text-sm text-yellow-400">warning</span>
+                Advertencias — {data._count?.warningsReceived ?? 0} en total
+              </h4>
+              {(data.warningsReceived ?? []).length === 0 ? (
+                <p className="text-xs text-zinc-600 px-1">Sin advertencias registradas.</p>
+              ) : (
+                <div className="space-y-2">
+                  {(data.warningsReceived ?? []).map((w: AdminUserDetail['warningsReceived'][0]) => {
+                    const wDate = new Date(w.createdAt)
+                    const daysAgo = Math.floor((Date.now() - wDate.getTime()) / (1000 * 60 * 60 * 24))
+                    const isRecent = daysAgo < 7
+                    return (
+                      <div key={w.id} className={`flex items-start gap-3 px-4 py-3 rounded-lg border ${isRecent ? 'bg-yellow-500/5 border-yellow-500/20' : 'bg-surface-container border-transparent'}`}>
+                        <span className={`material-symbols-outlined text-base mt-0.5 ${isRecent ? 'text-yellow-400' : 'text-zinc-600'}`}>warning</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-white">{w.reason ?? 'Sin nota'}</p>
+                          <p className="text-[10px] text-zinc-500 mt-0.5">por {w.admin.fullName}</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-[10px] text-zinc-500">{wDate.toLocaleDateString('es-EC')}</p>
+                          {isRecent && (
+                            <p className="text-[10px] font-bold text-yellow-400">hace {daysAgo === 0 ? 'hoy' : `${daysAgo}d`}</p>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
             {/* Last reports received */}
             {data.reportsReceived.length > 0 && (
               <div>
@@ -347,6 +381,41 @@ export default function AdminDashboard() {
   const [suspendTarget, setSuspendTarget] = useState<AdminUser | null>(null)
   const [tripStatusFilter, setTripStatusFilter] = useState('')
   const [cancelTripTarget, setCancelTripTarget] = useState<AdminTrip | null>(null)
+  const [vehicleStatusFilter, setVehicleStatusFilter] = useState('PENDING')
+  const [rejectTarget, setRejectTarget] = useState<AdminVehicle | null>(null)
+  const [rejectNotes, setRejectNotes] = useState('')
+  const [vehicleDetail, setVehicleDetail] = useState<AdminVehicle | null>(null)
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null)
+  const [zoom, setZoom] = useState(1)
+  const [pan, setPan] = useState({ x: 0, y: 0 })
+  const isDragging = useRef(false)
+  const dragStart = useRef({ x: 0, y: 0 })
+  const panRef = useRef({ x: 0, y: 0 })
+
+  const openLightbox = (src: string) => { setLightboxSrc(src); setZoom(1); setPan({ x: 0, y: 0 }) }
+  const closeLightbox = () => setLightboxSrc(null)
+
+  const onWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault()
+    setZoom((z) => Math.min(5, Math.max(1, z - e.deltaY * 0.001)))
+  }, [])
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    if (zoom <= 1) return
+    isDragging.current = true
+    dragStart.current = { x: e.clientX - panRef.current.x, y: e.clientY - panRef.current.y }
+  }, [zoom])
+
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging.current) return
+    const nx = e.clientX - dragStart.current.x
+    const ny = e.clientY - dragStart.current.y
+    panRef.current = { x: nx, y: ny }
+    setPan({ x: nx, y: ny })
+  }, [])
+
+  const onMouseUp = useCallback(() => { isDragging.current = false }, [])
+  const [notification, setNotification] = useState<{ msg: string; type: 'warn' | 'error' } | null>(null)
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const clearAuth = useAuthStore((s) => s.clearAuth)
@@ -385,12 +454,46 @@ export default function AdminDashboard() {
     enabled: tab === 'trips',
   })
 
+  const showNotification = (msg: string, type: 'warn' | 'error') => {
+    setNotification({ msg, type })
+    setTimeout(() => setNotification(null), 5000)
+  }
+
   const updateStatusMut = useMutation({
     mutationFn: ({ id, status }: { id: string; status: 'ACTIVE' | 'WARNED' }) =>
       adminApi.updateUserStatus(id, status),
-    onSuccess: () => {
+    onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ['admin-users'] })
       qc.invalidateQueries({ queryKey: ['admin-stats'] })
+      const data = res.data?.user
+      if (data?.autoSuspended) {
+        const until = new Date(data.suspendedUntil).toLocaleDateString('es-EC')
+        showNotification(
+          `⚠️ ${data.fullName} acumuló 3 advertencias en 7 días — suspendido automáticamente hasta el ${until}.`,
+          'error',
+        )
+      }
+    },
+  })
+
+  const { data: vehiclesData, isLoading: loadingVehicles } = useQuery({
+    queryKey: ['admin-vehicles', vehicleStatusFilter],
+    queryFn: () => adminApi.getVehicles({ status: vehicleStatusFilter || undefined, limit: 30 }).then((r) => r.data),
+    enabled: tab === 'vehicles',
+    refetchInterval: 30_000,
+  })
+
+  const approveVehicleMut = useMutation({
+    mutationFn: (id: string) => adminApi.approveVehicle(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-vehicles'] }),
+  })
+
+  const rejectVehicleMut = useMutation({
+    mutationFn: ({ id, notes }: { id: string; notes: string }) => adminApi.rejectVehicle(id, notes),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-vehicles'] })
+      setRejectTarget(null)
+      setRejectNotes('')
     },
   })
 
@@ -441,10 +544,11 @@ export default function AdminDashboard() {
 
         <nav className="flex flex-col gap-1 grow">
           {([
-            { id: 'reports', icon: 'flag',          label: 'Reportes',      badge: stats?.reports.open },
-            { id: 'users',   icon: 'person_search', label: 'Usuarios' },
-            { id: 'trips',   icon: 'directions_car',label: 'Viajes' },
-            { id: 'events',  icon: 'history',       label: 'Trazabilidad' },
+            { id: 'reports',  icon: 'flag',           label: 'Reportes',   badge: stats?.reports.open },
+            { id: 'users',    icon: 'person_search',  label: 'Usuarios' },
+            { id: 'vehicles', icon: 'directions_car', label: 'Vehículos' },
+            { id: 'trips',    icon: 'route',          label: 'Viajes' },
+            { id: 'events',   icon: 'history',        label: 'Trazabilidad' },
           ] as const).map((item) => (
             <button
               key={item.id}
@@ -531,6 +635,18 @@ export default function AdminDashboard() {
               <span className="material-symbols-outlined absolute right-4 top-2.5 text-zinc-500">search</span>
             </div>
           )}
+          {tab === 'vehicles' && (
+            <select
+              value={vehicleStatusFilter}
+              onChange={(e) => setVehicleStatusFilter(e.target.value)}
+              className="bg-surface-container-highest border-none rounded-xl px-4 py-2.5 text-sm text-white focus:ring-1 focus:ring-primary/40 outline-none"
+            >
+              <option value="PENDING">Pendientes</option>
+              <option value="APPROVED">Aprobados</option>
+              <option value="REJECTED">Rechazados</option>
+              <option value="">Todos</option>
+            </select>
+          )}
           {tab === 'trips' && (
             <select
               value={tripStatusFilter}
@@ -556,6 +672,16 @@ export default function AdminDashboard() {
             </select>
           )}
         </header>
+
+        {notification && (
+          <div className={`mx-8 mt-4 px-5 py-3 rounded-xl text-sm font-medium border ${
+            notification.type === 'error'
+              ? 'bg-error/10 border-error/30 text-error'
+              : 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400'
+          }`}>
+            {notification.msg}
+          </div>
+        )}
 
         <div className="px-8 py-8 flex-1">
 
@@ -766,9 +892,17 @@ export default function AdminDashboard() {
                             </td>
                             <td className="px-6 py-4 text-white font-bold">{u.totalTrips}</td>
                             <td className="px-6 py-4">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter ${badge.className}`}>
-                                {badge.label}
-                              </span>
+                              <div className="flex flex-col gap-1 items-start">
+                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-tighter ${badge.className}`}>
+                                  {badge.label}
+                                </span>
+                                {(u._count?.warningsReceived ?? 0) > 0 && (
+                                  <span className="flex items-center gap-1 text-[10px] font-bold text-yellow-400">
+                                    <span className="material-symbols-outlined text-sm">warning</span>
+                                    {u._count!.warningsReceived}/3 en 7d
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-6 py-4 text-right rounded-r-xl">
                               <div className="flex justify-end gap-2">
@@ -817,6 +951,75 @@ export default function AdminDashboard() {
               <div className="px-8 py-4 border-t border-white/5 text-xs text-zinc-500">
                 Mostrando {usersData?.users.length ?? 0} de {usersData?.total ?? 0} usuarios
               </div>
+            </section>
+          )}
+
+          {/* ── Tab: Vehicles ── */}
+          {tab === 'vehicles' && (
+            <section className="bg-surface-container-low rounded-2xl overflow-hidden">
+              <div className="px-8 py-4 border-b border-white/5 flex items-center justify-between">
+                <h3 className="font-headline font-bold text-white uppercase tracking-widest text-sm flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">directions_car</span>
+                  Aprobación de Vehículos
+                </h3>
+                <span className="text-xs text-on-surface-variant">{vehiclesData?.total ?? 0} vehículos</span>
+              </div>
+
+              {loadingVehicles ? (
+                <div className="p-8 space-y-3">
+                  {[...Array(4)].map((_, i) => <div key={i} className="h-20 bg-surface-container animate-pulse rounded-xl" />)}
+                </div>
+              ) : (vehiclesData?.vehicles.length ?? 0) === 0 ? (
+                <div className="py-24 flex flex-col items-center justify-center gap-4">
+                  <span className="material-symbols-outlined text-5xl text-zinc-600">directions_car</span>
+                  <p className="text-on-surface-variant">No hay vehículos con ese filtro.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {vehiclesData?.vehicles.map((v: AdminVehicle) => {
+                    const statusStyle: Record<string, string> = {
+                      PENDING:  'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+                      APPROVED: 'bg-primary/10 text-primary border-primary/20',
+                      REJECTED: 'bg-error/10 text-error border-error/20',
+                    }
+                    const statusLabel: Record<string, string> = { PENDING: 'Pendiente', APPROVED: 'Aprobado', REJECTED: 'Rechazado' }
+                    return (
+                      <div
+                        key={v.id}
+                        onClick={() => setVehicleDetail(v)}
+                        className="px-8 py-5 flex items-start gap-6 hover:bg-surface-container transition-colors cursor-pointer"
+                      >
+                        {/* Foto */}
+                        <div className="w-24 h-16 rounded-xl bg-surface-container-highest flex-shrink-0 overflow-hidden flex items-center justify-center">
+                          {v.photoUrl
+                            ? <img src={v.photoUrl} alt="vehículo" className="w-full h-full object-cover" />
+                            : <span className="material-symbols-outlined text-3xl text-zinc-600">directions_car</span>
+                          }
+                        </div>
+
+                        {/* Datos */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
+                            <span className="text-white font-bold">{v.brand} {v.model} {v.year}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusStyle[v.status]}`}>
+                              {statusLabel[v.status]}
+                            </span>
+                            {v.rejectionCount > 0 && (
+                              <span className="text-[10px] text-zinc-500">
+                                {v.rejectionCount} rechazo{v.rejectionCount > 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-zinc-400">Placa: <span className="text-white font-mono">{v.plateNumber}</span> · Color: {v.color}</p>
+                          <p className="text-xs text-zinc-500 mt-0.5">{v.user.fullName} · {v.user.email}</p>
+                        </div>
+
+                        <span className="material-symbols-outlined text-zinc-600 flex-shrink-0 mt-1">chevron_right</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </section>
           )}
 
@@ -1028,6 +1231,204 @@ export default function AdminDashboard() {
       )}
       {selectedUserId && (
         <UserDetailModal userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
+      )}
+
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center"
+          onClick={(e) => { if (e.target === e.currentTarget) closeLightbox() }}
+          onWheel={onWheel}
+          onMouseDown={onMouseDown}
+          onMouseMove={onMouseMove}
+          onMouseUp={onMouseUp}
+          onMouseLeave={onMouseUp}
+          style={{ cursor: zoom > 1 ? (isDragging.current ? 'grabbing' : 'grab') : 'zoom-in' }}
+        >
+          <img
+            src={lightboxSrc}
+            alt="vista ampliada"
+            draggable={false}
+            style={{
+              transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
+              transition: isDragging.current ? 'none' : 'transform 0.1s ease',
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              objectFit: 'contain',
+              userSelect: 'none',
+            }}
+          />
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/60 backdrop-blur-sm px-5 py-2 rounded-full border border-white/10">
+            <button onClick={() => setZoom((z) => Math.max(1, +(z - 0.5).toFixed(1)))} className="text-white hover:text-primary transition-colors">
+              <span className="material-symbols-outlined">zoom_out</span>
+            </button>
+            <span className="text-white text-xs font-mono w-12 text-center">{Math.round(zoom * 100)}%</span>
+            <button onClick={() => setZoom((z) => Math.min(5, +(z + 0.5).toFixed(1)))} className="text-white hover:text-primary transition-colors">
+              <span className="material-symbols-outlined">zoom_in</span>
+            </button>
+            <div className="w-px h-4 bg-white/20" />
+            <button onClick={closeLightbox} className="text-white hover:text-error transition-colors">
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <p className="absolute top-6 left-1/2 -translate-x-1/2 text-xs text-zinc-500">Scroll para zoom · arrastra para mover · click fuera para cerrar</p>
+        </div>
+      )}
+
+      {vehicleDetail && (() => {
+        const v = vehicleDetail
+        const statusStyle: Record<string, { cls: string; label: string }> = {
+          PENDING:  { cls: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20', label: 'Pendiente' },
+          APPROVED: { cls: 'bg-primary/10 text-primary border-primary/20',           label: 'Aprobado' },
+          REJECTED: { cls: 'bg-error/10 text-error border-error/20',                 label: 'Rechazado' },
+        }
+        const st = statusStyle[v.status]
+        return (
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/75 backdrop-blur-sm"
+            onClick={(e) => { if (e.target === e.currentTarget) setVehicleDetail(null) }}
+          >
+            <div className="w-full max-w-lg bg-surface-container-low rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+
+              {/* Header */}
+              <div className="p-6 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <h2 className="font-headline text-lg font-bold text-white">{v.brand} {v.model} {v.year}</h2>
+                  <p className="text-xs text-on-surface-variant mt-0.5">{v.user.fullName} · {v.user.email}</p>
+                </div>
+                <button onClick={() => setVehicleDetail(null)} className="text-on-surface-variant hover:text-white">
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+
+              <div className="overflow-y-auto flex-1">
+                {/* Foto grande */}
+                <div className="w-full h-56 bg-surface-container-highest flex items-center justify-center overflow-hidden relative group">
+                  {v.photoUrl
+                    ? (
+                      <>
+                        <img src={v.photoUrl} alt="vehículo" className="w-full h-full object-cover" />
+                        <button
+                          onClick={() => openLightbox(v.photoUrl!)}
+                          className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/40 transition-all duration-200"
+                        >
+                          <span className="material-symbols-outlined text-white text-4xl opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg">
+                            zoom_in
+                          </span>
+                        </button>
+                      </>
+                    )
+                    : (
+                      <div className="flex flex-col items-center gap-2 text-zinc-600">
+                        <span className="material-symbols-outlined text-6xl">directions_car</span>
+                        <span className="text-xs">Sin foto</span>
+                      </div>
+                    )
+                  }
+                </div>
+
+                {/* Datos */}
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className={`px-3 py-1 rounded-full text-[11px] font-bold border ${st.cls}`}>{st.label}</span>
+                    {v.rejectionCount > 0 && (
+                      <span className="text-[11px] text-zinc-500">{v.rejectionCount}/3 rechazos</span>
+                    )}
+                    {v.blockedUntil && new Date(v.blockedUntil) > new Date() && (
+                      <span className="text-[11px] text-error">bloqueado hasta {new Date(v.blockedUntil).toLocaleDateString('es-EC')}</span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: 'Marca',  value: v.brand },
+                      { label: 'Modelo', value: v.model },
+                      { label: 'Año',    value: String(v.year) },
+                      { label: 'Color',  value: v.color },
+                      { label: 'Placa',  value: v.plateNumber },
+                      { label: 'Propietario', value: v.user.fullName },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="bg-surface-container rounded-xl px-4 py-3">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mb-1">{label}</p>
+                        <p className="text-sm font-bold text-white font-mono">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {v.rejectionNotes && (
+                    <div className="bg-error/5 border border-error/20 rounded-xl px-4 py-3">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-error mb-1">Último motivo de rechazo</p>
+                      <p className="text-sm text-on-surface-variant">{v.rejectionNotes}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Acciones */}
+              {v.status !== 'APPROVED' && (
+                <div className="p-6 border-t border-white/5 flex gap-3">
+                  <button
+                    onClick={() => { approveVehicleMut.mutate(v.id); setVehicleDetail(null) }}
+                    disabled={approveVehicleMut.isPending}
+                    className="flex-1 py-3 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary hover:text-on-primary transition-all disabled:opacity-50"
+                  >
+                    Aprobar
+                  </button>
+                  {v.status !== 'REJECTED' && (
+                    <button
+                      onClick={() => { setVehicleDetail(null); setRejectTarget(v); setRejectNotes('') }}
+                      className="flex-1 py-3 bg-error/10 text-error font-bold rounded-xl hover:bg-error/20 transition-all"
+                    >
+                      Rechazar
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })()}
+
+      {rejectTarget && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setRejectTarget(null) }}
+        >
+          <div className="w-full max-w-sm bg-surface-container-low rounded-2xl shadow-2xl p-6">
+            <h2 className="font-headline text-lg font-bold text-white mb-1">Rechazar Vehículo</h2>
+            <p className="text-xs text-on-surface-variant mb-4">
+              {rejectTarget.brand} {rejectTarget.model} · <span className="font-mono">{rejectTarget.plateNumber}</span>
+              {' '}· intento {rejectTarget.rejectionCount + 1}/3
+            </p>
+            <textarea
+              value={rejectNotes}
+              onChange={(e) => setRejectNotes(e.target.value)}
+              rows={3}
+              maxLength={500}
+              placeholder="Motivo del rechazo (obligatorio)"
+              className="w-full bg-surface-container-highest border-none rounded-xl p-3 text-on-surface placeholder:text-outline text-sm resize-none focus:ring-1 focus:ring-error/40 outline-none mb-4"
+            />
+            {rejectTarget.rejectionCount >= 2 && (
+              <p className="text-xs text-error bg-error/10 border border-error/20 rounded-lg px-3 py-2 mb-4">
+                Este es el 3er rechazo — el conductor quedará bloqueado 6 meses para re-registrar vehículo.
+              </p>
+            )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setRejectTarget(null)}
+                className="flex-1 py-3 rounded-xl border border-white/10 text-on-surface-variant font-bold text-sm hover:text-white transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => rejectVehicleMut.mutate({ id: rejectTarget.id, notes: rejectNotes })}
+                disabled={rejectVehicleMut.isPending || !rejectNotes.trim()}
+                className="flex-1 py-3 rounded-xl bg-error/20 border border-error/30 text-error font-bold text-sm hover:bg-error/30 transition-all disabled:opacity-50"
+              >
+                {rejectVehicleMut.isPending ? 'Procesando...' : 'Rechazar'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

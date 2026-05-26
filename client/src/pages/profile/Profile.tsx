@@ -116,6 +116,15 @@ export default function Profile() {
   const [photoUploading, setPhotoUploading] = useState(false)
   const [pendingPhoto, setPendingPhoto] = useState<File | null>(null)
   const [pendingPhotoPreview, setPendingPhotoPreview] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  const deleteVehicleMut = useMutation({
+    mutationFn: () => usersApi.deleteVehicle(),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['me'] })
+      setConfirmDelete(false)
+    },
+  })
 
   const vehicleMut = useMutation({
     mutationFn: (data: VehicleForm) =>
@@ -460,51 +469,108 @@ export default function Profile() {
               </div>
 
               {/* Current vehicle info (read mode) */}
-              {hasVehicle && (
-                <div className="mb-8 bg-surface-container rounded-xl border border-white/5 overflow-hidden">
-                  {/* Vehicle photo */}
-                  <div className="relative h-40 bg-surface-container-high flex items-center justify-center">
-                    {user.vehicle!.photoUrl ? (
-                      <img
-                        src={user.vehicle!.photoUrl}
-                        alt="Foto del vehículo"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="material-symbols-outlined text-on-surface-variant/20 text-[80px]">
-                        directions_car
-                      </span>
-                    )}
-                    <label className={`absolute bottom-3 right-3 flex items-center gap-1.5 bg-surface-container-highest/90 backdrop-blur-sm border border-white/10 text-white text-xs font-bold px-3 py-2 rounded-lg cursor-pointer hover:bg-surface-bright transition-colors ${photoUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                      <span className="material-symbols-outlined text-sm">
-                        {photoUploading ? 'hourglass_empty' : 'photo_camera'}
-                      </span>
-                      {photoUploading ? 'Subiendo...' : user.vehicle!.photoUrl ? 'Cambiar foto' : 'Agregar foto'}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        disabled={photoUploading}
-                        onChange={handleVehiclePhoto}
-                      />
-                    </label>
-                  </div>
-                  <div className="p-5 flex items-center gap-4">
-                    <div className="flex-1">
-                      <p className="font-headline font-bold text-on-surface">
-                        {user.vehicle!.brand} {user.vehicle!.model} ({user.vehicle!.year})
-                      </p>
-                      <p className="text-on-surface-variant text-sm mt-1">
-                        {user.vehicle!.color} • {user.vehicle!.plateNumber}
-                      </p>
-                    </div>
-                    <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-lg uppercase flex-shrink-0">
-                      Verificado
-                    </span>
-                  </div>
-                </div>
-              )}
+              {hasVehicle && (() => {
+                const v = user.vehicle!
+                const vehicleStatus = v.status ?? 'PENDING'
+                const isPending = vehicleStatus === 'PENDING'
+                const isRejected = vehicleStatus === 'REJECTED'
+                const isApproved = vehicleStatus === 'APPROVED'
+                const statusStyle = {
+                  PENDING:  { cls: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20', label: 'En revisión' },
+                  APPROVED: { cls: 'bg-primary/10 text-primary border-primary/20',           label: 'Aprobado' },
+                  REJECTED: { cls: 'bg-error/10 text-error border-error/20',                 label: 'Rechazado' },
+                }[vehicleStatus]
 
+                return (
+                  <div className="mb-8 bg-surface-container rounded-xl border border-white/5 overflow-hidden">
+                    {/* Photo */}
+                    <div className="relative h-40 bg-surface-container-high flex items-center justify-center">
+                      {v.photoUrl ? (
+                        <img src={v.photoUrl} alt="Foto del vehículo" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="material-symbols-outlined text-on-surface-variant/20 text-[80px]">directions_car</span>
+                      )}
+                      {isApproved && (
+                        <label className={`absolute bottom-3 right-3 flex items-center gap-1.5 bg-surface-container-highest/90 backdrop-blur-sm border border-white/10 text-white text-xs font-bold px-3 py-2 rounded-lg cursor-pointer hover:bg-surface-bright transition-colors ${photoUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          <span className="material-symbols-outlined text-sm">{photoUploading ? 'hourglass_empty' : 'photo_camera'}</span>
+                          {photoUploading ? 'Subiendo...' : v.photoUrl ? 'Cambiar foto' : 'Agregar foto'}
+                          <input type="file" accept="image/*" className="hidden" disabled={photoUploading} onChange={handleVehiclePhoto} />
+                        </label>
+                      )}
+                    </div>
+
+                    {/* Info row */}
+                    <div className="p-5 flex items-start gap-4">
+                      <div className="flex-1">
+                        <p className="font-headline font-bold text-on-surface">
+                          {v.brand} {v.model} ({v.year})
+                        </p>
+                        <p className="text-on-surface-variant text-sm mt-1">{v.color} · {v.plateNumber}</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-[11px] font-bold border flex-shrink-0 ${statusStyle.cls}`}>
+                        {statusStyle.label}
+                      </span>
+                    </div>
+
+                    {/* Status messages */}
+                    {isPending && (
+                      <div className="mx-5 mb-5 flex items-start gap-2 bg-yellow-500/5 border border-yellow-500/20 rounded-lg px-4 py-3">
+                        <span className="material-symbols-outlined text-yellow-400 text-base mt-0.5">schedule</span>
+                        <p className="text-sm text-yellow-300">Tu vehículo está siendo revisado por el administrador. No puedes publicar viajes hasta que sea aprobado.</p>
+                      </div>
+                    )}
+
+                    {isRejected && (
+                      <div className="mx-5 mb-5 space-y-3">
+                        <div className="flex items-start gap-2 bg-error/5 border border-error/20 rounded-lg px-4 py-3">
+                          <span className="material-symbols-outlined text-error text-base mt-0.5">cancel</span>
+                          <div>
+                            <p className="text-sm text-error font-bold mb-0.5">Vehículo rechazado</p>
+                            {v.rejectionNotes && <p className="text-sm text-on-surface-variant">{v.rejectionNotes}</p>}
+                          </div>
+                        </div>
+                        {v.blockedUntil && new Date(v.blockedUntil) > new Date() ? (
+                          <div className="flex items-start gap-2 bg-error/5 border border-error/20 rounded-lg px-4 py-3">
+                            <span className="material-symbols-outlined text-error text-base mt-0.5">block</span>
+                            <p className="text-sm text-error">Agotaste los 3 intentos. Podrás volver a registrar un vehículo el <span className="font-bold">{new Date(v.blockedUntil).toLocaleDateString('es-EC')}</span>.</p>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-zinc-500 px-1">Intento {v.rejectionCount ?? 1}/3 — corrige los datos y vuelve a enviar.</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Delete button */}
+                    <div className="px-5 pb-5">
+                      {confirmDelete ? (
+                        <div className="flex items-center gap-3 bg-error/5 border border-error/20 rounded-lg px-4 py-3">
+                          <p className="text-sm text-error flex-1">¿Eliminar el vehículo?</p>
+                          <button
+                            onClick={() => deleteVehicleMut.mutate()}
+                            disabled={deleteVehicleMut.isPending}
+                            className="px-3 py-1.5 bg-error/20 text-error text-xs font-bold rounded-lg hover:bg-error/30 transition-all disabled:opacity-50"
+                          >
+                            {deleteVehicleMut.isPending ? '...' : 'Sí, eliminar'}
+                          </button>
+                          <button onClick={() => setConfirmDelete(false)} className="px-3 py-1.5 text-zinc-500 hover:text-white text-xs font-bold rounded-lg transition-colors">
+                            Cancelar
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmDelete(true)}
+                          className="flex items-center gap-1.5 text-xs font-bold text-zinc-500 hover:text-error transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                          Eliminar vehículo
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {hasVehicle && user.vehicle?.status === 'PENDING' ? null : (
               <form
                 onSubmit={handleVehicle((data) => vehicleMut.mutate(data))}
                 className="space-y-6"
@@ -653,6 +719,7 @@ export default function Profile() {
                     : 'Registrar Vehículo'}
                 </button>
               </form>
+              )}
             </section>
           )}
 

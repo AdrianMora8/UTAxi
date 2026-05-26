@@ -427,7 +427,7 @@ export default function MainTabs() {
     staleTime: 1000 * 60 * 5,
   });
 
-  const hasVehicle = !!profile?.vehicle;
+  const hasVehicle = profile?.vehicle?.status === 'APPROVED';
 
   return (
     <>

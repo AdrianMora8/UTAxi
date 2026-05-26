@@ -8,6 +8,10 @@ export interface Vehicle {
   plateNumber: string;
   color: string;
   photoUrl?: string | null;
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+  rejectionNotes?: string | null;
+  rejectionCount?: number;
+  blockedUntil?: string | null;
 }
 
 export interface UserProfile {

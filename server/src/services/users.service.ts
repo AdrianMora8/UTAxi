@@ -32,6 +32,10 @@ export class UsersService {
             plateNumber: true,
             color: true,
             photoUrl: true,
+            status: true,
+            rejectionNotes: true,
+            rejectionCount: true,
+            blockedUntil: true,
           },
         },
       },
@@ -83,7 +87,24 @@ export class UsersService {
     color: string;
   }) {
     const existing = await this.prisma.vehicle.findUnique({ where: { userId } });
-    if (existing) throw new AppError(409, 'Ya tienes un vehículo registrado. Usa PATCH para actualizarlo.');
+
+    if (existing) {
+      if (existing.status === 'PENDING') throw new AppError(409, 'Tu vehículo ya está enviado y pendiente de aprobación.');
+      if (existing.status === 'APPROVED') throw new AppError(409, 'Ya tienes un vehículo aprobado registrado.');
+
+      // REJECTED: verificar bloqueo por intentos
+      if (existing.blockedUntil && existing.blockedUntil > new Date()) {
+        const until = existing.blockedUntil.toLocaleDateString('es-EC');
+        throw new AppError(403, `Has agotado los 3 intentos de registro. Podrás intentarlo nuevamente el ${until}.`);
+      }
+
+      // Re-registro tras rechazo: resetea a PENDING y actualiza datos
+      const vehicle = await this.prisma.vehicle.update({
+        where: { userId },
+        data: { ...data, status: 'PENDING', rejectionNotes: null },
+      });
+      return vehicle;
+    }
 
     const vehicle = await this.prisma.vehicle.create({
       data: { userId, ...data },
@@ -100,15 +121,14 @@ export class UsersService {
   }) {
     const existing = await this.prisma.vehicle.findUnique({ where: { userId } });
     if (!existing) throw new AppError(404, 'No tienes vehículo registrado. Usa POST para crear uno.');
-
-    // Validar que el vehículo pertenece al usuario (capa de seguridad extra)
-    if (existing.userId !== userId) {
-      throw new AppError(403, 'No puedes editar el vehículo de otro usuario');
-    }
+    if (existing.status === 'PENDING') throw new AppError(400, 'Tu vehículo está pendiente de aprobación, no puedes editarlo ahora.');
 
     const vehicle = await this.prisma.vehicle.update({
       where: { userId },
-      data,
+      data: {
+        ...data,
+        ...(existing.status === 'REJECTED' && { status: 'PENDING', rejectionNotes: null }),
+      },
     });
     return vehicle;
   }

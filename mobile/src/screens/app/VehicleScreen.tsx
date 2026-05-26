@@ -201,6 +201,11 @@ export default function VehicleScreen({ navigation }: Props) {
 
   const isBusy = saving || uploadingPhoto || removing;
   const photoUrl = existing?.photoUrl ?? null;
+  const vehicleStatus = existing?.status ?? null;
+  const isPending  = vehicleStatus === 'PENDING';
+  const isRejected = vehicleStatus === 'REJECTED';
+  const isBlocked  = !!existing?.blockedUntil && new Date(existing.blockedUntil) > new Date();
+  const canEdit    = !isPending && !isBlocked;
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -260,6 +265,42 @@ export default function VehicleScreen({ navigation }: Props) {
               </Text>
             </View>
 
+            {/* Banner de estado de revisión */}
+            {isPending && (
+              <View style={[styles.statusBanner, styles.bannerPending]}>
+                <Ionicons name="time-outline" size={20} color="#f5a623" />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.bannerTitle, { color: '#f5a623' }]}>En revisión</Text>
+                  <Text style={styles.bannerBody}>
+                    Tu vehículo está siendo revisado por el administrador. No puedes publicar viajes hasta que sea aprobado.
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {isRejected && (
+              <View style={[styles.statusBanner, styles.bannerRejected]}>
+                <Ionicons name="close-circle-outline" size={20} color="#ff6b4a" />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.bannerTitle, { color: '#ff6b4a' }]}>
+                    Vehículo rechazado · intento {existing?.rejectionCount ?? 1}/3
+                  </Text>
+                  {existing?.rejectionNotes && (
+                    <Text style={styles.bannerBody}>{existing.rejectionNotes}</Text>
+                  )}
+                  {isBlocked ? (
+                    <Text style={[styles.bannerBody, { color: '#ff6b4a', marginTop: 6 }]}>
+                      Bloqueado hasta el {new Date(existing!.blockedUntil!).toLocaleDateString('es-EC')} — agotaste los 3 intentos.
+                    </Text>
+                  ) : (
+                    <Text style={[styles.bannerBody, { marginTop: 6 }]}>
+                      Corrige los datos y vuelve a enviar.
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
+
             {/* Sección foto */}
             <View style={styles.photoSection}>
               <Text style={styles.sectionLabel}>Foto del vehículo</Text>
@@ -311,33 +352,35 @@ export default function VehicleScreen({ navigation }: Props) {
               )}
             </View>
 
-            {/* Formulario de datos */}
-            <View style={styles.section}>
-              <Field label="Marca" value={brand} onChangeText={setBrand} placeholder="Ej: Chevrolet" />
-              <Field label="Modelo" value={model} onChangeText={setModel} placeholder="Ej: Sail" />
-              <Field
-                label="Año de fabricación"
-                value={year}
-                onChangeText={setYear}
-                placeholder="Ej: 2018"
-                keyboardType="numeric"
-                autoCapitalize="none"
-              />
-              <Field
-                label="Placa"
-                value={plateNumber}
-                onChangeText={(v) => setPlateNumber(v.toUpperCase())}
-                placeholder="Ej: ABC-1234"
-                autoCapitalize="characters"
-              />
-              <Field label="Color" value={color} onChangeText={setColor} placeholder="Ej: Blanco" />
-            </View>
+            {/* Formulario de datos — oculto si está pendiente o bloqueado */}
+            {canEdit && (
+              <View style={styles.section}>
+                <Field label="Marca" value={brand} onChangeText={setBrand} placeholder="Ej: Chevrolet" />
+                <Field label="Modelo" value={model} onChangeText={setModel} placeholder="Ej: Sail" />
+                <Field
+                  label="Año de fabricación"
+                  value={year}
+                  onChangeText={setYear}
+                  placeholder="Ej: 2018"
+                  keyboardType="numeric"
+                  autoCapitalize="none"
+                />
+                <Field
+                  label="Placa"
+                  value={plateNumber}
+                  onChangeText={(v) => setPlateNumber(v.toUpperCase())}
+                  placeholder="Ej: ABC-1234"
+                  autoCapitalize="characters"
+                />
+                <Field label="Color" value={color} onChangeText={setColor} placeholder="Ej: Blanco" />
+              </View>
+            )}
 
             <View style={{ height: 20 }} />
           </ScrollView>
         )}
 
-        {!isLoading && (
+        {!isLoading && canEdit && (
           <View style={styles.footer}>
             <TouchableOpacity
               style={[styles.saveBtn, isBusy && styles.saveBtnDisabled]}
@@ -493,4 +536,31 @@ const styles = StyleSheet.create({
   },
   saveBtnDisabled: { opacity: 0.5 },
   saveBtnText: { fontFamily: fonts.bodySemiBold, fontSize: 16, color: colors.primaryDark },
+  statusBanner: {
+    flexDirection: 'row',
+    gap: 12,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    alignItems: 'flex-start',
+  },
+  bannerPending: {
+    backgroundColor: 'rgba(245,166,35,0.07)',
+    borderColor: 'rgba(245,166,35,0.25)',
+  },
+  bannerRejected: {
+    backgroundColor: 'rgba(255,107,74,0.07)',
+    borderColor: 'rgba(255,107,74,0.25)',
+  },
+  bannerTitle: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  bannerBody: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    lineHeight: 18,
+  },
 });

@@ -5,6 +5,7 @@ import {
   getUsers, updateUserStatus, getUserDetail,
   getStats, getEvents,
   getAdminTrips, cancelAdminTrip,
+  getVehicles, approveVehicle, rejectVehicle,
 } from '../controllers/admin.controller';
 
 export const adminRouter = Router();
@@ -25,3 +26,7 @@ adminRouter.get('/users/:id', getUserDetail);
 
 adminRouter.get('/trips', getAdminTrips);
 adminRouter.delete('/trips/:id', cancelAdminTrip);
+
+adminRouter.get('/vehicles', getVehicles);
+adminRouter.patch('/vehicles/:id/approve', approveVehicle);
+adminRouter.patch('/vehicles/:id/reject', rejectVehicle);

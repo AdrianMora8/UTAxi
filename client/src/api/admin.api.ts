@@ -12,6 +12,8 @@ export interface AdminUser {
   career: string | null
   createdAt: string
   _count?: { warningsReceived: number }
+  autoSuspended?: boolean
+  suspendedUntil?: string | null
 }
 
 export interface AdminReport extends Report {
@@ -110,8 +112,8 @@ export const adminApi = {
       { params },
     ),
 
-  updateUserStatus: (id: string, status: 'ACTIVE' | 'WARNED' | 'SUSPENDED') =>
-    apiClient.patch<{ user: AdminUser }>(`/admin/users/${id}/status`, { status }),
+  updateUserStatus: (id: string, status: 'ACTIVE' | 'WARNED' | 'SUSPENDED', suspendedUntil?: string) =>
+    apiClient.patch<{ user: AdminUser }>(`/admin/users/${id}/status`, { status, suspendedUntil }),
 
   getStats: () =>
     apiClient.get<AdminStats>('/admin/stats'),

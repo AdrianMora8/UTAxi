@@ -548,7 +548,7 @@ export default function TripDetail() {
                   setShowSafetyModal(false)
                   qc.invalidateQueries({ queryKey: ['trip', id] })
                 } catch (err: unknown) {
-                  const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ?? 'Error al enviar la solicitud'
+                  const msg = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ?? 'Error al enviar la solicitud'
                   setRequestError(msg)
                   setShowSafetyModal(false)
                 } finally {

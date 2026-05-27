@@ -467,7 +467,7 @@ export default function AdminDashboard() {
       qc.invalidateQueries({ queryKey: ['admin-stats'] })
       const data = res.data?.user
       if (data?.autoSuspended) {
-        const until = new Date(data.suspendedUntil).toLocaleDateString('es-EC')
+        const until = data.suspendedUntil ? new Date(data.suspendedUntil).toLocaleDateString('es-EC') : ''
         showNotification(
           `⚠️ ${data.fullName} acumuló 3 advertencias en 7 días — suspendido automáticamente hasta el ${until}.`,
           'error',

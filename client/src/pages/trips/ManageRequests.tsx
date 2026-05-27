@@ -29,7 +29,7 @@ export default function ManageRequests() {
   }, [])
 
   useNotifications({
-    onRequestNew: useCallback(({ tripId: incomingTripId, passengerName }) => {
+    onRequestNew: useCallback(({ tripId: incomingTripId, passengerName }: { tripId: string; passengerName: string }) => {
       if (incomingTripId !== tripId) return
       qc.invalidateQueries({ queryKey: ['trip-requests', tripId] })
       qc.invalidateQueries({ queryKey: ['trip', tripId] })
@@ -65,7 +65,7 @@ export default function ManageRequests() {
       setBoardingOpen(false)
       navigate(`/trips/${tripId}/active`)
     },
-    onError: (err: { response?: { data?: { message?: string } } }) => {
+    onError: (err: { response?: { data?: { message?: string; error?: string } } }) => {
       showToast(err?.response?.data?.error ?? err?.response?.data?.message ?? 'Error al iniciar el viaje')
     },
   })

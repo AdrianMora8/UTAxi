@@ -34,7 +34,7 @@ export default function Wallet() {
       setTopUpAmount('')
       showToast('Saldo recargado exitosamente')
     },
-    onError: (e: { response?: { data?: { message?: string } } }) => {
+    onError: (e: { response?: { data?: { message?: string; error?: string } } }) => {
       showToast(e?.response?.data?.error ?? e?.response?.data?.message ?? 'Error al recargar', false)
     },
   })

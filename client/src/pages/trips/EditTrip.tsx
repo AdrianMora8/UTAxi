@@ -84,7 +84,7 @@ export default function EditTrip() {
     },
     onError: (err: unknown) => {
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ??
+        (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ??
         'Error al actualizar el viaje'
       setServerError(msg)
     },

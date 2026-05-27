@@ -38,7 +38,7 @@ export default function Report() {
     onSuccess: () => setDone(true),
     onError: (err: unknown) => {
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ??
+        (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ??
         'Error al enviar el reporte'
       setServerError(msg)
     },

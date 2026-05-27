@@ -1,8 +1,5 @@
 import nodemailer, { Transporter } from 'nodemailer';
-import { Resend } from 'resend';
 import { env } from './env';
-
-const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 
 function createTransporter(): Transporter {
   if (!env.SMTP_USER || !env.SMTP_PASS) {
@@ -27,16 +24,6 @@ function createTransporter(): Transporter {
 export const mailer = createTransporter();
 
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  if (resend) {
-    await resend.emails.send({
-      from: 'U-Ride UTA <onboarding@resend.dev>',
-      to,
-      subject,
-      html,
-    });
-    return;
-  }
-
   if (!env.SMTP_USER || !env.SMTP_PASS) {
     console.log(`📧 [dev] Email para ${to} — subject: ${subject}`);
     return;

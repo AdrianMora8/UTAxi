@@ -81,6 +81,17 @@ export default function MyRequests() {
     },
   })
 
+  const cashPayMut = useMutation({
+    mutationFn: (requestId: string) => paymentsApi.markAsCash(requestId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-requests'] })
+      showToast('Pago en efectivo registrado. El conductor lo confirmará al finalizar.')
+    },
+    onError: (e: { response?: { data?: { error?: string } } }) => {
+      showToast(e.response?.data?.error ?? 'Error al registrar pago en efectivo')
+    },
+  })
+
   const { data: walletData } = useQuery({
     queryKey: ['wallet'],
     queryFn: () => paymentsApi.getWallet().then((r) => r.data),
@@ -310,6 +321,14 @@ export default function MyRequests() {
                                 className="w-full text-on-surface-variant border border-white/10 font-bold py-2 px-6 rounded-lg text-xs uppercase tracking-wider hover:text-white transition-colors"
                               >
                                 Pagar con Tarjeta
+                              </button>
+                              <button
+                                onClick={() => cashPayMut.mutate(req.id)}
+                                disabled={cashPayMut.isPending}
+                                className="w-full text-on-surface-variant border border-white/10 font-bold py-2 px-6 rounded-lg text-xs uppercase tracking-wider hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                              >
+                                <span className="material-symbols-outlined text-base">payments</span>
+                                {cashPayMut.isPending ? 'Registrando...' : 'Pagar en Efectivo'}
                               </button>
                             </div>
                           )}

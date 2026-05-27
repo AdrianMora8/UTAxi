@@ -293,6 +293,20 @@ export default function AvisosScreen({ navigation }: Props) {
     },
   });
 
+  const { mutate: cashPay } = useMutation({
+    mutationFn: (requestId: string) => paymentsApi.markAsCash(requestId),
+    onMutate: (id) => setPayingId(id),
+    onSettled: () => setPayingId(null),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['my-requests'] });
+      Alert.alert('Efectivo registrado', 'El conductor confirmará tu pago en efectivo al finalizar el viaje.');
+    },
+    onError: (err: any) => {
+      const msg = err?.response?.data?.error || 'No se pudo registrar el pago en efectivo';
+      Alert.alert('Error', msg);
+    },
+  });
+
   const { payWithCard } = useStripePayment();
 
   function handlePay(requestId: string) {
@@ -313,6 +327,19 @@ export default function AvisosScreen({ navigation }: Props) {
               queryClient.invalidateQueries({ queryKey: ['my-requests'] });
               Alert.alert('¡Pago exitoso!', 'Tu pago con tarjeta fue procesado por Stripe.');
             }).finally(() => setPayingId(null));
+          },
+        },
+        {
+          text: 'Pagar en efectivo',
+          onPress: () => {
+            Alert.alert(
+              'Pago en efectivo',
+              'Deberás pagar en efectivo al conductor antes de que termine el viaje. ¿Confirmas?',
+              [
+                { text: 'Cancelar', style: 'cancel' },
+                { text: 'Confirmar', onPress: () => cashPay(requestId) },
+              ],
+            );
           },
         },
         { text: 'Cancelar', style: 'cancel' },

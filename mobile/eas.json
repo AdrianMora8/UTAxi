@@ -6,13 +6,22 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51Tazqw31Iht1pIJs09L8mG6QRoDjPSc45d1hiUPxXBmRTsY5FdxnrzLl6o8rwKIi1Em5xC7dUAZhPdzfOHosTPRE00k20tzMZR"
+      }
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51Tazqw31Iht1pIJs09L8mG6QRoDjPSc45d1hiUPxXBmRTsY5FdxnrzLl6o8rwKIi1Em5xC7dUAZhPdzfOHosTPRE00k20tzMZR"
+      }
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51Tazqw31Iht1pIJs09L8mG6QRoDjPSc45d1hiUPxXBmRTsY5FdxnrzLl6o8rwKIi1Em5xC7dUAZhPdzfOHosTPRE00k20tzMZR"
+      }
     }
   },
   "submit": {

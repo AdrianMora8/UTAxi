@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import type { DriverLocation } from '@/hooks/useTracking'
 
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl

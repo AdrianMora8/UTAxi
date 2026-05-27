@@ -107,7 +107,8 @@ export function useNotifications({
   useEffect(() => {
     if (!accessToken) return
 
-    const socket = io('/', {
+    const SOCKET_URL = import.meta.env.DEV ? '/' : (import.meta.env.VITE_API_URL?.replace('/api', '') ?? '/')
+    const socket = io(SOCKET_URL, {
       auth: { token: accessToken },
       transports: ['websocket', 'polling'],
     })

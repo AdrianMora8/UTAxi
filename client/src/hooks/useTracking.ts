@@ -34,8 +34,8 @@ export function useTracking({ tripId, isDriver }: UseTrackingOptions) {
   useEffect(() => {
     if (!accessToken || !tripId) return
 
-    // Connect to same origin — Vite proxies /socket.io → localhost:4000 in dev
-    const socket = io('/', {
+    const SOCKET_URL = import.meta.env.DEV ? '/' : (import.meta.env.VITE_API_URL?.replace('/api', '') ?? '/')
+    const socket = io(SOCKET_URL, {
       auth: { token: accessToken },
       transports: ['websocket', 'polling'],
     })

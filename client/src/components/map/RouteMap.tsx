@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import { CAMPUSES } from '@/constants/campuses'
 
 // Fix Leaflet default icon paths broken by Vite's asset hashing

@@ -1,39 +1,26 @@
-import nodemailer, { Transporter } from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 import { env } from './env';
 
-function createTransporter(): Transporter {
-  if (!env.SMTP_USER || !env.SMTP_PASS) {
-    return nodemailer.createTransport({
-      host: 'localhost',
-      port: 1025,
-      ignoreTLS: true,
-    });
-  }
-
-  return nodemailer.createTransport({
-    host: env.SMTP_HOST,
-    port: Number.parseInt(env.SMTP_PORT, 10),
-    secure: false,
-    auth: {
-      user: env.SMTP_USER,
-      pass: env.SMTP_PASS,
-    },
-  });
+if (env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(env.SENDGRID_API_KEY);
 }
 
-export const mailer = createTransporter();
-
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  if (!env.SMTP_USER || !env.SMTP_PASS) {
+  if (!env.SENDGRID_API_KEY) {
     console.log(`📧 [dev] Email para ${to} — subject: ${subject}`);
     return;
   }
 
-  await mailer.sendMail({ from: `"U-Ride UTA" <${env.SMTP_USER}>`, to, subject, html });
+  await sgMail.send({
+    from: { name: 'U-Ride UTA', email: 'oriofrio0126@gmail.com' },
+    to,
+    subject,
+    html,
+  });
 }
 
 export async function sendVerificationEmail(email: string, code: string): Promise<void> {
-  if (!env.SMTP_USER) {
+  if (!env.SENDGRID_API_KEY) {
     console.log(`\n📧 CÓDIGO DE VERIFICACIÓN para ${email}: ${code}\n`);
     return;
   }
@@ -55,7 +42,7 @@ export async function sendVerificationEmail(email: string, code: string): Promis
 }
 
 export async function sendPasswordResetEmail(email: string, code: string): Promise<void> {
-  if (!env.SMTP_USER) {
+  if (!env.SENDGRID_API_KEY) {
     console.log(`\n📧 CÓDIGO DE RECUPERACIÓN para ${email}: ${code}\n`);
     return;
   }

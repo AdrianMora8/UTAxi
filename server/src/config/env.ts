@@ -17,6 +17,7 @@ const envSchema = z.object({
   SMTP_PORT: z.string().default('587'),
   SMTP_USER: z.string().default(''),
   SMTP_PASS: z.string().default(''),
+  RESEND_API_KEY: z.string().default(''),
   STRIPE_SECRET_KEY: z.string().default('sk_test_placeholder'),
   STRIPE_WEBHOOK_SECRET: z.string().default('whsec_placeholder'),
   CLOUDINARY_CLOUD_NAME: z.string().default(''),

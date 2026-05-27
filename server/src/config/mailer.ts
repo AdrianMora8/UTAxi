@@ -1,8 +1,10 @@
 import nodemailer, { Transporter } from 'nodemailer';
+import { Resend } from 'resend';
 import { env } from './env';
 
+const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
+
 function createTransporter(): Transporter {
-  // En desarrollo sin SMTP configurado → usa ethereal (logs en consola)
   if (!env.SMTP_USER || !env.SMTP_PASS) {
     return nodemailer.createTransport({
       host: 'localhost',
@@ -24,58 +26,65 @@ function createTransporter(): Transporter {
 
 export const mailer = createTransporter();
 
-export async function sendVerificationEmail(email: string, code: string): Promise<void> {
-  // En desarrollo sin SMTP → solo log en consola
-  if (!env.SMTP_USER || !env.SMTP_PASS) {
-    console.log('\n─────────────────────────────────────');
-    console.log(`📧 CÓDIGO DE VERIFICACIÓN para ${email}`);
-    console.log(`   Código: ${code}`);
-    console.log('─────────────────────────────────────\n');
+async function sendEmail(to: string, subject: string, html: string): Promise<void> {
+  if (resend) {
+    await resend.emails.send({
+      from: 'U-Ride UTA <onboarding@resend.dev>',
+      to,
+      subject,
+      html,
+    });
     return;
   }
 
-  await mailer.sendMail({
-    from: `"U-Ride UTA" <${env.SMTP_USER}>`,
-    to: email,
-    subject: 'Verifica tu cuenta en U-Ride',
-    html: `
-      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-        <h2 style="color: #1d4ed8;">Verifica tu cuenta en U-Ride</h2>
-        <p>Usa el siguiente código para verificar tu correo institucional:</p>
-        <div style="background: #f1f5f9; padding: 24px; text-align: center; border-radius: 8px; margin: 24px 0;">
-          <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #1d4ed8;">${code}</span>
-        </div>
-        <p style="color: #64748b; font-size: 14px;">Este código expira en 15 minutos. Si no solicitaste esto, ignora este correo.</p>
+  if (!env.SMTP_USER || !env.SMTP_PASS) {
+    console.log(`📧 [dev] Email para ${to} — subject: ${subject}`);
+    return;
+  }
+
+  await mailer.sendMail({ from: `"U-Ride UTA" <${env.SMTP_USER}>`, to, subject, html });
+}
+
+export async function sendVerificationEmail(email: string, code: string): Promise<void> {
+  if (!env.RESEND_API_KEY && !env.SMTP_USER) {
+    console.log(`\n📧 CÓDIGO DE VERIFICACIÓN para ${email}: ${code}\n`);
+    return;
+  }
+
+  await sendEmail(
+    email,
+    'Verifica tu cuenta en U-Ride',
+    `
+    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+      <h2 style="color: #1d4ed8;">Verifica tu cuenta en U-Ride</h2>
+      <p>Usa el siguiente código para verificar tu correo institucional:</p>
+      <div style="background: #f1f5f9; padding: 24px; text-align: center; border-radius: 8px; margin: 24px 0;">
+        <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #1d4ed8;">${code}</span>
       </div>
-    `,
-  });
+      <p style="color: #64748b; font-size: 14px;">Este código expira en 15 minutos.</p>
+    </div>
+  `,
+  );
 }
 
 export async function sendPasswordResetEmail(email: string, code: string): Promise<void> {
-  // En desarrollo sin SMTP → solo log en consola
-  if (!env.SMTP_USER || !env.SMTP_PASS) {
-    console.log('\n─────────────────────────────────────');
-    console.log(`📧 CÓDIGO DE RECUPERACIÓN DE CONTRASEÑA para ${email}`);
-    console.log(`   Código: ${code}`);
-    console.log(`   Expira en: 15 minutos`);
-    console.log('─────────────────────────────────────\n');
+  if (!env.RESEND_API_KEY && !env.SMTP_USER) {
+    console.log(`\n📧 CÓDIGO DE RECUPERACIÓN para ${email}: ${code}\n`);
     return;
   }
 
-  await mailer.sendMail({
-    from: `"U-Ride UTA" <${env.SMTP_USER}>`,
-    to: email,
-    subject: 'Recupera tu contraseña en U-Ride',
-    html: `
-      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-        <h2 style="color: #1d4ed8;">Recupera tu contraseña</h2>
-        <p>Recibimos una solicitud para recuperar tu contraseña. Usa el siguiente código de 6 dígitos:</p>
-        <div style="background: #f1f5f9; padding: 24px; text-align: center; border-radius: 8px; margin: 24px 0;">
-          <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #1d4ed8;">${code}</span>
-        </div>
-        <p style="color: #64748b; font-size: 14px; margin-bottom: 16px;">⏰ <strong>Este código expira en 15 minutos.</strong></p>
-        <p style="color: #64748b; font-size: 14px;">Si no solicitaste recuperar tu contraseña, puedes ignorar este correo. Tu cuenta está segura.</p>
+  await sendEmail(
+    email,
+    'Recupera tu contraseña en U-Ride',
+    `
+    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+      <h2 style="color: #1d4ed8;">Recupera tu contraseña</h2>
+      <p>Usa el siguiente código de 6 dígitos:</p>
+      <div style="background: #f1f5f9; padding: 24px; text-align: center; border-radius: 8px; margin: 24px 0;">
+        <span style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #1d4ed8;">${code}</span>
       </div>
-    `,
-  });
+      <p style="color: #64748b; font-size: 14px;">⏰ Este código expira en 15 minutos.</p>
+    </div>
+  `,
+  );
 }

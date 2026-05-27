@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.utaxi.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0e0e0e"
@@ -37,6 +38,12 @@
           "enableGooglePay": false
         }
       ]
-    ]
+    ],
+    "extra": {
+      "mapboxToken": "",
+      "eas": {
+        "projectId": "0df1de8b-1c6f-4dd6-b4a7-dd0b662b5573"
+      }
+    }
   }
 }

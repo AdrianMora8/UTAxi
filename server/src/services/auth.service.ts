@@ -39,7 +39,9 @@ export class AuthService {
         },
       });
 
-      await sendVerificationEmail(email, code);
+      sendVerificationEmail(email, code).catch((err) =>
+        console.error('⚠️ Email de verificación no enviado:', err.message),
+      );
 
       return { message: `Código de verificación enviado a ${email}` };
     } catch (error: any) {
@@ -215,7 +217,9 @@ export class AuthService {
         },
       });
 
-      await sendVerificationEmail(email, code);
+      sendVerificationEmail(email, code).catch((err) =>
+        console.error('⚠️ Email de verificación no enviado:', err.message),
+      );
 
       return { message: `Código de verificación reenviado a ${email}` };
     } catch (error: any) {
@@ -254,7 +258,9 @@ export class AuthService {
         },
       });
 
-      await sendPasswordResetEmail(email, code);
+      sendPasswordResetEmail(email, code).catch((err) =>
+        console.error('⚠️ Email de recuperación no enviado:', err.message),
+      );
 
       return { message: 'Si la cuenta existe, recibirás un correo para recuperar tu contraseña' };
     } catch (error: any) {

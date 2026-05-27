@@ -33,7 +33,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
 }
 
 export async function sendVerificationEmail(email: string, code: string): Promise<void> {
-  if (!env.RESEND_API_KEY && !env.SMTP_USER) {
+  if (!env.SMTP_USER) {
     console.log(`\n📧 CÓDIGO DE VERIFICACIÓN para ${email}: ${code}\n`);
     return;
   }
@@ -55,7 +55,7 @@ export async function sendVerificationEmail(email: string, code: string): Promis
 }
 
 export async function sendPasswordResetEmail(email: string, code: string): Promise<void> {
-  if (!env.RESEND_API_KEY && !env.SMTP_USER) {
+  if (!env.SMTP_USER) {
     console.log(`\n📧 CÓDIGO DE RECUPERACIÓN para ${email}: ${code}\n`);
     return;
   }

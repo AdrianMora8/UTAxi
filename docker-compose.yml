@@ -36,6 +36,33 @@ services:
       retries: 10
       start_period: 60s
 
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: utaxi_server
+    restart: unless-stopped
+    env_file:
+      - ./server/.env
+    environment:
+      - DATABASE_URL=postgresql://utaxi:utaxi123@postgres:5432/utaxi
+      - PORT=4000
+    ports:
+      - "4000:4000"
+    depends_on:
+      - postgres
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: utaxi_client
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+
 volumes:
   postgres_data:
   sonar_data:

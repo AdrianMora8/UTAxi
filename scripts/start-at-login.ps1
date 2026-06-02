@@ -1,5 +1,3 @@
-# Starts Docker Compose services and opens the app in the default browser.
-# Designed to be run at user logon. Retries until Docker is available.
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $projectRoot = Split-Path -Parent $scriptDir
 
@@ -28,3 +26,4 @@ for ($i = 0; $i -lt 30; $i++) {
 }
 
 Start-Process $url
+

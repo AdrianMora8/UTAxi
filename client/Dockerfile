@@ -1,4 +1,4 @@
-## multi-stage build: build with node, serve with nginx
+
 FROM node:18-alpine AS build
 WORKDIR /app
 COPY package*.json tsconfig*.json ./

@@ -1,26 +1,45 @@
-import sgMail from '@sendgrid/mail';
+import nodemailer from 'nodemailer';
 import { env } from './env';
 
-if (env.SENDGRID_API_KEY) {
-  sgMail.setApiKey(env.SENDGRID_API_KEY);
-}
+// Crear el transportador SMTP
+const createTransporter = () => {
+  if (env.SMTP_HOST && env.SMTP_USER) {
+    return nodemailer.createTransport({
+      host: env.SMTP_HOST,
+      port: Number(env.SMTP_PORT) || 587,
+      secure: Number(env.SMTP_PORT) === 465, // true for 465, false for other ports
+      auth: {
+        user: env.SMTP_USER,
+        pass: env.SMTP_PASS,
+      },
+    });
+  }
+  return null;
+};
+
+const transporter = createTransporter();
 
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  if (!env.SENDGRID_API_KEY) {
+  if (!transporter) {
     console.log(`📧 [dev] Email para ${to} — subject: ${subject}`);
     return;
   }
 
-  await sgMail.send({
-    from: { name: 'U-Ride UTA', email: 'oriofrio0126@gmail.com' },
-    to,
-    subject,
-    html,
-  });
+  try {
+    await transporter.sendMail({
+      from: `"U-Ride UTA" <${env.SMTP_USER}>`,
+      to,
+      subject,
+      html,
+    });
+    console.log(`✅ Email enviado exitosamente a ${to}`);
+  } catch (error) {
+    console.error(`❌ Error al enviar email a ${to}:`, error);
+  }
 }
 
 export async function sendVerificationEmail(email: string, code: string): Promise<void> {
-  if (!env.SENDGRID_API_KEY) {
+  if (!transporter) {
     console.log(`\n📧 CÓDIGO DE VERIFICACIÓN para ${email}: ${code}\n`);
     return;
   }
@@ -37,12 +56,12 @@ export async function sendVerificationEmail(email: string, code: string): Promis
       </div>
       <p style="color: #64748b; font-size: 14px;">Este código expira en 15 minutos.</p>
     </div>
-  `,
+  `
   );
 }
 
 export async function sendPasswordResetEmail(email: string, code: string): Promise<void> {
-  if (!env.SENDGRID_API_KEY) {
+  if (!transporter) {
     console.log(`\n📧 CÓDIGO DE RECUPERACIÓN para ${email}: ${code}\n`);
     return;
   }
@@ -59,6 +78,6 @@ export async function sendPasswordResetEmail(email: string, code: string): Promi
       </div>
       <p style="color: #64748b; font-size: 14px;">⏰ Este código expira en 15 minutos.</p>
     </div>
-  `,
+  `
   );
 }

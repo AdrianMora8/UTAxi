@@ -1,4 +1,3 @@
-# Registers a scheduled task to run `start-at-login.ps1` on user logon.
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $projectRoot = Split-Path -Parent $scriptDir
 $startScript = "$projectRoot\scripts\start-at-login.ps1"
@@ -19,3 +18,5 @@ if ($LASTEXITCODE -eq 0) {
 } else {
     Write-Error "Failed to register scheduled task. Exit code: $LASTEXITCODE"
 }
+
+

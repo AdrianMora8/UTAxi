@@ -60,24 +60,26 @@ enum ReportReason {
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 model User {
-  id                String     @id @default(cuid())
-  email             String     @unique
-  passwordHash      String
-  fullName          String
-  career            String?
-  phone             String?
-  photoUrl          String?
-  neighborhood      String?
-  role              Role       @default(STUDENT)
-  status            UserStatus @default(ACTIVE)
-  emailVerified     Boolean    @default(false)
-  emailVerifyToken  String?
-  emailVerifyExpiry DateTime?
-  refreshToken      String?
-  reputationScore   Float      @default(5.0)
-  totalTrips        Int        @default(0)
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  id                   String     @id @default(cuid())
+  email                String     @unique
+  passwordHash         String
+  fullName             String
+  career               String?
+  phone                String?
+  photoUrl             String?
+  neighborhood         String?
+  role                 Role       @default(STUDENT)
+  status               UserStatus @default(ACTIVE)
+  emailVerified        Boolean    @default(false)
+  emailVerifyToken     String?
+  emailVerifyExpiry    DateTime?
+  passwordResetToken   String?
+  passwordResetExpiry  DateTime?
+  refreshToken         String?
+  reputationScore      Float      @default(5.0)
+  totalTrips           Int        @default(0)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
 
   tripsAsDriver  Trip[]         @relation("DriverTrips")
   vehicle        Vehicle?

@@ -34,8 +34,8 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'uride-auth',
-      // Solo persistir el user, NO el accessToken (se regenera via refresh cookie)
-      partialize: (state) => ({ user: state.user }),
+      // Persistir tanto user como accessToken para evitar perder el token al recargar
+      partialize: (state) => ({ user: state.user, accessToken: state.accessToken }),
     },
   ),
 )

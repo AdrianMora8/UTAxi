@@ -213,13 +213,7 @@ export default function Profile() {
               </div>
             </div>
 
-            <button
-              onClick={() => setTab('datos')}
-              className="mt-8 w-full bg-gradient-primary text-on-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(0,252,64,0.3)] transition-all active:scale-95"
-            >
-              <span className="material-symbols-outlined">edit</span>
-              Editar Información
-            </button>
+
           </div>
 
           {/* Reputation Breakdown */}
@@ -267,14 +261,24 @@ export default function Profile() {
           {/* ─── Datos Personales Tab ─── */}
           {tab === 'datos' && (
             <section className="bg-surface-container-low rounded-xl p-8">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary">person</span>
+              <div className="flex items-center justify-between gap-4 mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary">person</span>
+                  </div>
+                  <div>
+                    <h2 className="font-headline text-xl font-bold">Información Personal</h2>
+                    <p className="text-on-surface-variant text-sm">Actualiza tus datos de perfil</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="font-headline text-xl font-bold">Información Personal</h2>
-                  <p className="text-on-surface-variant text-sm">Actualiza tus datos de perfil</p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setTab('datos')}
+                  className="p-2 hover:bg-primary/10 rounded-lg transition-colors text-primary"
+                  title="Editar información"
+                >
+                  <span className="material-symbols-outlined">edit</span>
+                </button>
               </div>
 
               <form

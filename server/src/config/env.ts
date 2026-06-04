@@ -1,7 +1,10 @@
 import { z } from 'zod';
 import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config();
+// Cargar el archivo .env apropiado según el entorno
+const envFile = process.env.NODE_ENV === 'test' ? '.env.test' : '.env';
+dotenv.config({ path: path.join(__dirname, '../../', envFile) });
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url('DATABASE_URL debe ser una URL válida'),

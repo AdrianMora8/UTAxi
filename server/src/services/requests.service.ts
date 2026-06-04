@@ -139,7 +139,7 @@ export class RequestsService {
     if (request.passengerId !== passengerId) throw new AppError(403, 'No puedes cancelar una solicitud que no es tuya');
     if (request.status === RequestStatus.ACCEPTED) {
       // Devolver el cupo al viaje
-      await this.prisma.$transaction([
+      const [updatedRequest] = await this.prisma.$transaction([
         this.prisma.tripRequest.update({
           where: { id: requestId },
           data: { status: RequestStatus.CANCELLED },
@@ -149,14 +149,14 @@ export class RequestsService {
           data: { availableSeats: { increment: 1 } },
         }),
       ]);
-      return { message: 'Solicitud cancelada y cupo devuelto al viaje' };
+      return { message: 'Solicitud cancelada y cupo devuelto al viaje', request: updatedRequest };
     }
 
-    await this.prisma.tripRequest.update({
+    const updatedRequest = await this.prisma.tripRequest.update({
       where: { id: requestId },
       data: { status: RequestStatus.CANCELLED },
     });
-    return { message: 'Solicitud cancelada' };
+    return { message: 'Solicitud cancelada', request: updatedRequest };
   }
 
   async getMyRequests(passengerId: string) {

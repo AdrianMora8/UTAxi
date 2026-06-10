@@ -13,7 +13,7 @@ async function waitForDatabase(env: NodeJS.ProcessEnv, maxRetries = 15): Promise
   const cwd = path.join(__dirname, '..');
   for (let i = 1; i <= maxRetries; i++) {
     try {
-      await execAsync('npx prisma db execute --stdin <<< "SELECT 1"', { cwd, env });
+      await execAsync('echo SELECT 1 | npx prisma db execute --stdin', { cwd, env });
       return;
     } catch {
       if (i === maxRetries) {

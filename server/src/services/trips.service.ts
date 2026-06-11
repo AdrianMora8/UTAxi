@@ -11,7 +11,7 @@ export class TripsService {
     actorId?: string,
     metadata?: object,
   ) {
-    return this.prisma.tripEvent.create({ data: { tripId, type, actorId, metadata: metadata as any } });
+    return this.prisma.tripEvent.create({ data: { tripId, type, actorId, metadata: metadata as Prisma.InputJsonValue | undefined } });
   }
 
   async create(driverId: string, data: {
@@ -102,7 +102,7 @@ export class TripsService {
     const limit = Math.min(filters.limit ?? 10, 50);
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: Prisma.TripWhereInput = {};
 
     if (filters.destinationZone) {
       where.destinationZone = { contains: filters.destinationZone, mode: 'insensitive' };
@@ -213,7 +213,7 @@ export class TripsService {
     const changingTime = data.departureTime !== undefined &&
       data.departureTime.getTime() !== trip.departureTime.getTime();
 
-    const updateData: any = { ...data };
+    const updateData: Prisma.TripUpdateInput = { ...data };
 
     if (changingTime) {
       updateData.departureTimeChangedAt = new Date();
@@ -586,7 +586,7 @@ export class TripsService {
     const noShows  = acceptedRequests.filter(r => !boardedSet.has(r.id));
 
     const noShowsPaid   = noShows.filter(r => r.payment?.status === PaymentStatus.CONFIRMED);
-    const noShowsUnpaid = noShows.filter(r => !r.payment || r.payment.status !== PaymentStatus.CONFIRMED);
+    const noShowsUnpaid = noShows.filter(r => r.payment?.status !== PaymentStatus.CONFIRMED);
 
     const ops: Prisma.PrismaPromise<unknown>[] = [
       this.prisma.trip.update({ where: { id: tripId }, data: { status: TripStatus.IN_PROGRESS } }),

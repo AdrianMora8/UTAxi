@@ -405,7 +405,7 @@ export class AdminService {
     const limit = Math.min(filters.limit ?? 20, 100);
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: Prisma.TripEventWhereInput = {};
     if (filters.tripId) where.tripId = filters.tripId;
     if (filters.type) where.type = filters.type;
 

@@ -33,7 +33,7 @@ export class ReportsService {
     return report;
   }
 
-  async getMyReports(reporterId: string) {
+  getMyReports(reporterId: string) {
     return this.prisma.report.findMany({
       where: { reporterId },
       orderBy: { createdAt: 'desc' },

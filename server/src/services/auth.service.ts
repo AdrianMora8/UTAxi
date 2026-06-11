@@ -39,12 +39,13 @@ export class AuthService {
         },
       });
 
-      sendVerificationEmail(email, code).catch((err) =>
-        console.error('⚠️ Email de verificación no enviado:', err.message),
+      sendVerificationEmail(email, code).catch((err: unknown) =>
+        console.error('⚠️ Email de verificación no enviado:', (err as Error).message),
       );
 
       return { message: `Código de verificación enviado a ${email}` };
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Error & { code?: string };
       // Si es un AppError, relanzar
       if (error instanceof AppError) throw error;
       
@@ -149,7 +150,8 @@ export class AuthService {
           reputationScore: user.reputationScore,
         },
       };
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Error & { code?: string };
       // Si es un AppError, relanzar
       if (error instanceof AppError) throw error;
       
@@ -176,7 +178,7 @@ export class AuthService {
     }
 
     const user = await this.prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user || !user.refreshToken) {
+    if (!user?.refreshToken) {
       throw new AppError(401, 'Sesión no válida');
     }
     if (user.status === 'SUSPENDED') {
@@ -226,12 +228,13 @@ export class AuthService {
         },
       });
 
-      sendVerificationEmail(email, code).catch((err) =>
-        console.error('⚠️ Email de verificación no enviado:', err.message),
+      sendVerificationEmail(email, code).catch((err: unknown) =>
+        console.error('⚠️ Email de verificación no enviado:', (err as Error).message),
       );
 
       return { message: `Código de verificación reenviado a ${email}` };
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Error & { code?: string };
       if (error instanceof AppError) throw error;
 
       console.error('🔴 Error en resendVerificationCode:', {
@@ -267,12 +270,13 @@ export class AuthService {
         },
       });
 
-      sendPasswordResetEmail(email, code).catch((err) =>
-        console.error('⚠️ Email de recuperación no enviado:', err.message),
+      sendPasswordResetEmail(email, code).catch((err: unknown) =>
+        console.error('⚠️ Email de recuperación no enviado:', (err as Error).message),
       );
 
       return { message: 'Si la cuenta existe, recibirás un correo para recuperar tu contraseña' };
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Error & { code?: string };
       console.error('🔴 Error en forgotPassword:', {
         message: error.message,
         email,
@@ -332,7 +336,8 @@ export class AuthService {
       });
 
       return { message: 'Contraseña recuperada correctamente. Ya puedes iniciar sesión.' };
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as Error & { code?: string };
       // Si es un AppError, relanzar
       if (error instanceof AppError) throw error;
 

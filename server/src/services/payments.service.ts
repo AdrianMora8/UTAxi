@@ -19,7 +19,7 @@ export class PaymentsService {
     if (tripRequest.status !== RequestStatus.ACCEPTED) throw new AppError(400, 'Solo se puede pagar una solicitud aceptada');
 
     const existing = await this.prisma.payment.findUnique({ where: { tripRequestId } });
-    if (existing && existing.status === PaymentStatus.CONFIRMED) {
+    if (existing?.status === PaymentStatus.CONFIRMED) {
       throw new AppError(409, 'Este viaje ya fue pagado');
     }
 
@@ -68,7 +68,7 @@ export class PaymentsService {
     }
 
     if (event.type === 'payment_intent.succeeded') {
-      const intent = event.data.object as Stripe.PaymentIntent;
+      const intent = event.data.object;
       const payment = await this.prisma.payment.findFirst({
         where: { stripePaymentId: intent.id, status: { not: PaymentStatus.CONFIRMED } },
         include: { trip: true },
@@ -79,7 +79,7 @@ export class PaymentsService {
     }
 
     if (event.type === 'payment_intent.payment_failed') {
-      const intent = event.data.object as Stripe.PaymentIntent;
+      const intent = event.data.object;
       await this.prisma.payment.updateMany({
         where: { stripePaymentId: intent.id, status: PaymentStatus.PENDING },
         data: { status: PaymentStatus.FAILED },
@@ -200,7 +200,7 @@ export class PaymentsService {
 
     if (!tripRequest) throw new AppError(404, 'Solicitud no encontrada');
     if (tripRequest.trip.driverId !== driverId) throw new AppError(403, 'Solo el conductor puede confirmar pagos en efectivo');
-    if (!tripRequest.payment || tripRequest.payment.method !== PaymentMethod.CASH) {
+    if (tripRequest.payment?.method !== PaymentMethod.CASH) {
       throw new AppError(400, 'Este pasajero no eligió pago en efectivo');
     }
     if (tripRequest.payment.status === PaymentStatus.CONFIRMED) {
@@ -249,7 +249,7 @@ export class PaymentsService {
     if (tripRequest.status !== RequestStatus.ACCEPTED) throw new AppError(400, 'Solo se puede pagar una solicitud aceptada');
 
     const existing = await this.prisma.payment.findUnique({ where: { tripRequestId } });
-    if (existing && existing.status === PaymentStatus.CONFIRMED) {
+    if (existing?.status === PaymentStatus.CONFIRMED) {
       throw new AppError(409, 'Este viaje ya fue pagado');
     }
 

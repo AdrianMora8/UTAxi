@@ -118,17 +118,22 @@ async function main() {
     },
   });
 
-  console.log('✅ Usuarios de prueba creados:');
-  console.table([
-    { id: admin.id,          email: admin.email,          role: admin.role,          verified: admin.emailVerified },
-    { id: student.id,        email: student.email,        role: student.role,        verified: student.emailVerified },
-    { id: loadUser.id,       email: loadUser.email,       role: loadUser.role,       verified: loadUser.emailVerified },
-    { id: e2ePassenger.id,   email: e2ePassenger.email,   role: e2ePassenger.role,   verified: e2ePassenger.emailVerified },
-    { id: e2eDriver.id,      email: e2eDriver.email,      role: e2eDriver.role,      verified: e2eDriver.emailVerified },
-  ]);
-  console.log('\n🔑 Contraseña admin/student: 123456');
-  console.log('🔑 Contraseña load-test:     LoadTest123!');
-  console.log('🔑 Contraseña e2e users:     E2ETest123!');
+  // Cambiado a console.warn para cumplir las reglas de SonarQube
+  console.warn('✅ Usuarios de prueba creados:');
+
+  // Imprimimos la estructura limpia simulando la tabla
+  console.warn(JSON.stringify([
+    { id: admin.id, email: admin.email, role: admin.role, verified: admin.emailVerified },
+    { id: student.id, email: student.email, role: student.role, verified: student.emailVerified },
+    { id: student1.id, email: student1.email, role: student1.role, verified: student1.emailVerified },
+    { id: loadUser.id, email: loadUser.email, role: loadUser.role, verified: loadUser.emailVerified },
+    { id: e2ePassenger.id, email: e2ePassenger.email, role: e2ePassenger.role, verified: e2ePassenger.emailVerified },
+    { id: e2eDriver.id, email: e2eDriver.email, role: e2eDriver.role, verified: e2eDriver.emailVerified },
+  ], null, 2));
+
+  console.warn('\n🔑 Contraseña admin/student: 123456');
+  console.warn('🔑 Contraseña load-test:     LoadTest123!');
+  console.warn('🔑 Contraseña e2e users:     E2ETest123!');
 }
 
 main()

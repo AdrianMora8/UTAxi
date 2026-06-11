@@ -1,4 +1,4 @@
-import { PrismaClient, RequestStatus, TripStatus, PaymentStatus, TransactionType, TransactionConcept, TripEventType } from '@prisma/client';
+import { PrismaClient, RequestStatus, TripStatus, PaymentStatus, TransactionType, TransactionConcept, TripEventType, Prisma } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 
 export class RequestsService {
@@ -10,7 +10,7 @@ export class RequestsService {
     actorId?: string,
     metadata?: object,
   ) {
-    return this.prisma.tripEvent.create({ data: { tripId, type, actorId, metadata: metadata as any } });
+    return this.prisma.tripEvent.create({ data: { tripId, type, actorId, metadata: metadata as Prisma.InputJsonValue | undefined } });
   }
 
   async create(tripId: string, passengerId: string, message?: string) {
@@ -206,7 +206,7 @@ export class RequestsService {
     }
 
     // ACCEPTED sin pago: devolver cupo y listo
-    if (!request.payment || request.payment.status !== PaymentStatus.CONFIRMED) {
+    if (request.payment?.status !== PaymentStatus.CONFIRMED) {
       await this.prisma.$transaction([
         this.prisma.tripRequest.update({
           where: { id: requestId },

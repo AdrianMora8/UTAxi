@@ -124,7 +124,10 @@ export class TripsService {
       where.status = filters.status;
     } else if (!filters.driverId) {
       where.status = TripStatus.SCHEDULED;
-      where.departureTime = { ...where.departureTime, gte: new Date() };
+      where.departureTime = {
+        ...(typeof where.departureTime === 'object' ? where.departureTime : undefined),
+        gte: new Date(),
+      };
     }
 
     const [trips, total] = await this.prisma.$transaction([

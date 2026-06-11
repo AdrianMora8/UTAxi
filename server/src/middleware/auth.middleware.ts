@@ -12,7 +12,7 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
 
   const token = header.split(' ')[1];
   try {
-    const payload = verifyAccessToken(token);
+    const payload = verifyAccessToken(token) as { userId: string; email: string; role: string };
     req.user = { id: payload.userId, email: payload.email, role: payload.role as UserRole };
 
     // Auto-reactivate if temporary suspension has expired

@@ -11,10 +11,11 @@ interface AuthenticatedSocket extends Socket {
 }
 
 export function registerTrackingHandlers(io: Server) {
+  /* eslint-disable no-console */
   // ─── Autenticación al conectar ────────────────────────────────────────────
   io.use((socket, next) => {
     const token =
-      socket.handshake.auth?.token ||
+      (socket.handshake.auth as { token?: string })?.token ??
       socket.handshake.headers?.authorization?.replace('Bearer ', '');
 
     if (!token) {
@@ -22,7 +23,7 @@ export function registerTrackingHandlers(io: Server) {
     }
 
     try {
-      const payload = verifyAccessToken(token);
+      const payload = verifyAccessToken(token) as { userId: string; email: string; role: string };
       socket.data.userId = payload.userId;
       socket.data.email = payload.email;
       socket.data.role = payload.role;

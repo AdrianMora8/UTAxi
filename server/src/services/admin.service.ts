@@ -321,18 +321,16 @@ export class AdminService {
         data: { status: 'CANCELLED' },
       }),
       this.prisma.tripEvent.create({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        data: { tripId, type: 'TRIP_CANCELLED', actorId: adminId, metadata: { reason: 'admin_action' } as any },
+        data: { tripId, type: 'TRIP_CANCELLED', actorId: adminId, metadata: { reason: 'admin_action' } as Prisma.InputJsonValue },
       }),
     ];
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const paidRequests = trip.requests.filter((r: any) => r.payment?.status === 'CONFIRMED');
+    type PaidRequest = { id: string; passenger: { id: string }; payment: { id: string; amount: Prisma.Decimal | number; status: string } };
+    const paidRequests = trip.requests.filter((r) => (r as unknown as PaidRequest).payment?.status === 'CONFIRMED') as unknown as PaidRequest[];
     for (const r of paidRequests) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const amount = (r as any).payment!.amount;
+      const amount = r.payment.amount;
       ops.push(
-        this.prisma.payment.update({ where: { id: r.payment!.id }, data: { status: 'REFUNDED' } }),
+        this.prisma.payment.update({ where: { id: r.payment.id }, data: { status: 'REFUNDED' } }),
         this.prisma.user.update({ where: { id: r.passenger.id }, data: { walletBalance: { increment: amount } } }),
         this.prisma.user.update({ where: { id: trip.driverId }, data: { pendingBalance: { decrement: amount } } }),
         this.prisma.walletTransaction.create({

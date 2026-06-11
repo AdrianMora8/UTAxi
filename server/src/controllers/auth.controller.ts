@@ -14,7 +14,12 @@ const COOKIE_OPTIONS = {
 
 export async function register(req: Request, res: Response): Promise<void> {
   try {
-    const { email, password, fullName, career } = req.body;
+    const { email, password, fullName, career } = req.body as {
+      email: string;
+      password: string;
+      fullName: string;
+      career?: string;
+    };
     
     // Validaciones básicas
     if (!email || !password || !fullName) {
@@ -26,7 +31,8 @@ export async function register(req: Request, res: Response): Promise<void> {
 
     const result = await authService.register(email, password, fullName, career);
     res.status(201).json(result);
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error & { statusCode?: number };
     console.error('❌ Error en registro:', error.message);
     
     // Errores conocidos (AppError)
@@ -54,7 +60,7 @@ export async function register(req: Request, res: Response): Promise<void> {
 
 export async function resendCode(req: Request, res: Response): Promise<void> {
   try {
-    const { email } = req.body;
+    const { email } = req.body as { email: string };
     
     if (!email) {
       res.status(400).json({ 
@@ -65,7 +71,8 @@ export async function resendCode(req: Request, res: Response): Promise<void> {
 
     const result = await authService.resendVerificationCode(email);
     res.json(result);
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error & { statusCode?: number };
     console.error('❌ Error al reenviar código:', error.message);
     
     if (error.statusCode) {
@@ -90,7 +97,7 @@ export async function resendCode(req: Request, res: Response): Promise<void> {
 
 export async function verifyEmail(req: Request, res: Response): Promise<void> {
   try {
-    const { email, code } = req.body;
+    const { email, code } = req.body as { email: string; code: string };
     
     if (!email || !code) {
       res.status(400).json({ 
@@ -101,7 +108,8 @@ export async function verifyEmail(req: Request, res: Response): Promise<void> {
 
     const result = await authService.verifyEmail(email, code);
     res.json(result);
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error & { statusCode?: number };
     console.error('❌ Error en verificación de email:', error.message);
     
     if (error.statusCode) {
@@ -126,7 +134,7 @@ export async function verifyEmail(req: Request, res: Response): Promise<void> {
 
 export async function login(req: Request, res: Response): Promise<void> {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body as { email: string; password: string };
     
     if (!email || !password) {
       res.status(400).json({ 
@@ -143,7 +151,8 @@ export async function login(req: Request, res: Response): Promise<void> {
       accessToken: result.accessToken,
       user: result.user,
     });
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error & { statusCode?: number };
     console.error('❌ Error en login:', error.message);
     
     if (error.statusCode) {
@@ -176,7 +185,8 @@ export async function refresh(req: Request, res: Response): Promise<void> {
     
     const result = await authService.refresh(token);
     res.json(result);
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error & { statusCode?: number };
     console.error('❌ Error en refresh:', error.message);
     
     if (error.statusCode) {
@@ -211,7 +221,7 @@ export async function logout(req: Request, res: Response): Promise<void> {
 
 export async function forgotPassword(req: Request, res: Response): Promise<void> {
   try {
-    const { email } = req.body;
+    const { email } = req.body as { email: string };
     
     if (!email) {
       res.status(400).json({ error: 'Email es requerido' });
@@ -220,7 +230,8 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
     
     const result = await authService.forgotPassword(email);
     res.json(result);
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error & { statusCode?: number };
     console.error('❌ Error en forgotPassword:', error.message);
     
     if (error.statusCode) {
@@ -237,7 +248,11 @@ export async function forgotPassword(req: Request, res: Response): Promise<void>
 
 export async function resetPassword(req: Request, res: Response): Promise<void> {
   try {
-    const { email, code, newPassword } = req.body;
+    const { email, code, newPassword } = req.body as {
+      email: string;
+      code: string;
+      newPassword: string;
+    };
     
     if (!email || !code || !newPassword) {
       res.status(400).json({ 
@@ -248,7 +263,8 @@ export async function resetPassword(req: Request, res: Response): Promise<void> 
     
     const result = await authService.resetPassword(email, code, newPassword);
     res.json(result);
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error & { statusCode?: number };
     console.error('❌ Error en resetPassword:', error.message);
     
     if (error.statusCode) {

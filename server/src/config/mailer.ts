@@ -7,7 +7,7 @@ if (env.SENDGRID_API_KEY) {
 
 async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   if (!env.SENDGRID_API_KEY) {
-    console.log(`📧 [dev] Email para ${to} — subject: ${subject}`);
+    console.warn(`📧 [dev] Email para ${to} — subject: ${subject}`);
     return;
   }
 
@@ -21,7 +21,7 @@ async function sendEmail(to: string, subject: string, html: string): Promise<voi
 
 export async function sendVerificationEmail(email: string, code: string): Promise<void> {
   if (!env.SENDGRID_API_KEY) {
-    console.log(`\n📧 CÓDIGO DE VERIFICACIÓN para ${email}: ${code}\n`);
+    console.warn(`\n📧 CÓDIGO DE VERIFICACIÓN para ${email}: ${code}\n`);
     return;
   }
 
@@ -43,7 +43,7 @@ export async function sendVerificationEmail(email: string, code: string): Promis
 
 export async function sendPasswordResetEmail(email: string, code: string): Promise<void> {
   if (!env.SENDGRID_API_KEY) {
-    console.log(`\n📧 CÓDIGO DE RECUPERACIÓN para ${email}: ${code}\n`);
+    console.warn(`\n📧 CÓDIGO DE RECUPERACIÓN para ${email}: ${code}\n`);
     return;
   }
 

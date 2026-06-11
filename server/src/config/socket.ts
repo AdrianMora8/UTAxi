@@ -14,6 +14,6 @@ export function initSocket(httpServer: HttpServer): SocketServer {
   setIo(io);
   registerTrackingHandlers(io);
 
-  console.log('[Socket.io] Servidor inicializado');
+  console.warn('[Socket.io] Servidor inicializado');
   return io;
 }

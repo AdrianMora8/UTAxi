@@ -1,20 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';
@@ -289,7 +272,7 @@ export function createApp() {
 
 
 
-  
+
 
 
 
@@ -310,7 +293,7 @@ export function createApp() {
     app.get('/api/dev/code/:email', async (req, res) => {
       const { email } = req.params;
       const user = await prisma.user.findUnique({ where: { email } });
-      if (!user || !user.emailVerifyToken) {
+      if (!user?.emailVerifyToken) {
         return res.status(404).json({ error: 'No hay código para este usuario' });
       }
       res.json({

@@ -12,9 +12,6 @@ const reviewReportSchema = z.object({
   suspendedUntil: z.string().datetime().optional(),
 });
 
-const updateUserStatusSchema = z.object({
-  status: z.nativeEnum(UserStatus),
-});
 
 export async function getReports(req: Request, res: Response) {
   const { status, page, limit } = req.query;

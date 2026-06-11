@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function verifyAllUsers() {
   try {
-    console.log('🔄 Verificando todos los usuarios...');
+    console.warn('🔄 Verificando todos los usuarios...');
     const result = await prisma.user.updateMany({
       data: {
         emailVerified: true,
@@ -12,9 +12,9 @@ async function verifyAllUsers() {
         emailVerifyExpiry: null,
       },
     });
-    console.log(`✅ Se verificaron ${result.count} usuarios`);
-  } catch (error: any) {
-    console.error('❌ Error:', error.message);
+    console.warn(`✅ Se verificaron ${result.count} usuarios`);
+  } catch (error: unknown) {
+    console.error('❌ Error:', error instanceof Error ? error.message : String(error));
   } finally {
     await prisma.$disconnect();
   }

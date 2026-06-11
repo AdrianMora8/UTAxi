@@ -13,7 +13,7 @@ interface AuthenticatedSocket extends Socket {
 export function registerTrackingHandlers(io: Server) {
   /* eslint-disable no-console */
   // ─── Autenticación al conectar ────────────────────────────────────────────
-  io.use((socket, next) => {
+  io.use((socket: AuthenticatedSocket, next) => {
     const token =
       (socket.handshake.auth as { token?: string })?.token ??
       socket.handshake.headers?.authorization?.replace('Bearer ', '');

@@ -89,7 +89,7 @@ describe('UsersService', () => {
     });
 
     it('throws AppError when vehicle already exists', async () => {
-      prisma.vehicle.findUnique.mockResolvedValue({ id: 'veh-1' });
+      prisma.vehicle.findUnique.mockResolvedValue({ id: 'veh-1', status: 'APPROVED' });
 
       await expect(
         service.createVehicle(userId, {
@@ -100,7 +100,7 @@ describe('UsersService', () => {
           color: 'Blanco',
         }),
       ).rejects.toEqual(
-        new AppError(409, 'Ya tienes un vehículo registrado. Usa PATCH para actualizarlo.'),
+        new AppError(409, 'Ya tienes un vehículo aprobado registrado.'),
       );
     });
   });

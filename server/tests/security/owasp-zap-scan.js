@@ -8,12 +8,32 @@ const fs = require('fs');
 const path = require('path');
 
 const ZAP_API_URL = 'http://localhost:8090';
-const TARGET_URL = 'http://172.18.0.1:4000';
+const TARGET_URL = 'http://host.docker.internal:4000';
+
+async function waitForZap() {
+  let retries = 0;
+  const maxRetries = 40; // up to 2 minutes
+  while (retries < maxRetries) {
+    try {
+      await axios.get(`${ZAP_API_URL}/JSON/core/view/version/`);
+      console.log('\n✅ OWASP ZAP está listo!');
+      return;
+    } catch (error) {
+      process.stdout.write('.');
+      await sleep(3000);
+      retries++;
+    }
+  }
+  throw new Error('OWASP ZAP no se inició a tiempo.');
+}
 
 async function runSecurityScan() {
   console.log('🔒 Iniciando escaneo de seguridad con OWASP ZAP...\n');
 
   try {
+    console.log('⏳ Esperando a que OWASP ZAP inicie correctamente...');
+    await waitForZap();
+
     // 0. Forzar la URL al Sites tree de ZAP antes de escanear
     console.log('🌐 Fase 0: Registrando URL en ZAP...');
     await axios.get(`${ZAP_API_URL}/JSON/core/action/accessUrl`, {
@@ -46,6 +66,8 @@ async function runSecurityScan() {
     process.exit(0);
   } catch (error) {
     console.error('❌ Error durante el escaneo:', error.message);
+    if (error.response) console.error(error.response.data);
+    else console.error(error);
     process.exit(1);
   }
 }
@@ -64,6 +86,7 @@ async function startSpider(url) {
     return response.data.scan;
   } catch (error) {
     console.error('Error al iniciar spider:', error.message);
+    if (error.response) console.error('Spider API Error Details:', error.response.data);
     throw error;
   }
 }

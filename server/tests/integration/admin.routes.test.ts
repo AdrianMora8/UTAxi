@@ -275,6 +275,7 @@ describe('DELETE /api/admin/trips/:id', () => {
     await prisma.tripEvent.deleteMany({});
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 
@@ -361,6 +362,7 @@ describe('PATCH /api/admin/reports/:id', () => {
   afterAll(async () => { await teardownTestDb(); });
 
   beforeEach(async () => {
+    await prisma.reportReview.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.user.updateMany({
       where: { id: reportedId },
@@ -543,6 +545,10 @@ describe('PATCH /api/admin/users/:id/status — suspensión temporal', () => {
   });
 
   it('bloquea requests de usuario suspendido con suspensión vigente', async () => {
+    // Obtener token antes de suspender (para tener un token válido)
+    const targetToken = await loginAs(targetEmail, PASSWORD);
+
+    // Suspender al usuario directamente en BD
     await prisma.user.update({
       where: { id: targetId },
       data: {
@@ -551,7 +557,6 @@ describe('PATCH /api/admin/users/:id/status — suspensión temporal', () => {
       },
     });
 
-    const targetToken = await loginAs(targetEmail, PASSWORD);
     const res = await request(app)
       .get('/api/users/me')
       .set('Authorization', `Bearer ${targetToken}`);

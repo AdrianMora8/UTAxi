@@ -110,6 +110,7 @@ export async function createTestVehicle(userId: string) {
     data: {
       userId,
       ...TEST_VEHICLES.valid,
+      status: 'APPROVED',
     },
   });
 }

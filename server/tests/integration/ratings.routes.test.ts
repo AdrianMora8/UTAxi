@@ -61,6 +61,8 @@ describe('POST /api/ratings', () => {
   beforeEach(async () => {
     await prisma.rating.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
     // Resetear reputación
     await prisma.user.updateMany({ data: { reputationScore: 5.0 } });

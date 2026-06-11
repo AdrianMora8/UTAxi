@@ -33,11 +33,12 @@ test.describe('My Requests - E2E', () => {
       await expect(page.locator('button:has-text("Historial")')).toBeVisible();
     });
 
-    test('should show U-Wallet sidebar with Recargar Saldo button', async ({ page }) => {
+    test('should show U-Wallet sidebar with Recargar link', async ({ page }) => {
       await page.goto('/requests');
 
       await expect(page.locator('text="Saldo U-Wallet"')).toBeVisible({ timeout: 8000 });
-      await expect(page.locator('button:has-text("Recargar Saldo")')).toBeVisible();
+      // El sidebar muestra un link "Recargar" hacia /wallet (no un botón)
+      await expect(page.locator('a[href="/wallet"]:has-text("Recargar")').first()).toBeVisible();
     });
 
     test('Activas tab: shows requests or empty state with Buscar Viaje link', async ({ page }) => {
@@ -60,7 +61,9 @@ test.describe('My Requests - E2E', () => {
       const isEmpty = await emptyState.isVisible({ timeout: 5000 }).catch(() => false);
 
       if (isEmpty) {
-        const buscarLink = page.locator('a[href="/trips"]:has-text("Buscar Viaje")');
+        // Usar el link dentro del área de contenido principal, no el del navbar
+        // El empty state tiene un Link con clase bg-gradient-primary
+        const buscarLink = page.locator('a.bg-gradient-primary:has-text("Buscar Viaje")');
         await expect(buscarLink).toBeVisible();
         await buscarLink.click();
         await expect(page).toHaveURL(/.*\/trips$/, { timeout: 8000 });
@@ -95,16 +98,20 @@ test.describe('My Requests - E2E', () => {
       }
     });
 
-    test('accepted unpaid request shows Pagar Ahora button', async ({ page }) => {
+    test('accepted unpaid request shows payment buttons', async ({ page }) => {
       await page.goto('/requests');
       await page.click('button:has-text("Activas")');
 
-      const payBtn = page.locator('button:has-text("Pagar Ahora")').first();
-      const hasAccepted = await payBtn.isVisible({ timeout: 5000 }).catch(() => false);
+      // La UI muestra "Pagar con U-Wallet" o "Pagar con Tarjeta" (no "Pagar Ahora")
+      const walletBtn = page.locator('button:has-text("Pagar con U-Wallet")').first();
+      const cardBtn  = page.locator('button:has-text("Pagar con Tarjeta")').first();
+      const hasAccepted = await walletBtn.isVisible({ timeout: 5000 }).catch(() => false);
 
       if (hasAccepted) {
-        await expect(payBtn).toBeVisible();
-        await payBtn.click();
+        await expect(walletBtn).toBeVisible();
+        await expect(cardBtn).toBeVisible();
+        // Navegar a pago con tarjeta
+        await cardBtn.click();
         await expect(page).toHaveURL(/\/pay\//, { timeout: 8000 });
       } else {
         test.skip();

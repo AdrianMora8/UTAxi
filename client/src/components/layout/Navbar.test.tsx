@@ -1,4 +1,4 @@
-import { render, screen } from '@/test/test-utils'
+import { render, screen, waitFor } from '@/test/test-utils'
 import userEvent from '@testing-library/user-event'
 import { useAuthStore } from '@/store/authStore'
 import type { AuthUser } from '@/store/authStore'
@@ -20,6 +20,12 @@ vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>()
   return { ...actual, useNavigate: () => mockNavigate }
 })
+
+vi.mock('@/api/users.api', () => ({
+  usersApi: {
+    getMe: vi.fn().mockResolvedValue({ data: { user: { vehicle: { status: 'APPROVED' } } } }),
+  },
+}))
 
 import Navbar from './Navbar'
 import { useAuth } from '@/hooks/useAuth'
@@ -64,9 +70,9 @@ describe('Navbar — usuario STUDENT', () => {
     expect(screen.getByText('Buscar Viaje')).toBeInTheDocument()
   })
 
-  it('muestra "Publicar Viaje"', () => {
+  it('muestra "Publicar Viaje"', async () => {
     render(<Navbar />)
-    expect(screen.getByText('Publicar Viaje')).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('Publicar Viaje')).toBeInTheDocument())
   })
 
   it('muestra "Mis Solicitudes"', () => {
@@ -74,9 +80,9 @@ describe('Navbar — usuario STUDENT', () => {
     expect(screen.getByText('Mis Solicitudes')).toBeInTheDocument()
   })
 
-  it('muestra "Mis Viajes"', () => {
+  it('muestra "Mis Viajes"', async () => {
     render(<Navbar />)
-    expect(screen.getByRole('link', { name: 'Mis Viajes' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByRole('link', { name: 'Mis Viajes' })).toBeInTheDocument())
   })
 
   it('NO muestra "Admin" para usuario STUDENT', () => {

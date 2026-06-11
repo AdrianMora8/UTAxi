@@ -12,6 +12,12 @@ vi.mock('@/api/trips.api', () => ({
   tripsApi: { createTrip: mockCreateTrip },
 }))
 
+vi.mock('@/api/users.api', () => ({
+  usersApi: {
+    getMe: vi.fn().mockResolvedValue({ data: { user: { vehicle: { plate: 'XYZ' } } } }),
+  },
+}))
+
 vi.mock('react-router-dom', async (importOriginal) => {
   const actual = await importOriginal<typeof import('react-router-dom')>()
   return { ...actual, useNavigate: () => mockNavigate }
@@ -57,7 +63,7 @@ describe('CreateTrip — validaciones', () => {
     const user = userEvent.setup()
     const { container } = render(<CreateTrip />)
 
-    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2026-06-01' } })
+    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2030-06-01' } })
     fireEvent.change(container.querySelector('input[type="time"]')!, { target: { value: '08:00' } })
     await user.click(screen.getByRole('button', { name: /Publicar Viaje/i }))
 
@@ -72,7 +78,7 @@ describe('CreateTrip — validaciones', () => {
     const { container } = render(<CreateTrip />)
 
     await user.click(screen.getByTestId('campus-picker'))
-    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2026-06-01' } })
+    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2030-06-01' } })
     fireEvent.change(container.querySelector('input[type="time"]')!, { target: { value: '08:00' } })
     await user.click(screen.getByRole('button', { name: /Publicar Viaje/i }))
 
@@ -104,7 +110,7 @@ describe('CreateTrip — submit exitoso', () => {
 
     await user.click(screen.getByTestId('campus-picker'))
     await user.click(screen.getByTestId('dest-picker'))
-    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2026-06-01' } })
+    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2030-06-01' } })
     fireEvent.change(container.querySelector('input[type="time"]')!, { target: { value: '08:00' } })
     await user.click(screen.getByRole('button', { name: /Publicar Viaje/i }))
 
@@ -125,7 +131,7 @@ describe('CreateTrip — submit exitoso', () => {
 
     await user.click(screen.getByTestId('campus-picker'))
     await user.click(screen.getByTestId('dest-picker'))
-    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2026-06-01' } })
+    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2030-06-01' } })
     fireEvent.change(container.querySelector('input[type="time"]')!, { target: { value: '08:00' } })
     await user.click(screen.getByRole('button', { name: /Publicar Viaje/i }))
 
@@ -141,7 +147,7 @@ describe('CreateTrip — submit exitoso', () => {
 
     await user.click(screen.getByTestId('campus-picker'))
     await user.click(screen.getByTestId('dest-picker'))
-    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2026-06-01' } })
+    fireEvent.change(container.querySelector('input[type="date"]')!, { target: { value: '2030-06-01' } })
     fireEvent.change(container.querySelector('input[type="time"]')!, { target: { value: '08:00' } })
     await user.click(screen.getByRole('button', { name: /Publicar Viaje/i }))
 

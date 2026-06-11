@@ -35,25 +35,7 @@ export default function CreateTrip() {
   })
   const hasVehicle = !!profileData?.user?.vehicle
 
-  if (!profileLoading && !hasVehicle) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
-        <div className="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center mb-8 border border-white/5">
-          <span className="material-symbols-outlined text-4xl text-zinc-600">directions_car</span>
-        </div>
-        <h2 className="text-3xl font-headline font-bold text-white mb-3">Necesitas registrar un vehículo</h2>
-        <p className="text-on-surface-variant max-w-sm mb-8">
-          Para publicar viajes primero debes registrar tu vehículo en tu perfil.
-        </p>
-        <Link
-          to="/profile"
-          className="bg-gradient-primary text-on-primary px-8 py-3 rounded-xl font-headline font-bold uppercase tracking-tighter hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] transition-all"
-        >
-          Ir a mi Perfil
-        </Link>
-      </div>
-    )
-  }
+
   const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null)
   const [campusError, setCampusError] = useState('')
   const [destination, setDestination] = useState<DestinationValue | null>(null)
@@ -98,6 +80,26 @@ export default function CreateTrip() {
       setServerError(msg)
     },
   })
+
+  if (!profileLoading && !hasVehicle) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
+        <div className="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center mb-8 border border-white/5">
+          <span className="material-symbols-outlined text-4xl text-zinc-600">directions_car</span>
+        </div>
+        <h2 className="text-3xl font-headline font-bold text-white mb-3">Necesitas registrar un vehículo</h2>
+        <p className="text-on-surface-variant max-w-sm mb-8">
+          Para publicar viajes primero debes registrar tu vehículo en tu perfil.
+        </p>
+        <Link
+          to="/profile"
+          className="bg-gradient-primary text-on-primary px-8 py-3 rounded-xl font-headline font-bold uppercase tracking-tighter hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] transition-all"
+        >
+          Ir a mi Perfil
+        </Link>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-surface text-on-surface font-body">

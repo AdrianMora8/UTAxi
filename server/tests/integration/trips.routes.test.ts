@@ -54,6 +54,8 @@ describe('POST /api/trips', () => {
 
   beforeEach(async () => {
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 
@@ -260,6 +262,8 @@ describe('PATCH /api/trips/:id', () => {
   beforeEach(async () => {
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 
@@ -383,6 +387,8 @@ describe('DELETE /api/trips/:id', () => {
     await prisma.walletTransaction.deleteMany({});
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 
@@ -465,11 +471,13 @@ describe('POST /api/trips/:id/start', () => {
     await prisma.walletTransaction.deleteMany({});
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 
   it('inicia el viaje con lista de asistencia correcta', async () => {
-    const trip = await createTestTrip(driverId);
+    const trip = await createTestTrip(driverId, { departureTime: new Date(Date.now() - 5 * 60_000) });
     const req = await createTestRequest(passengerId, trip.id, 'ACCEPTED');
 
     const res = await request(app)
@@ -482,7 +490,7 @@ describe('POST /api/trips/:id/start', () => {
   });
 
   it('no-show sin pago: solicitud se cancela y cupo no se devuelve', async () => {
-    const trip = await createTestTrip(driverId);
+    const trip = await createTestTrip(driverId, { departureTime: new Date(Date.now() - 5 * 60_000) });
     const accepted = await createTestRequest(passengerId, trip.id, 'ACCEPTED');
     const noShow = await createTestRequest(noPayPassengerId, trip.id, 'ACCEPTED');
 
@@ -497,7 +505,7 @@ describe('POST /api/trips/:id/start', () => {
   });
 
   it('no-show con pago: conductor se queda con el dinero', async () => {
-    const trip = await createTestTrip(driverId);
+    const trip = await createTestTrip(driverId, { departureTime: new Date(Date.now() - 5 * 60_000) });
     const noShowReq = await createTestRequest(passengerId, trip.id, 'ACCEPTED');
     await createTestPayment(noShowReq.id, trip.id, passengerId, driverId, 1.5);
 
@@ -520,7 +528,7 @@ describe('POST /api/trips/:id/start', () => {
   });
 
   it('rechaza si el viaje no está en SCHEDULED', async () => {
-    const trip = await createTestTrip(driverId, { status: 'IN_PROGRESS' });
+    const trip = await createTestTrip(driverId, { status: 'IN_PROGRESS', departureTime: new Date(Date.now() - 5 * 60_000) });
     const req = await createTestRequest(passengerId, trip.id, 'ACCEPTED');
 
     const res = await request(app)
@@ -560,6 +568,8 @@ describe('PATCH /api/trips/:id/status (completar)', () => {
     await prisma.walletTransaction.deleteMany({});
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 
@@ -636,6 +646,8 @@ describe('POST /api/trips/:id/confirm-schedule', () => {
   beforeEach(async () => {
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 

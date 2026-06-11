@@ -1,0 +1,704 @@
+{
+  "aggregate": {
+    "counters": {
+      "vusers.created_by_name.Get Trip Detail": 301,
+      "vusers.created": 3000,
+      "http.requests": 3000,
+      "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 2388,
+      "errors.ECONNREFUSED": 3000,
+      "vusers.failed": 3000,
+      "vusers.created_by_name.Get Trips List": 1181,
+      "vusers.created_by_name.Get User Profile": 328,
+      "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 328,
+      "vusers.created_by_name.Search Trips with Filters": 906,
+      "vusers.created_by_name.Authentication Flow": 284,
+      "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 284
+    },
+    "rates": {
+      "http.request_rate": 8
+    },
+    "firstCounterAt": 1781102813772,
+    "lastCounterAt": 1781103053035,
+    "firstMetricAt": 1781102813772,
+    "lastMetricAt": 1781103053035,
+    "period": 1781103050000,
+    "summaries": {},
+    "histograms": {}
+  },
+  "intermediate": [
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trip Detail": 4,
+        "vusers.created": 34,
+        "http.requests": 34,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 27,
+        "errors.ECONNREFUSED": 34,
+        "vusers.failed": 34,
+        "vusers.created_by_name.Get Trips List": 12,
+        "vusers.created_by_name.Get User Profile": 5,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 5,
+        "vusers.created_by_name.Search Trips with Filters": 11,
+        "vusers.created_by_name.Authentication Flow": 2,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 2
+      },
+      "rates": {
+        "http.request_rate": 5
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102813772,
+      "lastCounterAt": 1781102819974,
+      "firstMetricAt": 1781102813772,
+      "lastMetricAt": 1781102819974,
+      "period": "1781102810000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trips List": 22,
+        "vusers.created": 50,
+        "http.requests": 50,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 42,
+        "errors.ECONNREFUSED": 50,
+        "vusers.failed": 50,
+        "vusers.created_by_name.Search Trips with Filters": 12,
+        "vusers.created_by_name.Authentication Flow": 2,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 2,
+        "vusers.created_by_name.Get Trip Detail": 8,
+        "vusers.created_by_name.Get User Profile": 6,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 6
+      },
+      "rates": {
+        "http.request_rate": 5
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102820029,
+      "lastCounterAt": 1781102829977,
+      "firstMetricAt": 1781102820029,
+      "lastMetricAt": 1781102829977,
+      "period": "1781102820000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trips List": 25,
+        "vusers.created": 50,
+        "http.requests": 50,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 42,
+        "errors.ECONNREFUSED": 50,
+        "vusers.failed": 50,
+        "vusers.created_by_name.Search Trips with Filters": 14,
+        "vusers.created_by_name.Get User Profile": 5,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 5,
+        "vusers.created_by_name.Get Trip Detail": 3,
+        "vusers.created_by_name.Authentication Flow": 3,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 3
+      },
+      "rates": {
+        "http.request_rate": 5
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102830029,
+      "lastCounterAt": 1781102839970,
+      "firstMetricAt": 1781102830029,
+      "lastMetricAt": 1781102839970,
+      "period": "1781102830000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trip Detail": 5,
+        "vusers.created": 50,
+        "http.requests": 50,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 38,
+        "errors.ECONNREFUSED": 50,
+        "vusers.failed": 50,
+        "vusers.created_by_name.Search Trips with Filters": 19,
+        "vusers.created_by_name.Get User Profile": 6,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 6,
+        "vusers.created_by_name.Get Trips List": 14,
+        "vusers.created_by_name.Authentication Flow": 6,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 6
+      },
+      "rates": {
+        "http.request_rate": 5
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102840029,
+      "lastCounterAt": 1781102849969,
+      "firstMetricAt": 1781102840029,
+      "lastMetricAt": 1781102849969,
+      "period": "1781102840000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Authentication Flow": 5,
+        "vusers.created": 50,
+        "http.requests": 50,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 5,
+        "errors.ECONNREFUSED": 50,
+        "vusers.failed": 50,
+        "vusers.created_by_name.Get Trips List": 21,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 38,
+        "vusers.created_by_name.Get User Profile": 7,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 7,
+        "vusers.created_by_name.Search Trips with Filters": 11,
+        "vusers.created_by_name.Get Trip Detail": 6
+      },
+      "rates": {
+        "http.request_rate": 5
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102850029,
+      "lastCounterAt": 1781102859971,
+      "firstMetricAt": 1781102850029,
+      "lastMetricAt": 1781102859971,
+      "period": "1781102850000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Search Trips with Filters": 15,
+        "vusers.created": 50,
+        "http.requests": 50,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 38,
+        "errors.ECONNREFUSED": 50,
+        "vusers.failed": 50,
+        "vusers.created_by_name.Get Trip Detail": 8,
+        "vusers.created_by_name.Get User Profile": 7,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 7,
+        "vusers.created_by_name.Get Trips List": 15,
+        "vusers.created_by_name.Authentication Flow": 5,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 5
+      },
+      "rates": {
+        "http.request_rate": 5
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102860029,
+      "lastCounterAt": 1781102869969,
+      "firstMetricAt": 1781102860029,
+      "lastMetricAt": 1781102869969,
+      "period": "1781102860000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trips List": 48,
+        "vusers.created": 145,
+        "http.requests": 145,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 110,
+        "errors.ECONNREFUSED": 145,
+        "vusers.failed": 145,
+        "vusers.created_by_name.Get User Profile": 20,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 20,
+        "vusers.created_by_name.Get Trip Detail": 20,
+        "vusers.created_by_name.Authentication Flow": 15,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 15,
+        "vusers.created_by_name.Search Trips with Filters": 42
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102870029,
+      "lastCounterAt": 1781102879975,
+      "firstMetricAt": 1781102870029,
+      "lastMetricAt": 1781102879975,
+      "period": "1781102870000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Search Trips with Filters": 60,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 153,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Get Trips List": 69,
+        "vusers.created_by_name.Authentication Flow": 25,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 25,
+        "vusers.created_by_name.Get User Profile": 22,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 22,
+        "vusers.created_by_name.Get Trip Detail": 24
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102880029,
+      "lastCounterAt": 1781102889970,
+      "firstMetricAt": 1781102880029,
+      "lastMetricAt": 1781102889970,
+      "period": "1781102880000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trips List": 87,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 157,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Search Trips with Filters": 51,
+        "vusers.created_by_name.Authentication Flow": 20,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 20,
+        "vusers.created_by_name.Get User Profile": 23,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 23,
+        "vusers.created_by_name.Get Trip Detail": 19
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102890029,
+      "lastCounterAt": 1781102899974,
+      "firstMetricAt": 1781102890029,
+      "lastMetricAt": 1781102899974,
+      "period": "1781102890000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Search Trips with Filters": 57,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 159,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Get User Profile": 23,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 23,
+        "vusers.created_by_name.Get Trip Detail": 17,
+        "vusers.created_by_name.Get Trips List": 85,
+        "vusers.created_by_name.Authentication Flow": 18,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 18
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102900029,
+      "lastCounterAt": 1781102909971,
+      "firstMetricAt": 1781102900029,
+      "lastMetricAt": 1781102909971,
+      "period": "1781102900000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Search Trips with Filters": 66,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 167,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Get Trips List": 79,
+        "vusers.created_by_name.Authentication Flow": 21,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 21,
+        "vusers.created_by_name.Get Trip Detail": 22,
+        "vusers.created_by_name.Get User Profile": 12,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 12
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102910029,
+      "lastCounterAt": 1781102919972,
+      "firstMetricAt": 1781102910029,
+      "lastMetricAt": 1781102919972,
+      "period": "1781102910000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get User Profile": 25,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 25,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Get Trips List": 83,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 149,
+        "vusers.created_by_name.Search Trips with Filters": 51,
+        "vusers.created_by_name.Get Trip Detail": 15,
+        "vusers.created_by_name.Authentication Flow": 26,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 26
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102920029,
+      "lastCounterAt": 1781102929971,
+      "firstMetricAt": 1781102920029,
+      "lastMetricAt": 1781102929971,
+      "period": "1781102920000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trips List": 83,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 164,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Search Trips with Filters": 64,
+        "vusers.created_by_name.Get User Profile": 20,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 20,
+        "vusers.created_by_name.Get Trip Detail": 17,
+        "vusers.created_by_name.Authentication Flow": 16,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 16
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102930030,
+      "lastCounterAt": 1781102939973,
+      "firstMetricAt": 1781102930030,
+      "lastMetricAt": 1781102939973,
+      "period": "1781102930000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Search Trips with Filters": 66,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 163,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Get Trip Detail": 15,
+        "vusers.created_by_name.Authentication Flow": 20,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 20,
+        "vusers.created_by_name.Get Trips List": 82,
+        "vusers.created_by_name.Get User Profile": 17,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 17
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102940030,
+      "lastCounterAt": 1781102949970,
+      "firstMetricAt": 1781102940030,
+      "lastMetricAt": 1781102949970,
+      "period": "1781102940000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Authentication Flow": 18,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 18,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Search Trips with Filters": 71,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 163,
+        "vusers.created_by_name.Get User Profile": 19,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 19,
+        "vusers.created_by_name.Get Trips List": 76,
+        "vusers.created_by_name.Get Trip Detail": 16
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102950030,
+      "lastCounterAt": 1781102959976,
+      "firstMetricAt": 1781102950030,
+      "lastMetricAt": 1781102959976,
+      "period": "1781102950000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trips List": 100,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 168,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Search Trips with Filters": 46,
+        "vusers.created_by_name.Get User Profile": 18,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 18,
+        "vusers.created_by_name.Get Trip Detail": 22,
+        "vusers.created_by_name.Authentication Flow": 14,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 14
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102960030,
+      "lastCounterAt": 1781102969972,
+      "firstMetricAt": 1781102960030,
+      "lastMetricAt": 1781102969972,
+      "period": "1781102960000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trips List": 72,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 158,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Search Trips with Filters": 61,
+        "vusers.created_by_name.Get User Profile": 23,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 23,
+        "vusers.created_by_name.Authentication Flow": 19,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 19,
+        "vusers.created_by_name.Get Trip Detail": 25
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102970030,
+      "lastCounterAt": 1781102979971,
+      "firstMetricAt": 1781102970030,
+      "lastMetricAt": 1781102979971,
+      "period": "1781102970000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trip Detail": 23,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 157,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Authentication Flow": 20,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 20,
+        "vusers.created_by_name.Search Trips with Filters": 58,
+        "vusers.created_by_name.Get Trips List": 76,
+        "vusers.created_by_name.Get User Profile": 23,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 23
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102980030,
+      "lastCounterAt": 1781102989973,
+      "firstMetricAt": 1781102980030,
+      "lastMetricAt": 1781102989973,
+      "period": "1781102980000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trips List": 43,
+        "vusers.created": 105,
+        "http.requests": 105,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 83,
+        "errors.ECONNREFUSED": 105,
+        "vusers.failed": 105,
+        "vusers.created_by_name.Authentication Flow": 10,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 10,
+        "vusers.created_by_name.Get Trip Detail": 11,
+        "vusers.created_by_name.Get User Profile": 12,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 12,
+        "vusers.created_by_name.Search Trips with Filters": 29
+      },
+      "rates": {
+        "http.request_rate": 15
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781102990030,
+      "lastCounterAt": 1781102999980,
+      "firstMetricAt": 1781102990030,
+      "lastMetricAt": 1781102999980,
+      "period": "1781102990000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trip Detail": 5,
+        "vusers.created": 50,
+        "http.requests": 50,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 44,
+        "errors.ECONNREFUSED": 50,
+        "vusers.failed": 50,
+        "vusers.created_by_name.Search Trips with Filters": 19,
+        "vusers.created_by_name.Get Trips List": 20,
+        "vusers.created_by_name.Get User Profile": 5,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 5,
+        "vusers.created_by_name.Authentication Flow": 1,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 1
+      },
+      "rates": {
+        "http.request_rate": 5
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781103000032,
+      "lastCounterAt": 1781103009983,
+      "firstMetricAt": 1781103000032,
+      "lastMetricAt": 1781103009983,
+      "period": "1781103000000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get User Profile": 6,
+        "vusers.created": 50,
+        "http.requests": 50,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 6,
+        "errors.ECONNREFUSED": 50,
+        "vusers.failed": 50,
+        "vusers.created_by_name.Get Trips List": 15,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 39,
+        "vusers.created_by_name.Authentication Flow": 5,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 5,
+        "vusers.created_by_name.Search Trips with Filters": 22,
+        "vusers.created_by_name.Get Trip Detail": 2
+      },
+      "rates": {
+        "http.request_rate": 5
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781103010032,
+      "lastCounterAt": 1781103019974,
+      "firstMetricAt": 1781103010032,
+      "lastMetricAt": 1781103019974,
+      "period": "1781103010000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Search Trips with Filters": 19,
+        "vusers.created": 50,
+        "http.requests": 50,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 39,
+        "errors.ECONNREFUSED": 50,
+        "vusers.failed": 50,
+        "vusers.created_by_name.Get User Profile": 7,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 7,
+        "vusers.created_by_name.Get Trip Detail": 6,
+        "vusers.created_by_name.Get Trips List": 14,
+        "vusers.created_by_name.Authentication Flow": 4,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 4
+      },
+      "rates": {
+        "http.request_rate": 5
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781103020032,
+      "lastCounterAt": 1781103029974,
+      "firstMetricAt": 1781103020032,
+      "lastMetricAt": 1781103029974,
+      "period": "1781103020000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Authentication Flow": 6,
+        "vusers.created": 50,
+        "http.requests": 50,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 6,
+        "errors.ECONNREFUSED": 50,
+        "vusers.failed": 50,
+        "vusers.created_by_name.Get Trips List": 16,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 40,
+        "vusers.created_by_name.Search Trips with Filters": 18,
+        "vusers.created_by_name.Get Trip Detail": 6,
+        "vusers.created_by_name.Get User Profile": 4,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 4
+      },
+      "rates": {
+        "http.request_rate": 5
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781103030032,
+      "lastCounterAt": 1781103039974,
+      "firstMetricAt": 1781103030032,
+      "lastMetricAt": 1781103039974,
+      "period": "1781103030000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trips List": 14,
+        "vusers.created": 50,
+        "http.requests": 50,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 36,
+        "errors.ECONNREFUSED": 50,
+        "vusers.failed": 50,
+        "vusers.created_by_name.Get User Profile": 12,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 12,
+        "vusers.created_by_name.Search Trips with Filters": 20,
+        "vusers.created_by_name.Get Trip Detail": 2,
+        "vusers.created_by_name.Authentication Flow": 2,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 2
+      },
+      "rates": {
+        "http.request_rate": 5
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781103040032,
+      "lastCounterAt": 1781103049973,
+      "firstMetricAt": 1781103040032,
+      "lastMetricAt": 1781103049973,
+      "period": "1781103040000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Get Trips List": 10,
+        "vusers.created": 16,
+        "http.requests": 16,
+        "plugins.metrics-by-endpoint./api/trips.errors.ECONNREFUSED": 14,
+        "errors.ECONNREFUSED": 16,
+        "vusers.failed": 16,
+        "vusers.created_by_name.Search Trips with Filters": 4,
+        "vusers.created_by_name.Get User Profile": 1,
+        "plugins.metrics-by-endpoint./api/users/me.errors.ECONNREFUSED": 1,
+        "vusers.created_by_name.Authentication Flow": 1,
+        "plugins.metrics-by-endpoint./api/auth/login.errors.ECONNREFUSED": 1
+      },
+      "rates": {
+        "http.request_rate": 6
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1781103050032,
+      "lastCounterAt": 1781103053035,
+      "firstMetricAt": 1781103050032,
+      "lastMetricAt": 1781103053035,
+      "period": "1781103050000",
+      "summaries": {},
+      "histograms": {}
+    }
+  ]
+}

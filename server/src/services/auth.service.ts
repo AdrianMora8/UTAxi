@@ -110,7 +110,16 @@ export class AuthService {
       if (!user.emailVerified) {
         throw new AppError(401, 'Debes verificar tu correo antes de iniciar sesión');
       }
-      if (user.status === 'SUSPENDED') {
+      // Auto-reactivar si la suspensión temporal ya expiró
+      if (user.status === 'SUSPENDED' && user.suspendedUntil && user.suspendedUntil <= new Date()) {
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { status: 'ACTIVE', suspendedUntil: null },
+        });
+        // Recargar usuario actualizado
+        const updated = await this.prisma.user.findUnique({ where: { id: user.id } });
+        if (updated) Object.assign(user, updated);
+      } else if (user.status === 'SUSPENDED') {
         throw new AppError(403, 'Tu cuenta está suspendida. Contacta al administrador.');
       }
 

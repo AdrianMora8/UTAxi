@@ -9,6 +9,7 @@ const svc = new AdminService(prisma);
 const reviewReportSchema = z.object({
   action: z.enum(['WARNED', 'SUSPENDED', 'DISMISSED']),
   notes: z.string().max(500).optional(),
+  suspendedUntil: z.string().datetime().optional(),
 });
 
 const updateUserStatusSchema = z.object({
@@ -31,8 +32,14 @@ export async function getReportById(req: Request, res: Response) {
 }
 
 export async function reviewReport(req: Request, res: Response) {
-  const { action, notes } = reviewReportSchema.parse(req.body);
-  const result = await svc.reviewReport(String(req.params.id), req.user!.id, action, notes);
+  const { action, notes, suspendedUntil } = reviewReportSchema.parse(req.body);
+  const result = await svc.reviewReport(
+    String(req.params.id),
+    req.user!.id,
+    action,
+    notes,
+    suspendedUntil ? new Date(suspendedUntil) : undefined,
+  );
   res.json(result);
 }
 

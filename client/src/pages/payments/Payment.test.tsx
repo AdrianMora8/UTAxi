@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from '@/test/test-utils'
 import userEvent from '@testing-library/user-event'
 
-const { mockGetMyRequests, mockGetPayment, mockSimulateConfirm, mockNavigate } = vi.hoisted(() => ({
+const { mockGetMyRequests, mockGetPayment, mockCreateIntent, mockNavigate } = vi.hoisted(() => ({
   mockGetMyRequests: vi.fn(),
   mockGetPayment: vi.fn(),
-  mockSimulateConfirm: vi.fn(),
+  mockCreateIntent: vi.fn(),
   mockNavigate: vi.fn(),
 }))
 
@@ -15,8 +15,17 @@ vi.mock('@/api/requests.api', () => ({
 vi.mock('@/api/payments.api', () => ({
   paymentsApi: {
     getPayment: mockGetPayment,
-    simulateConfirm: mockSimulateConfirm,
+    createIntent: mockCreateIntent,
+    confirmCardPayment: vi.fn(),
   },
+}))
+
+vi.mock('./StripeWrapper', () => ({
+  StripeWrapper: ({ children }: { children: React.ReactNode }) => <div data-testid="stripe-wrapper">{children}</div>,
+}))
+
+vi.mock('./CardForm', () => ({
+  CardForm: () => <div data-testid="stripe-card-form">Formulario Stripe</div>,
 }))
 
 vi.mock('react-router-dom', async (importOriginal) => {
@@ -76,59 +85,29 @@ describe('Payment — solicitud no encontrada', () => {
 })
 
 describe('Payment — formulario de pago (no pagado)', () => {
-  it('muestra el heading "Confirmar Pago"', async () => {
+  it('muestra el heading "Pagar con Tarjeta"', async () => {
     render(<Payment />)
 
     await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Confirmar Pago' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Pagar con Tarjeta' })).toBeInTheDocument()
     )
   })
 
-  it('muestra el label "Número de Tarjeta"', async () => {
+
+
+  it('muestra el botón "Continuar con tarjeta"', async () => {
     render(<Payment />)
 
     await waitFor(() =>
-      expect(screen.getByText('Número de Tarjeta')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Continuar con tarjeta/i })).toBeInTheDocument()
     )
   })
 
-  it('muestra el label "Titular de la Tarjeta"', async () => {
+  it('muestra el link "Cancelar"', async () => {
     render(<Payment />)
 
     await waitFor(() =>
-      expect(screen.getByText('Titular de la Tarjeta')).toBeInTheDocument()
-    )
-  })
-
-  it('muestra el label "Vencimiento"', async () => {
-    render(<Payment />)
-
-    await waitFor(() =>
-      expect(screen.getByText('Vencimiento')).toBeInTheDocument()
-    )
-  })
-
-  it('muestra el label "CVV"', async () => {
-    render(<Payment />)
-
-    await waitFor(() =>
-      expect(screen.getByText('CVV')).toBeInTheDocument()
-    )
-  })
-
-  it('muestra el botón "Confirmar Pago"', async () => {
-    render(<Payment />)
-
-    await waitFor(() =>
-      expect(screen.getByRole('button', { name: /Confirmar Pago/i })).toBeInTheDocument()
-    )
-  })
-
-  it('muestra el link "Cancelar Transacción"', async () => {
-    render(<Payment />)
-
-    await waitFor(() =>
-      expect(screen.getByRole('link', { name: 'Cancelar Transacción' })).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Cancelar' })).toBeInTheDocument()
     )
   })
 
@@ -136,7 +115,7 @@ describe('Payment — formulario de pago (no pagado)', () => {
     render(<Payment />)
 
     await waitFor(() =>
-      expect(screen.getByText(/Entorno de demostración/i)).toBeInTheDocument()
+      expect(screen.getByText(/Modo prueba/i)).toBeInTheDocument()
     )
   })
 
@@ -153,7 +132,7 @@ describe('Payment — formulario de pago (no pagado)', () => {
     render(<Payment />)
 
     await waitFor(() =>
-      expect(screen.getByText('$2.50')).toBeInTheDocument()
+      expect(screen.getByText(/2\.50/)).toBeInTheDocument()
     )
   })
 })
@@ -184,60 +163,60 @@ describe('Payment — ya pagado', () => {
   })
 })
 
-describe('Payment — confirmar pago', () => {
-  it('muestra "¡Pago Confirmado!" tras confirmar exitosamente', async () => {
+describe('Payment — iniciar pago', () => {
+  it('muestra el CardForm tras crear el intent exitosamente', async () => {
     const user = userEvent.setup()
-    mockSimulateConfirm.mockResolvedValue({})
+    mockCreateIntent.mockResolvedValue({ data: { clientSecret: 'secret_test' } })
 
     render(<Payment />)
-    await waitFor(() => expect(screen.getByRole('button', { name: /Confirmar Pago/i })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: /Continuar con tarjeta/i })).toBeInTheDocument())
 
-    await user.click(screen.getByRole('button', { name: /Confirmar Pago/i }))
+    await user.click(screen.getByRole('button', { name: /Continuar con tarjeta/i }))
 
     await waitFor(() =>
-      expect(screen.getByRole('heading', { name: '¡Pago Confirmado!' })).toBeInTheDocument()
+      expect(screen.getByTestId('stripe-card-form')).toBeInTheDocument()
     )
   })
 
-  it('llama paymentsApi.simulateConfirm al hacer click en Confirmar Pago', async () => {
+  it('llama paymentsApi.createIntent al hacer click en Continuar con tarjeta', async () => {
     const user = userEvent.setup()
-    mockSimulateConfirm.mockResolvedValue({})
+    mockCreateIntent.mockResolvedValue({ data: { clientSecret: 'secret_test' } })
 
     render(<Payment />)
-    await waitFor(() => expect(screen.getByRole('button', { name: /Confirmar Pago/i })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: /Continuar con tarjeta/i })).toBeInTheDocument())
 
-    await user.click(screen.getByRole('button', { name: /Confirmar Pago/i }))
+    await user.click(screen.getByRole('button', { name: /Continuar con tarjeta/i }))
 
-    await waitFor(() => expect(mockSimulateConfirm).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(mockCreateIntent).toHaveBeenCalledTimes(1))
   })
 
-  it('muestra error del servidor cuando la mutación falla', async () => {
+  it('muestra error del servidor cuando createIntent falla', async () => {
     const user = userEvent.setup()
-    mockSimulateConfirm.mockRejectedValue({
-      response: { data: { message: 'Pago rechazado por el banco' } },
+    mockCreateIntent.mockRejectedValue({
+      response: { data: { message: 'Monto inválido para Stripe' } },
     })
 
     render(<Payment />)
-    await waitFor(() => expect(screen.getByRole('button', { name: /Confirmar Pago/i })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: /Continuar con tarjeta/i })).toBeInTheDocument())
 
-    await user.click(screen.getByRole('button', { name: /Confirmar Pago/i }))
+    await user.click(screen.getByRole('button', { name: /Continuar con tarjeta/i }))
 
     await waitFor(() =>
-      expect(screen.getByText('Pago rechazado por el banco')).toBeInTheDocument()
+      expect(screen.getByText('Monto inválido para Stripe')).toBeInTheDocument()
     )
   })
 
-  it('muestra error genérico cuando el servidor no retorna mensaje', async () => {
+  it('muestra error genérico cuando el servidor no retorna mensaje al crear intent', async () => {
     const user = userEvent.setup()
-    mockSimulateConfirm.mockRejectedValue(new Error('Network error'))
+    mockCreateIntent.mockRejectedValue(new Error('Network error'))
 
     render(<Payment />)
-    await waitFor(() => expect(screen.getByRole('button', { name: /Confirmar Pago/i })).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByRole('button', { name: /Continuar con tarjeta/i })).toBeInTheDocument())
 
-    await user.click(screen.getByRole('button', { name: /Confirmar Pago/i }))
+    await user.click(screen.getByRole('button', { name: /Continuar con tarjeta/i }))
 
     await waitFor(() =>
-      expect(screen.getByText('Error al procesar el pago')).toBeInTheDocument()
+      expect(screen.getByText('Error al iniciar el pago')).toBeInTheDocument()
     )
   })
 })

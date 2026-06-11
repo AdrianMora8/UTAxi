@@ -49,6 +49,8 @@ describe('POST /api/requests/trip/:tripId', () => {
     await prisma.walletTransaction.deleteMany({});
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 
@@ -269,6 +271,8 @@ describe('PATCH /api/requests/:id/respond', () => {
     await prisma.walletTransaction.deleteMany({});
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 
@@ -345,6 +349,8 @@ describe('DELETE /api/requests/:id', () => {
     await prisma.walletTransaction.deleteMany({});
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 
@@ -495,6 +501,8 @@ describe('PATCH /api/requests/:id/arrival', () => {
     await prisma.walletTransaction.deleteMany({});
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 

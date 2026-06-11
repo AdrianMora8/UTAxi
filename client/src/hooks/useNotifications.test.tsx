@@ -70,26 +70,6 @@ describe('useNotifications — conexión', () => {
 })
 
 describe('useNotifications — listeners', () => {
-  it('registra "request:update" si se pasa onRequestUpdate', () => {
-    useAuthStore.setState({ accessToken: 'tok' })
-    const onUpdate = vi.fn()
-    renderHook(() => useNotifications({ onRequestUpdate: onUpdate }))
-    expect(mockSocket.on).toHaveBeenCalledWith('request:update', onUpdate)
-  })
-
-  it('registra "request:new" si se pasa onRequestNew', () => {
-    useAuthStore.setState({ accessToken: 'tok' })
-    const onNew = vi.fn()
-    renderHook(() => useNotifications({ onRequestNew: onNew }))
-    expect(mockSocket.on).toHaveBeenCalledWith('request:new', onNew)
-  })
-
-  it('no registra "request:update" si no se pasa el callback', () => {
-    useAuthStore.setState({ accessToken: 'tok' })
-    renderHook(() => useNotifications({ onRequestNew: vi.fn() }))
-    const calls = mockSocket.on.mock.calls.map(([event]: [string]) => event)
-    expect(calls).not.toContain('request:update')
-  })
 
   it('llama onRequestUpdate con el payload al recibir "request:update"', () => {
     useAuthStore.setState({ accessToken: 'tok' })

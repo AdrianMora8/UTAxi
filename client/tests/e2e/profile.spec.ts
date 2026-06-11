@@ -49,6 +49,12 @@ test.describe('Profile - E2E', () => {
     test('should show vehicle section', async ({ page }) => {
       await page.goto('/profile');
 
+      // El texto "Mi Vehículo"/"Registrar Vehículo" solo aparece en el tab "Vehículo"
+      // Hay que hacer clic en el botón de tab primero
+      const vehiculoTab = page.locator('button:has-text("Vehículo")');
+      await expect(vehiculoTab).toBeVisible({ timeout: 8000 });
+      await vehiculoTab.click();
+
       const vehicleSection = page.locator('text="Mi Vehículo"').or(
         page.locator('text="Registrar Vehículo"')
       );

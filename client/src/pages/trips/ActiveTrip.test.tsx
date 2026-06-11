@@ -124,10 +124,10 @@ describe('ActiveTrip — panel inferior', () => {
     await waitFor(() => expect(screen.getByText('Viaje en Curso')).toBeInTheDocument())
   })
 
-  it('muestra el ETA "~15 MIN"', async () => {
+  it('muestra el ETA "— MIN"', async () => {
     render(<ActiveTrip />)
 
-    await waitFor(() => expect(screen.getByText('~15 MIN')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('— MIN')).toBeInTheDocument())
   })
 
   it('muestra el botón "Chat"', async () => {

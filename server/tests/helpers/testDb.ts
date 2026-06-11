@@ -36,12 +36,16 @@ export async function setupTestDb() {
   try {
     // Limpiar datos en orden para respetar las foreign keys
     // Usar deleteMany de Prisma es más seguro que SQL crudo
+    await prisma.reportReview.deleteMany({});
     await prisma.report.deleteMany({});
     await prisma.rating.deleteMany({});
     await prisma.walletTransaction.deleteMany({});
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
+    await prisma.userWarning.deleteMany({});
     await prisma.vehicle.deleteMany({});
     await prisma.user.deleteMany({});
   } catch (error) {
@@ -55,12 +59,16 @@ export async function teardownTestDb() {
   // Se desconectará después de TODOS los tests
   try {
     if (prisma) {
+      await prisma.reportReview.deleteMany({});
       await prisma.report.deleteMany({});
       await prisma.rating.deleteMany({});
       await prisma.walletTransaction.deleteMany({});
       await prisma.payment.deleteMany({});
       await prisma.tripRequest.deleteMany({});
+      await prisma.safetyAcknowledgment.deleteMany({});
+      await prisma.tripEvent.deleteMany({});
       await prisma.trip.deleteMany({});
+      await prisma.userWarning.deleteMany({});
       await prisma.vehicle.deleteMany({});
       await prisma.user.deleteMany({});
     }

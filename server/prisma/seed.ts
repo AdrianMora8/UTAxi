@@ -36,6 +36,32 @@ async function main() {
     },
   });
 
+  // ── Usuario STUDENT 1 (para E2E tests) ─────────────────────────
+  const student1PasswordHash = await bcrypt.hash('Password123!', 10);
+  const student1 = await prisma.user.upsert({
+    where: { email: 'student1@uta.edu.ec' },
+    update: {},
+    create: {
+      email: 'student1@uta.edu.ec',
+      passwordHash: student1PasswordHash,
+      fullName: 'Student E2E Test',
+      career: 'Ingeniería Civil',
+      role: Role.STUDENT,
+      emailVerified: true,
+      status: 'ACTIVE',
+      vehicle: {
+        create: {
+          brand: 'Chevrolet',
+          model: 'Spark',
+          year: 2018,
+          plateNumber: 'PBA-1234',
+          color: 'Rojo',
+          status: 'APPROVED',
+        },
+      },
+    },
+  });
+
   // ── Usuario de carga (Artillery) ──────────────────────────────
   const loadPasswordHash = await bcrypt.hash('LoadTest123!', 10);
   const loadUser = await prisma.user.upsert({

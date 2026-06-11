@@ -8,7 +8,13 @@ const { mockGetMyTrips, mockNavigate } = vi.hoisted(() => ({
 }))
 
 vi.mock('@/api/trips.api', () => ({
-  tripsApi: { getMyTrips: mockGetMyTrips },
+  tripsApi: { getMyTrips: mockGetMyTrips, cancelTrip: vi.fn() },
+}))
+
+vi.mock('@/api/users.api', () => ({
+  usersApi: {
+    getMe: vi.fn().mockResolvedValue({ data: { user: { vehicle: { plate: 'XYZ' } } } }),
+  },
 }))
 
 vi.mock('react-router-dom', async (importOriginal) => {

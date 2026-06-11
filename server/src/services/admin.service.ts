@@ -71,26 +71,34 @@ export class AdminService {
     return { autoSuspended: false, warningCount: recentCount };
   }
 
-  async reviewReport(reportId: string, adminId: string, action: 'WARNED' | 'SUSPENDED' | 'DISMISSED', notes?: string) {
+  async reviewReport(reportId: string, adminId: string, action: 'WARNED' | 'SUSPENDED' | 'DISMISSED', notes?: string, suspendedUntil?: Date) {
     const report = await this.prisma.report.findUnique({ where: { id: reportId } });
     if (!report) throw new AppError(404, 'Reporte no encontrado');
     if (report.status === ReportStatus.RESOLVED) throw new AppError(400, 'Este reporte ya fue resuelto');
 
-    const [updatedReport] = await this.prisma.$transaction([
+    // WARNED → REVIEWED (acción intermedia), DISMISSED/SUSPENDED → RESOLVED
+    const newStatus = action === 'WARNED' ? ReportStatus.REVIEWED : ReportStatus.RESOLVED;
+
+    const ops: any[] = [
       this.prisma.report.update({
         where: { id: reportId },
-        data: { status: ReportStatus.RESOLVED },
+        data: { status: newStatus },
       }),
       this.prisma.reportReview.create({
         data: { reportId, adminId, action, notes },
       }),
-      ...(action === 'SUSPENDED'
-        ? [this.prisma.user.update({
-            where: { id: report.reportedId },
-            data: { status: UserStatus.SUSPENDED },
-          })]
-        : []),
-    ]);
+    ];
+
+    if (action === 'SUSPENDED') {
+      const data: any = { status: UserStatus.SUSPENDED };
+      if (suspendedUntil) data.suspendedUntil = suspendedUntil;
+      ops.push(this.prisma.user.update({
+        where: { id: report.reportedId },
+        data,
+      }));
+    }
+
+    const [updatedReport] = await this.prisma.$transaction(ops);
 
     let warningResult: Awaited<ReturnType<typeof this.applyWarning>> | undefined;
     if (action === 'WARNED') {

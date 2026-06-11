@@ -150,6 +150,8 @@ describe('POST /api/payments/pay/wallet', () => {
     await prisma.walletTransaction.deleteMany({});
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
     // Resetear balances
     await prisma.user.update({ where: { id: passengerId }, data: { walletBalance: 10 } });
@@ -265,6 +267,8 @@ describe('POST /api/payments/simulate-confirm', () => {
     await prisma.walletTransaction.deleteMany({});
     await prisma.payment.deleteMany({});
     await prisma.tripRequest.deleteMany({});
+    await prisma.safetyAcknowledgment.deleteMany({});
+    await prisma.tripEvent.deleteMany({});
     await prisma.trip.deleteMany({});
   });
 

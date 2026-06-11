@@ -61,6 +61,11 @@ describe('E2E — Happy path conductor', () => {
       .send({ brand: 'Toyota', model: 'Corolla', year: 2022, plateNumber: 'E2E1234', color: 'Blue' });
 
     expect(vehicleRes.status).toBe(201);
+    // Aprobar el vehículo directamente en BD (normalmente lo haría un admin)
+    await prisma.vehicle.update({
+      where: { id: vehicleRes.body.vehicle.id },
+      data: { status: 'APPROVED' },
+    });
 
     // 3. Conductor crea un viaje
     const tripRes = await request(app)
@@ -118,7 +123,11 @@ describe('E2E — Happy path conductor', () => {
     const driverMid = await prisma.user.findUnique({ where: { id: driverUser.id } });
     expect(Number(driverMid?.pendingBalance)).toBeCloseTo(1.5, 2);
 
-    // 8. Conductor inicia el viaje
+    // 8. Conductor inicia el viaje (ajustar hora para pasar ventana de inicio)
+    await prisma.trip.update({
+      where: { id: tripId },
+      data: { departureTime: new Date(Date.now() - 5 * 60_000) },
+    });
     const startRes = await request(app)
       .post(`/api/trips/${tripId}/start`)
       .set('Authorization', `Bearer ${driverToken}`)
@@ -173,10 +182,15 @@ describe('E2E — Happy path pasajero con calificación', () => {
     const { token: driverToken, user: driverUser } =
       await registerAndVerify(DRIVER_EMAIL, PASSWORD, 'Driver E2E 2');
 
-    await request(app)
+    const vehicleRes2 = await request(app)
       .post('/api/users/me/vehicle')
       .set('Authorization', `Bearer ${driverToken}`)
       .send({ brand: 'Honda', model: 'Civic', year: 2021, plateNumber: 'E2E5678', color: 'Red' });
+    // Aprobar el vehículo directamente en BD
+    await prisma.vehicle.update({
+      where: { id: vehicleRes2.body.vehicle.id },
+      data: { status: 'APPROVED' },
+    });
 
     const { token: passengerToken, user: passengerUser } =
       await registerAndVerify(PASSENGER_EMAIL, PASSWORD, 'Passenger E2E 2');
@@ -215,6 +229,12 @@ describe('E2E — Happy path pasajero con calificación', () => {
       .post('/api/payments/pay/wallet')
       .set('Authorization', `Bearer ${passengerToken}`)
       .send({ tripRequestId: requestId });
+
+    // Ajustar hora del viaje para poder iniciarlo
+    await prisma.trip.update({
+      where: { id: tripId },
+      data: { departureTime: new Date(Date.now() - 5 * 60_000) },
+    });
 
     await request(app)
       .post(`/api/trips/${tripId}/start`)
@@ -272,10 +292,15 @@ describe('E2E — Cancelación con reembolso completo', () => {
     const { token: driverToken } =
       await registerAndVerify(DRIVER_EMAIL, PASSWORD, 'Driver E2E 3');
 
-    await request(app)
+    const vehicleRes3 = await request(app)
       .post('/api/users/me/vehicle')
       .set('Authorization', `Bearer ${driverToken}`)
       .send({ brand: 'Nissan', model: 'Sentra', year: 2020, plateNumber: 'E2E9012', color: 'White' });
+    // Aprobar el vehículo directamente en BD
+    await prisma.vehicle.update({
+      where: { id: vehicleRes3.body.vehicle.id },
+      data: { status: 'APPROVED' },
+    });
 
     const { token: passengerToken } =
       await registerAndVerify(PASSENGER_EMAIL, PASSWORD, 'Passenger E2E 3');

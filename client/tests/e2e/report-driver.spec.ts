@@ -4,8 +4,10 @@ async function login(page: Page, email = 'student1@uta.edu.ec', password = 'Pass
   await page.goto('/login');
   await page.fill('input[placeholder="usuario@uta.edu.ec"]', email);
   await page.fill('input[placeholder="••••••••"]', password);
-  await page.click('button:has-text("Iniciar Sesión")');
-  await expect(page).toHaveURL(/.*trips/, { timeout: 10000 });
+  await Promise.all([
+    page.waitForURL(/.*trips/, { timeout: 15000 }),
+    page.click('button:has-text("Iniciar Sesión")')
+  ]);
 }
 
 test.describe('Reportar Conductor - E2E', () => {

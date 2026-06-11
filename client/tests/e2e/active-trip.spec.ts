@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 
 async function login(page: Page) {
-  await page.goto('/login');
+  await page.goto('http://localhost:4278/login');
   await page.fill('input[placeholder="usuario@uta.edu.ec"]', 'student1@uta.edu.ec');
   await page.fill('input[placeholder="••••••••"]', 'Password123!');
   await page.click('button:has-text("Iniciar Sesión")');
@@ -10,7 +10,7 @@ async function login(page: Page) {
 
 async function navigateToActiveTrip(page: Page): Promise<boolean> {
   // Reach /trips/:id/active via Manage Requests → Ir al Mapa GPS (trip IN_PROGRESS)
-  await page.goto('/my-trips');
+  await page.goto('http://localhost:4278/my-trips');
   const gestionar = page.locator('button:has-text("Gestionar")').first();
   const hasTrip = await gestionar.isVisible({ timeout: 6000 }).catch(() => false);
   if (!hasTrip) return false;

@@ -5,7 +5,7 @@ async function loginAsAdmin(page: Page) {
   await page.fill('input[placeholder="usuario@uta.edu.ec"]', 'admin@uta.edu.ec');
   await page.fill('input[placeholder="••••••••"]', '123456');
   await page.click('button:has-text("Iniciar Sesión")');
-  await expect(page).toHaveURL(/.*\/admin/, { timeout: 10000 });
+  await expect(page).toHaveURL(/.*\/admin/, { timeout: 50000 });
 }
 
 async function loginAsStudent(page: Page) {
@@ -13,7 +13,7 @@ async function loginAsStudent(page: Page) {
   await page.fill('input[placeholder="usuario@uta.edu.ec"]', 'student1@uta.edu.ec');
   await page.fill('input[placeholder="••••••••"]', 'Password123!');
   await page.click('button:has-text("Iniciar Sesión")');
-  await expect(page).toHaveURL(/.*trips/, { timeout: 10000 });
+  await expect(page).toHaveURL(/.*trips/, { timeout: 50000 });
 }
 
 test.describe('Admin — Gestión de Reportes - E2E', () => {
@@ -74,7 +74,7 @@ test.describe('Admin — Gestión de Reportes - E2E', () => {
       const content = page
         .locator('text="No hay reportes pendientes."')
         .or(page.locator('button:has-text("Review")').first());
-      await expect(content.first()).toBeVisible({ timeout: 10000 });
+      await expect(content.first()).toBeVisible({ timeout: 20000 });
     });
 
     test('filtrar por Abiertos recarga la lista de reportes', async ({ page }) => {

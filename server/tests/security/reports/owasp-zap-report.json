@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-06-11T01:31:40.215Z",
+  "timestamp": "2026-06-11T20:28:56.057Z",
   "target": "http://host.docker.internal:4000",
   "totalAlerts": 1,
   "alerts": [
@@ -15,7 +15,7 @@
       "sourceMessageId": 6,
       "wascid": "4",
       "description": "The site is only served under HTTP and not HTTPS.",
-      "messageId": "53",
+      "messageId": "52",
       "inputVector": "",
       "url": "http://host.docker.internal:4000",
       "tags": {

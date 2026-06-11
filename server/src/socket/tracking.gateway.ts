@@ -12,7 +12,7 @@ interface AuthenticatedSocket extends Socket {
 
 export function registerTrackingHandlers(io: Server) {
   // ─── Autenticación al conectar ────────────────────────────────────────────
-  io.use(async (socket, next) => {
+  io.use((socket, next) => {
     const token =
       socket.handshake.auth?.token ||
       socket.handshake.headers?.authorization?.replace('Bearer ', '');
@@ -36,7 +36,7 @@ export function registerTrackingHandlers(io: Server) {
     console.log(`[Socket] Conectado: ${socket.data.userId} (${socket.id})`);
 
     // Cada usuario se une automáticamente a su sala personal para notificaciones
-    socket.join(`user:${socket.data.userId}`);
+    void socket.join(`user:${socket.data.userId}`);
 
     // ─── Unirse a la sala de un viaje ──────────────────────────────────────
     socket.on('join:trip', async ({ tripId }: { tripId: string }) => {
@@ -55,14 +55,14 @@ export function registerTrackingHandlers(io: Server) {
         return socket.emit('error', { message: 'No tienes acceso a este viaje' });
       }
 
-      socket.join(`trip:${tripId}`);
+      void socket.join(`trip:${tripId}`);
       socket.emit('joined:trip', { tripId });
       console.log(`[Socket] ${socket.data.userId} se unió a trip:${tripId}`);
     });
 
     // ─── Salir de la sala de un viaje ──────────────────────────────────────
     socket.on('leave:trip', ({ tripId }: { tripId: string }) => {
-      socket.leave(`trip:${tripId}`);
+      void socket.leave(`trip:${tripId}`);
       console.log(`[Socket] ${socket.data.userId} salió de trip:${tripId}`);
     });
 

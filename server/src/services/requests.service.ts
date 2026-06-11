@@ -229,7 +229,7 @@ export class RequestsService {
     const driverId = request.trip.driverId;
 
     // Regla 1: ventana de gracia de 30 min si el conductor cambió la hora recientemente
-    const withinGracePeriod = !!request.trip.departureTimeChangedAt &&
+    const withinGracePeriod = Boolean(request.trip.departureTimeChangedAt) &&
       (Date.now() - new Date(request.trip.departureTimeChangedAt).getTime()) < 30 * 60_000;
 
     if (minutesUntilDeparture >= 10 || withinGracePeriod) {

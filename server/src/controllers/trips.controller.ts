@@ -8,7 +8,11 @@ const svc = new TripsService(prisma);
 
 const createTripSchema = z.object({
   originZone: z.string().min(2).max(100),
+  originLat:  z.number().optional(),
+  originLng:  z.number().optional(),
   destinationZone: z.string().min(2).max(100),
+  destLat: z.number().optional(),
+  destLng: z.number().optional(),
   departureTime: z.string().datetime({ offset: true }),
   totalSeats: z.number().int().min(1).max(8),
   pricePerSeat: z.number().positive(),
@@ -22,6 +26,10 @@ const updateStatusSchema = z.object({
   status: z.enum([TripStatus.IN_PROGRESS, TripStatus.COMPLETED, TripStatus.CANCELLED]),
 });
 
+const startTripSchema = z.object({
+  boardedRequestIds: z.array(z.string()).min(1, 'Debes indicar al menos un pasajero que abordó'),
+});
+
 export async function createTrip(req: Request, res: Response) {
   const data = createTripSchema.parse(req.body);
   const trip = await svc.create(req.user!.id, {
@@ -32,12 +40,13 @@ export async function createTrip(req: Request, res: Response) {
 }
 
 export async function getTrips(req: Request, res: Response) {
-  const { destinationZone, departureDate, minSeats, status, page, limit } = req.query;
+  const { destinationZone, departureDate, minSeats, status, driverId, page, limit } = req.query;
   const result = await svc.findMany({
     destinationZone: destinationZone as string,
     departureDate: departureDate as string,
     minSeats: minSeats ? Number(minSeats) : undefined,
     status: status as TripStatus,
+    driverId: driverId as string,
     page: page ? Number(page) : 1,
     limit: limit ? Number(limit) : 10,
   });
@@ -67,6 +76,17 @@ export async function updateTripStatus(req: Request, res: Response) {
   const { status } = updateStatusSchema.parse(req.body);
   const trip = await svc.updateStatus(String(req.params.id), req.user!.id, status);
   res.json({ trip });
+}
+
+export async function startTrip(req: Request, res: Response) {
+  const { boardedRequestIds } = startTripSchema.parse(req.body);
+  const trip = await svc.startTrip(String(req.params.id), req.user!.id, boardedRequestIds);
+  res.json({ trip });
+}
+
+export async function confirmSchedule(req: Request, res: Response) {
+  const result = await svc.confirmSchedule(String(req.params.id), req.user!.id);
+  res.json(result);
 }
 
 export async function safetyAck(req: Request, res: Response) {

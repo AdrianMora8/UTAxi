@@ -28,8 +28,13 @@ export async function getMe(req: Request, res: Response) {
 }
 
 export async function updateMe(req: Request, res: Response) {
+  // Validar que el usuario está autenticado
+  if (!req.user) {
+    throw new Error('No estás autenticado');
+  }
+
   const data = updateMeSchema.parse(req.body);
-  const user = await svc.updateMe(req.user!.id, data);
+  const user = await svc.updateMe(req.user.id, data);
   res.json({ user });
 }
 
@@ -43,6 +48,19 @@ export async function updateVehicle(req: Request, res: Response) {
   const data = updateVehicleSchema.parse(req.body);
   const vehicle = await svc.updateVehicle(req.user!.id, data);
   res.json({ vehicle });
+}
+
+export async function uploadVehiclePhoto(req: Request, res: Response) {
+  if (!req.file) throw new Error('No se recibió ninguna imagen');
+
+  const photoUrl = (req.file as any).secure_url ?? (req.file as any).path;
+  const vehicle = await svc.updateVehiclePhoto(req.user!.id, photoUrl);
+  res.json({ vehicle });
+}
+
+export async function deleteVehicle(req: Request, res: Response) {
+  await svc.deleteVehicle(req.user!.id);
+  res.json({ message: 'Vehículo eliminado correctamente' });
 }
 
 export async function getPublicProfile(req: Request, res: Response) {

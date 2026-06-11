@@ -1,0 +1,42 @@
+appId: host.exp.exponent
+name: "01 — Autenticación (login + logout)"
+tags:
+  - auth
+
+---
+
+# ── Login como pasajero E2E ──────────────────────────────────────
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "U-Ride"
+    timeout: 8000
+
+- runFlow:
+    file: ../subflows/login.yaml
+    env:
+      EMAIL: "e2e.passenger@uta.edu.ec"
+      PASSWORD: "E2ETest123!"
+
+# Verificar que las tabs principales están disponibles
+- assertVisible: "Buscar"
+- assertVisible: "Publicar"
+- assertVisible: "Avisos"
+- assertVisible: "Perfil"
+
+# ── Logout ───────────────────────────────────────────────────────
+- runFlow:
+    file: ../subflows/logout.yaml
+
+# ── Login como conductor E2E ─────────────────────────────────────
+- runFlow:
+    file: ../subflows/login.yaml
+    env:
+      EMAIL: "e2e.driver@uta.edu.ec"
+      PASSWORD: "E2ETest123!"
+
+- assertVisible: "Buscar Viaje"
+
+# ── Logout conductor ─────────────────────────────────────────────
+- runFlow:
+    file: ../subflows/logout.yaml

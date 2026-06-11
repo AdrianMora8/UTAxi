@@ -1,0 +1,13 @@
+# Subflow reutilizable: cerrar sesión
+# Pre-condición: usuario autenticado con la app abierta en cualquier tab
+
+- tapOn:
+    text: "Perfil"  # tab bar label
+- assertVisible:
+    text: "U-RIDE"
+    timeout: 5000
+- tapOn:
+    text: "Cerrar Sesión"
+- assertVisible:
+    text: "U-Ride"
+    timeout: 5000

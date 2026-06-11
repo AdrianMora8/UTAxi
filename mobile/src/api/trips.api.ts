@@ -1,0 +1,96 @@
+import { apiClient } from './client';
+
+export interface TripDriver {
+  id: string;
+  fullName: string;
+  reputationScore: number;
+  career?: string;
+  photoUrl?: string | null;
+  vehicle?: {
+    brand: string;
+    model: string;
+    year?: number;
+    color: string;
+    plateNumber?: string;
+  } | null;
+}
+
+export interface Trip {
+  id: string;
+  driverId: string;
+  originZone: string;
+  originLat?: number | null;
+  originLng?: number | null;
+  destinationZone: string;
+  destLat?: number | null;
+  destLng?: number | null;
+  departureTime: string;
+  totalSeats: number;
+  availableSeats: number;
+  pricePerSeat: number;
+  notes?: string | null;
+  rules?: string | null;
+  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  driver: TripDriver;
+}
+
+export interface GetTripsFilters {
+  destinationZone?: string;
+  driverId?: string;
+  status?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface GetTripsResponse {
+  trips: Trip[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface CreateTripPayload {
+  originZone: string;
+  originLat?: number;
+  originLng?: number;
+  destinationZone: string;
+  destLat?: number;
+  destLng?: number;
+  departureTime: string;
+  totalSeats: number;
+  pricePerSeat: number;
+  notes?: string;
+  rules?: string;
+}
+
+export const tripsApi = {
+  getTrips: (filters: GetTripsFilters = {}) =>
+    apiClient.get<GetTripsResponse>('/trips', { params: filters }),
+
+  getTripById: (id: string) =>
+    apiClient.get<{ trip: Trip }>(`/trips/${id}`),
+
+  createTrip: (data: CreateTripPayload) =>
+    apiClient.post<{ trip: Trip }>('/trips', data),
+
+  updateTrip: (id: string, data: Partial<CreateTripPayload>) =>
+    apiClient.patch<{ trip: Trip }>(`/trips/${id}`, data),
+
+  cancelTrip: (id: string) =>
+    apiClient.delete<{ message: string }>(`/trips/${id}`),
+
+  updateTripStatus: (id: string, status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') =>
+    apiClient.patch<{ trip: Trip }>(`/trips/${id}/status`, { status }),
+
+  getMyTrips: (driverId: string) =>
+    apiClient.get<GetTripsResponse>('/trips', { params: { driverId, limit: 20 } }),
+
+  startTrip: (id: string, boardedRequestIds: string[]) =>
+    apiClient.post<{ trip: Trip }>(`/trips/${id}/start`, { boardedRequestIds }),
+
+  confirmSchedule: (id: string) =>
+    apiClient.post<{ confirmed: boolean }>(`/trips/${id}/confirm-schedule`),
+
+  safetyAck: (id: string) =>
+    apiClient.post<{ acknowledged: boolean }>(`/trips/${id}/safety-ack`),
+};

@@ -34,7 +34,7 @@ export default function Login() {
       navigate('/trips')
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ??
         'Credenciales incorrectas'
       setServerError(msg)
     }
@@ -132,7 +132,7 @@ export default function Login() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-6">
                 <div>
                   <label className="block text-xs font-label uppercase tracking-widest text-on-surface-variant mb-2">
                     Correo Institucional
@@ -162,6 +162,12 @@ export default function Login() {
                   {errors.password && (
                     <p className="mt-1 text-xs text-error">{errors.password.message}</p>
                   )}
+                </div>
+
+                <div className="text-right">
+                  <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+                    ¿Olvidaste tu contraseña?
+                  </Link>
                 </div>
 
                 {serverError && (

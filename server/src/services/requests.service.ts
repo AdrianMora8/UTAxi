@@ -1,8 +1,17 @@
-import { PrismaClient, RequestStatus, TripStatus } from '@prisma/client';
+import { PrismaClient, RequestStatus, TripStatus, PaymentStatus, TransactionType, TransactionConcept, TripEventType } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 
 export class RequestsService {
   constructor(private readonly prisma: PrismaClient) {}
+
+  private logEvent(
+    tripId: string,
+    type: TripEventType,
+    actorId?: string,
+    metadata?: object,
+  ) {
+    return this.prisma.tripEvent.create({ data: { tripId, type, actorId, metadata: metadata as any } });
+  }
 
   async create(tripId: string, passengerId: string, message?: string) {
     const trip = await this.prisma.trip.findUnique({ where: { id: tripId } });
@@ -14,7 +23,25 @@ export class RequestsService {
     const existing = await this.prisma.tripRequest.findUnique({
       where: { tripId_passengerId: { tripId, passengerId } },
     });
-    if (existing) throw new AppError(400, 'Ya enviaste una solicitud para este viaje');
+
+    if (existing) {
+      if (existing.status === 'REJECTED') {
+        if (existing.rejectionCount >= 3) {
+          throw new AppError(400, 'Has alcanzado el límite de 3 rechazos para este viaje. Ya no puedes solicitar unirte.');
+        }
+        // Allow re-request: reset to PENDING (conflict checks below still apply)
+        const updated = await this.prisma.tripRequest.update({
+          where: { id: existing.id },
+          data: { status: 'PENDING', message: message ?? existing.message },
+          include: {
+            passenger: { select: { id: true, fullName: true, career: true, reputationScore: true } },
+            trip: { select: { id: true, originZone: true, destinationZone: true, departureTime: true } },
+          },
+        });
+        return updated;
+      }
+      throw new AppError(400, 'Ya enviaste una solicitud para este viaje');
+    }
 
     const bufferHours = 2;
     const bufferStart = new Date(trip.departureTime);
@@ -65,6 +92,10 @@ export class RequestsService {
         trip: { select: { id: true, originZone: true, destinationZone: true, departureTime: true } },
       },
     });
+    await this.logEvent(tripId, TripEventType.REQUEST_SENT, passengerId, {
+      requestId: request.id,
+      passengerName: request.passenger.fullName,
+    });
     return request;
   }
 
@@ -87,9 +118,15 @@ export class RequestsService {
             totalTrips: true,
           },
         },
+        ratings: { select: { id: true, score: true, raterId: true } },
       },
     });
-    return requests;
+
+    // Exponer solo el rating que hizo el conductor (para saber si ya calificó al pasajero)
+    return requests.map(r => ({
+      ...r,
+      rating: r.ratings.find(rt => rt.raterId === driverId) ?? null,
+    }));
   }
 
   async respond(requestId: string, driverId: string, action: 'ACCEPT' | 'REJECT') {
@@ -118,27 +155,58 @@ export class RequestsService {
           data: { availableSeats: { decrement: 1 } },
         }),
       ]);
+      await this.logEvent(request.tripId, TripEventType.REQUEST_ACCEPTED, driverId, {
+        requestId,
+        passengerId: request.passengerId,
+        passengerName: updated.passenger.fullName,
+      });
       return updated;
     }
 
-    return this.prisma.tripRequest.update({
+    const rejected = await this.prisma.tripRequest.update({
       where: { id: requestId },
-      data: { status: RequestStatus.REJECTED },
+      data: {
+        status: RequestStatus.REJECTED,
+        rejectionCount: { increment: 1 },
+      },
       include: {
         passenger: { select: { id: true, fullName: true } },
       },
     });
+    await this.logEvent(request.tripId, TripEventType.REQUEST_REJECTED, driverId, {
+      requestId,
+      passengerId: request.passengerId,
+      passengerName: rejected.passenger.fullName,
+    });
+    return rejected;
   }
 
   async cancelRequest(requestId: string, passengerId: string) {
     const request = await this.prisma.tripRequest.findUnique({
       where: { id: requestId },
-      include: { trip: true },
+      include: { trip: true, payment: true },
     });
+
     if (!request) throw new AppError(404, 'Solicitud no encontrada');
     if (request.passengerId !== passengerId) throw new AppError(403, 'No puedes cancelar una solicitud que no es tuya');
-    if (request.status === RequestStatus.ACCEPTED) {
-      // Devolver el cupo al viaje
+    if (request.status === RequestStatus.CANCELLED) throw new AppError(400, 'La solicitud ya fue cancelada');
+    if (request.trip.status === TripStatus.IN_PROGRESS) throw new AppError(400, 'No puedes cancelar mientras el viaje está en curso');
+    if (request.trip.status === TripStatus.COMPLETED) throw new AppError(400, 'El viaje ya fue completado');
+
+    // PENDING: cancelación simple sin cupo ni pago involucrado
+    if (request.status === RequestStatus.PENDING) {
+      await this.prisma.tripRequest.update({
+        where: { id: requestId },
+        data: { status: RequestStatus.CANCELLED },
+      });
+      await this.logEvent(request.tripId, TripEventType.REQUEST_CANCELLED, passengerId, {
+        requestId, reason: 'passenger_cancelled_pending',
+      });
+      return { refunded: false, message: 'Solicitud cancelada' };
+    }
+
+    // ACCEPTED sin pago: devolver cupo y listo
+    if (!request.payment || request.payment.status !== PaymentStatus.CONFIRMED) {
       await this.prisma.$transaction([
         this.prisma.tripRequest.update({
           where: { id: requestId },
@@ -149,14 +217,118 @@ export class RequestsService {
           data: { availableSeats: { increment: 1 } },
         }),
       ]);
-      return { message: 'Solicitud cancelada y cupo devuelto al viaje' };
+      await this.logEvent(request.tripId, TripEventType.REQUEST_CANCELLED, passengerId, {
+        requestId, reason: 'passenger_cancelled_no_payment',
+      });
+      return { refunded: false, message: 'Reserva cancelada y cupo devuelto al viaje' };
     }
 
-    await this.prisma.tripRequest.update({
-      where: { id: requestId },
-      data: { status: RequestStatus.CANCELLED },
+    // ACCEPTED con pago confirmado: aplicar política de cancelación
+    const minutesUntilDeparture = (new Date(request.trip.departureTime).getTime() - Date.now()) / 60_000;
+    const amount = request.payment.amount;
+    const driverId = request.trip.driverId;
+
+    // Regla 1: ventana de gracia de 30 min si el conductor cambió la hora recientemente
+    const withinGracePeriod = !!request.trip.departureTimeChangedAt &&
+      (Date.now() - new Date(request.trip.departureTimeChangedAt).getTime()) < 30 * 60_000;
+
+    if (minutesUntilDeparture >= 10 || withinGracePeriod) {
+      // Dentro del plazo: reembolso total al wallet del pasajero
+      await this.prisma.$transaction([
+        this.prisma.tripRequest.update({
+          where: { id: requestId },
+          data: { status: RequestStatus.CANCELLED },
+        }),
+        this.prisma.trip.update({
+          where: { id: request.tripId },
+          data: { availableSeats: { increment: 1 } },
+        }),
+        this.prisma.payment.update({
+          where: { id: request.payment.id },
+          data: { status: PaymentStatus.REFUNDED },
+        }),
+        this.prisma.user.update({
+          where: { id: passengerId },
+          data: { walletBalance: { increment: amount } },
+        }),
+        this.prisma.user.update({
+          where: { id: driverId },
+          data: { pendingBalance: { decrement: amount } },
+        }),
+        this.prisma.walletTransaction.create({
+          data: {
+            userId: passengerId,
+            amount,
+            type: TransactionType.CREDIT,
+            concept: TransactionConcept.REFUND,
+            description: `${request.trip.originZone} → ${request.trip.destinationZone}`,
+            relatedRequestId: requestId,
+          },
+        }),
+      ]);
+      await this.logEvent(request.tripId, TripEventType.REQUEST_CANCELLED, passengerId, {
+        requestId, reason: 'passenger_cancelled_refunded', refunded: Number(amount),
+      });
+      return {
+        refunded: true,
+        amount: Number(amount),
+        message: withinGracePeriod
+          ? `Cancelación por cambio de horario. Se reembolsaron $${Number(amount).toFixed(2)} a tu U-Wallet`
+          : `Se reembolsaron $${Number(amount).toFixed(2)} a tu U-Wallet`,
+      };
+    }
+
+    // Fuera del plazo: el conductor se queda con el dinero como compensación
+    await this.prisma.$transaction([
+      this.prisma.tripRequest.update({
+        where: { id: requestId },
+        data: { status: RequestStatus.CANCELLED },
+      }),
+      this.prisma.trip.update({
+        where: { id: request.tripId },
+        data: { availableSeats: { increment: 1 } },
+      }),
+      this.prisma.user.update({
+        where: { id: driverId },
+        data: {
+          pendingBalance: { decrement: amount },
+          walletBalance: { increment: amount },
+        },
+      }),
+      this.prisma.walletTransaction.create({
+        data: {
+          userId: driverId,
+          amount,
+          type: TransactionType.CREDIT,
+          concept: TransactionConcept.CANCELLATION_FEE,
+          description: `${request.trip.originZone} → ${request.trip.destinationZone}`,
+          relatedRequestId: requestId,
+        },
+      }),
+    ]);
+    await this.logEvent(request.tripId, TripEventType.REQUEST_CANCELLED, passengerId, {
+      requestId, reason: 'passenger_cancelled_no_refund',
     });
-    return { message: 'Solicitud cancelada' };
+    return {
+      refunded: false,
+      message: 'Cancelación fuera del plazo permitido. No se realizó reembolso.',
+    };
+  }
+
+  async markArrival(requestId: string, driverId: string, arrived: boolean) {
+    const request = await this.prisma.tripRequest.findUnique({
+      where: { id: requestId },
+      include: { trip: true },
+    });
+    if (!request) throw new AppError(404, 'Solicitud no encontrada');
+    if (request.trip.driverId !== driverId) throw new AppError(403, 'Solo el conductor puede registrar llegadas');
+    if (request.status !== 'ACCEPTED') throw new AppError(400, 'Solo se puede registrar llegada de pasajeros aceptados');
+
+    const updated = await this.prisma.tripRequest.update({
+      where: { id: requestId },
+      data: { arrivedAt: arrived ? new Date() : null },
+    });
+    return updated;
   }
 
   async getMyRequests(passengerId: string) {
@@ -169,10 +341,16 @@ export class RequestsService {
             driver: { select: { id: true, fullName: true, reputationScore: true } },
           },
         },
-        rating: { select: { id: true, score: true, comment: true } },
-        payment: { select: { id: true, status: true, confirmedAt: true } },
+        ratings: { select: { id: true, score: true, comment: true, raterId: true } },
+        payment: { select: { id: true, amount: true, status: true, confirmedAt: true } },
       },
     });
-    return requests;
+
+    return requests.map(r => ({
+      ...r,
+      // Exponer solo el rating que hizo el propio pasajero (para saber si ya calificó al conductor)
+      rating: r.ratings.find(rt => rt.raterId === passengerId) ?? null,
+      payment: r.payment ? { ...r.payment, amount: Number(r.payment.amount) } : null,
+    }));
   }
 }

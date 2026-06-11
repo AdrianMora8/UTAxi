@@ -1,10 +1,20 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
+import { usersApi } from '@/api/users.api'
 
 export default function Navbar() {
   const { user, logout, isAdmin } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
+
+  const { data: profileData } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => usersApi.getMe().then((r) => r.data),
+    enabled: !!user,
+    staleTime: 60_000,
+  })
+  const hasVehicle = profileData?.user?.vehicle?.status === 'APPROVED'
 
   const handleLogout = async () => {
     await logout()
@@ -37,16 +47,18 @@ export default function Navbar() {
               >
                 Buscar Viaje
               </Link>
-              <Link
-                to="/trips/new"
-                className={`font-headline tracking-tight transition-colors pb-1 ${
-                  isActive('/trips/new')
-                    ? 'text-primary border-b-2 border-primary'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                Publicar Viaje
-              </Link>
+              {hasVehicle && (
+                <Link
+                  to="/trips/new"
+                  className={`font-headline tracking-tight transition-colors pb-1 ${
+                    isActive('/trips/new')
+                      ? 'text-primary border-b-2 border-primary'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Publicar Viaje
+                </Link>
+              )}
               <Link
                 to="/requests"
                 className={`font-headline tracking-tight transition-colors pb-1 ${
@@ -56,6 +68,28 @@ export default function Navbar() {
                 }`}
               >
                 Mis Solicitudes
+              </Link>
+              {hasVehicle && (
+                <Link
+                  to="/my-trips"
+                  className={`font-headline tracking-tight transition-colors pb-1 ${
+                    isActive('/my-trips')
+                      ? 'text-primary border-b-2 border-primary'
+                      : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Mis Viajes
+                </Link>
+              )}
+              <Link
+                to="/wallet"
+                className={`font-headline tracking-tight transition-colors pb-1 ${
+                  isActive('/wallet')
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                U-Wallet
               </Link>
               {isAdmin && (
                 <Link
@@ -69,7 +103,16 @@ export default function Navbar() {
                   Admin
                 </Link>
               )}
-              <div className="flex items-center gap-2 ml-2">
+              <div className="flex items-center gap-3 ml-2">
+                <span
+                  className={`text-[12px] font-label uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+                    hasVehicle
+                      ? 'border-primary/30 text-primary bg-primary/10'
+                      : 'border-sky-500/40 text-sky-400 bg-sky-500/10'
+                  }`}
+                >
+                  {hasVehicle ? 'Conductor / Pasajero' : profileData?.user?.vehicle ? 'Vehículo en revisión' : 'Pasajero'}
+                </span>
                 <Link
                   to="/profile"
                   className="material-symbols-outlined text-primary hover:bg-surface-container-highest p-2 rounded-full transition-all duration-300"
@@ -119,15 +162,17 @@ export default function Navbar() {
               <span className="material-symbols-outlined text-xl">search</span>
               <span className="text-[10px] font-label uppercase tracking-widest">Buscar</span>
             </Link>
-            <Link
-              to="/trips/new"
-              className={`flex flex-col items-center gap-1 transition-colors ${
-                isActive('/trips/new') ? 'text-primary' : 'text-zinc-500'
-              }`}
-            >
-              <span className="material-symbols-outlined text-xl">add_circle</span>
-              <span className="text-[10px] font-label uppercase tracking-widest">Publicar</span>
-            </Link>
+            {hasVehicle && (
+              <Link
+                to="/trips/new"
+                className={`flex flex-col items-center gap-1 transition-colors ${
+                  isActive('/trips/new') ? 'text-primary' : 'text-zinc-500'
+                }`}
+              >
+                <span className="material-symbols-outlined text-xl">add_circle</span>
+                <span className="text-[10px] font-label uppercase tracking-widest">Publicar</span>
+              </Link>
+            )}
             <Link
               to="/requests"
               className={`flex flex-col items-center gap-1 transition-colors ${
@@ -136,6 +181,26 @@ export default function Navbar() {
             >
               <span className="material-symbols-outlined text-xl">notifications</span>
               <span className="text-[10px] font-label uppercase tracking-widest">Alertas</span>
+            </Link>
+            {hasVehicle && (
+              <Link
+                to="/my-trips"
+                className={`flex flex-col items-center gap-1 transition-colors ${
+                  isActive('/my-trips') ? 'text-primary' : 'text-zinc-500'
+                }`}
+              >
+                <span className="material-symbols-outlined text-xl">directions_car</span>
+                <span className="text-[10px] font-label uppercase tracking-widest">Mis Viajes</span>
+              </Link>
+            )}
+            <Link
+              to="/wallet"
+              className={`flex flex-col items-center gap-1 transition-colors ${
+                isActive('/wallet') ? 'text-primary' : 'text-zinc-500'
+              }`}
+            >
+              <span className="material-symbols-outlined text-xl">account_balance_wallet</span>
+              <span className="text-[10px] font-label uppercase tracking-widest">Wallet</span>
             </Link>
             <Link
               to="/profile"

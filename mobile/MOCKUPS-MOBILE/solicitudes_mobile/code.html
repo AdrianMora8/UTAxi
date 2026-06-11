@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>U-Ride - Solicitudes de Viaje</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-primary": "#006f16",
+                      "on-surface": "#ffffff",
+                      "secondary-fixed-dim": "#7aeb9d",
+                      "tertiary-dim": "#00dbec",
+                      "surface-container-highest": "#262626",
+                      "primary": "#9cff93",
+                      "on-tertiary": "#005b63",
+                      "on-tertiary-fixed-variant": "#005c64",
+                      "surface-container": "#1a1919",
+                      "background": "#0e0e0e",
+                      "on-background": "#ffffff",
+                      "on-tertiary-fixed": "#003d42",
+                      "on-tertiary-container": "#005159",
+                      "surface-container-high": "#201f1f",
+                      "tertiary-fixed": "#0eeafd",
+                      "on-secondary": "#005f30",
+                      "tertiary": "#8af2ff",
+                      "on-secondary-container": "#e3ffe5",
+                      "on-secondary-fixed": "#004a24",
+                      "secondary-dim": "#7aeb9d",
+                      "error": "#ff7351",
+                      "surface-container-lowest": "#000000",
+                      "surface-bright": "#2c2c2c",
+                      "outline-variant": "#494847",
+                      "primary-dim": "#00ec3b",
+                      "surface-tint": "#9cff93",
+                      "surface-container-low": "#131313",
+                      "on-primary-fixed-variant": "#006513",
+                      "primary-fixed-dim": "#00ec3b",
+                      "secondary-fixed": "#89faaa",
+                      "on-error": "#450900",
+                      "on-primary-fixed": "#00440a",
+                      "secondary": "#89faaa",
+                      "on-primary-container": "#005a10",
+                      "surface-variant": "#262626",
+                      "tertiary-fixed-dim": "#00dbec",
+                      "inverse-surface": "#fcf8f8",
+                      "secondary-container": "#006d38",
+                      "outline": "#777575",
+                      "tertiary-container": "#0eeafd",
+                      "on-primary": "#006413",
+                      "primary-fixed": "#00fc40",
+                      "error-container": "#b92902",
+                      "inverse-on-surface": "#565554",
+                      "surface": "#0e0e0e",
+                      "on-surface-variant": "#adaaaa",
+                      "surface-dim": "#0e0e0e",
+                      "on-secondary-fixed-variant": "#006a36",
+                      "on-error-container": "#ffd2c8",
+                      "error-dim": "#d53d18",
+                      "primary-container": "#00fc40"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {},
+              "fontFamily": {
+                      "headline": [
+                              "Space Grotesk"
+                      ],
+                      "display": [
+                              "Space Grotesk"
+                      ],
+                      "body": [
+                              "Inter"
+                      ],
+                      "label": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {}
+      },
+          },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, h5, h6, .font-headline { font-family: 'Space Grotesk', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface antialiased min-h-screen flex flex-col max-w-md mx-auto relative overflow-x-hidden">
+<!-- Top Navigation Area - Mobile Context -->
+<header class="sticky top-0 z-50 bg-surface-container-highest/90 backdrop-blur-md px-6 py-4 flex items-center justify-between shadow-[0_4px_32px_rgba(0,0,0,0.5)]">
+<div class="flex items-center gap-4">
+<button class="text-on-surface hover:text-primary transition-colors flex items-center justify-center p-2 rounded-full hover:bg-surface-container">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_back</span>
+</button>
+<div>
+<h1 class="font-headline text-xl font-bold tracking-tight text-on-surface">Solicitudes</h1>
+<p class="font-body text-sm text-on-surface-variant">3 pendientes</p>
+</div>
+</div>
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(156,255,147,0.6)]"></div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 p-6 flex flex-col gap-6">
+<!-- Header / Context -->
+<div class="mb-2">
+<h2 class="font-headline text-2xl font-bold tracking-tight text-on-surface">Próximo Viaje: Campus Norte</h2>
+<p class="font-body text-sm text-on-surface-variant mt-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                Salida en 15 min
+            </p>
+</div>
+<!-- Requests List (Bento-ish Stack) -->
+<div class="flex flex-col gap-4">
+<!-- Request Item 1 -->
+<article class="bg-surface-container rounded-xl p-5 relative overflow-hidden flex flex-col gap-4">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full blur-2xl pointer-events-none"></div>
+<div class="flex items-start gap-4 relative z-10">
+<img alt="Student Profile" class="w-14 h-14 rounded-full object-cover border-2 border-surface-container-highest" data-alt="A close-up portrait of a young female university student looking directly at the camera with a friendly expression. The lighting is moody and cinematic, consistent with a dark-mode premium ride-sharing app. The background is softly blurred out, featuring dark tones with subtle hints of 'Acid Green' neon light reflecting off nearby surfaces to create an organic brutalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpYH9NlCcsf7TrDLz5iTRXuP631anLt2R25bRa_OOvrMlg4_905Cb_NNIQu7_B4cweg-7eqtpu4Rie1-DlGsiXc0Ekbj8NVdKZh_-_021-Ai-5QRM1iZu1zhVuXI4w35jh5aHw4rZ1-iaVEqZ4VZzourVhtUeb917-JgZDgjeyoqpRmrOOqX7vCtVp31CYVq__GrAJJZmsvHElxR87T4Qik7pU7KMMFyMIx4pSIj7yJCndX3AaqZFShs447QMRF1Fd1hBGFB8hKnc"/>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h3 class="font-headline font-semibold text-lg text-on-surface">Sofia C.</h3>
+<div class="flex items-center gap-1 bg-surface-container-highest px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label text-xs font-medium text-on-surface">4.9</span>
+</div>
+</div>
+<p class="font-label text-sm text-on-surface-variant mt-1">Facultad de Arquitectura</p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-3 relative z-10">
+<p class="font-body text-sm text-on-surface-variant italic">"Hola! Llevo una maqueta un poco grande, cabe en la cajuela?"</p>
+</div>
+<div class="flex gap-3 mt-2 relative z-10">
+<button class="flex-1 bg-surface-variant hover:bg-surface-bright text-on-surface font-label font-semibold py-3 rounded-lg transition-colors text-sm">Rechazar</button>
+<button class="flex-1 bg-gradient-to-br from-primary to-primary-container text-on-primary-fixed font-label font-bold py-3 rounded-lg hover:shadow-[0_0_12px_rgba(156,255,147,0.3)] transition-all duration-300 text-sm">Aceptar</button>
+</div>
+</article>
+<!-- Request Item 2 -->
+<article class="bg-surface-container rounded-xl p-5 relative overflow-hidden flex flex-col gap-4">
+<div class="flex items-start gap-4 relative z-10">
+<img alt="Student Profile" class="w-14 h-14 rounded-full object-cover border-2 border-surface-container-highest" data-alt="A portrait of a male university student with short hair, wearing a dark hoodie. He is looking slightly off-camera in a dimly lit urban environment. The photography uses high contrast lighting, emphasizing deep shadows and a gritty, editorial dark mode style. Faint traces of vibrant neon green light catch the edges of his face, matching the app's 'Acid Green' accent color." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyasRSwOEx1D6Vr-0MvbCHctaYGzVDt0pAVr_mKKIUCT-E9aKL7jgazRCq6A6kVfSSUnZk7aVX6pwd7VJH8WnG0ZVG3gmTuY1lPxhd8dmhYcxKFMYInhH-eeXIAiqyI8fpffSPQheL0umCo98WVY0nbcwRUZ-bG5gpiGi1rFNK2UUwqDpDwbTNynfNKd5qgT9MEcvo2BDRyL9M4VJuTN6_G5qtsfpcPCTHhfe4P7uagGw0ZtPvNwL7AGjLZEjWliX1Z8Cy1EBSO7E"/>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h3 class="font-headline font-semibold text-lg text-on-surface">Mateo R.</h3>
+<div class="flex items-center gap-1 bg-surface-container-highest px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label text-xs font-medium text-on-surface">4.7</span>
+</div>
+</div>
+<p class="font-label text-sm text-on-surface-variant mt-1">Ingeniería</p>
+</div>
+</div>
+<div class="flex gap-3 mt-2 relative z-10">
+<button class="flex-1 bg-surface-variant hover:bg-surface-bright text-on-surface font-label font-semibold py-3 rounded-lg transition-colors text-sm">Rechazar</button>
+<button class="flex-1 bg-gradient-to-br from-primary to-primary-container text-on-primary-fixed font-label font-bold py-3 rounded-lg hover:shadow-[0_0_12px_rgba(156,255,147,0.3)] transition-all duration-300 text-sm">Aceptar</button>
+</div>
+</article>
+<!-- Request Item 3 -->
+<article class="bg-surface-container rounded-xl p-5 relative overflow-hidden flex flex-col gap-4">
+<div class="flex items-start gap-4 relative z-10">
+<img alt="Student Profile" class="w-14 h-14 rounded-full object-cover border-2 border-surface-container-highest" data-alt="A close-up profile picture of a young woman with curly hair looking at the camera. The setting is a moody, dark cafe interior at night. The image is processed with deep blacks and high-contrast lighting suitable for a premium dark-mode interface. Subtle reflections of bright 'Acid Green' light are visible in the background, tying the image to the app's energetic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmGe7EdZAomr8K0f2bWAnwsQS8GwN0NGoSovTXVDWjmHY_SRdwfMMXXQvofe45biNq8rOVO9Ze-awQv7iYecUKZYm7FQMzzlg0ZS3C8j62ZJo5nD-Po6g3KxlCjvLOWY9OoePkdbTfd2ESp2B21E0UqeJF2CIOIV9MZdsZA9k1QBbaQTXDdEbam-XWY1cstJ8BoQOGBKIFG1zlUOQYU_GrtOfB74avFpR0XflM2CmHCiwlpsEoupGy2BjADqtaRgQmQONiYZjseMI"/>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h3 class="font-headline font-semibold text-lg text-on-surface">Valeria M.</h3>
+<div class="flex items-center gap-1 bg-surface-container-highest px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label text-xs font-medium text-on-surface">5.0</span>
+</div>
+</div>
+<p class="font-label text-sm text-on-surface-variant mt-1">Diseño Industrial</p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-3 relative z-10">
+<p class="font-body text-sm text-on-surface-variant italic">"Estaré esperando en la puerta principal del edificio B."</p>
+</div>
+<div class="flex gap-3 mt-2 relative z-10">
+<button class="flex-1 bg-surface-variant hover:bg-surface-bright text-on-surface font-label font-semibold py-3 rounded-lg transition-colors text-sm">Rechazar</button>
+<button class="flex-1 bg-gradient-to-br from-primary to-primary-container text-on-primary-fixed font-label font-bold py-3 rounded-lg hover:shadow-[0_0_12px_rgba(156,255,147,0.3)] transition-all duration-300 text-sm">Aceptar</button>
+</div>
+</article>
+</div>
+</main>
+</body></html>

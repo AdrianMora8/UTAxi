@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>U-Ride - Crear Cuenta</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-primary": "#006f16",
+                        "on-surface": "#ffffff",
+                        "secondary-fixed-dim": "#7aeb9d",
+                        "tertiary-dim": "#00dbec",
+                        "surface-container-highest": "#262626",
+                        "primary": "#9cff93",
+                        "on-tertiary": "#005b63",
+                        "on-tertiary-fixed-variant": "#005c64",
+                        "surface-container": "#1a1919",
+                        "background": "#0e0e0e",
+                        "on-background": "#ffffff",
+                        "on-tertiary-fixed": "#003d42",
+                        "on-tertiary-container": "#005159",
+                        "surface-container-high": "#201f1f",
+                        "tertiary-fixed": "#0eeafd",
+                        "on-secondary": "#005f30",
+                        "tertiary": "#8af2ff",
+                        "on-secondary-container": "#e3ffe5",
+                        "on-secondary-fixed": "#004a24",
+                        "secondary-dim": "#7aeb9d",
+                        "error": "#ff7351",
+                        "surface-container-lowest": "#000000",
+                        "surface-bright": "#2c2c2c",
+                        "outline-variant": "#494847",
+                        "primary-dim": "#00ec3b",
+                        "surface-tint": "#9cff93",
+                        "surface-container-low": "#131313",
+                        "on-primary-fixed-variant": "#006513",
+                        "primary-fixed-dim": "#00ec3b",
+                        "secondary-fixed": "#89faaa",
+                        "on-error": "#450900",
+                        "on-primary-fixed": "#00440a",
+                        "secondary": "#89faaa",
+                        "on-primary-container": "#005a10",
+                        "surface-variant": "#262626",
+                        "tertiary-fixed-dim": "#00dbec",
+                        "inverse-surface": "#fcf8f8",
+                        "secondary-container": "#006d38",
+                        "outline": "#777575",
+                        "tertiary-container": "#0eeafd",
+                        "on-primary": "#006413",
+                        "primary-fixed": "#00fc40",
+                        "error-container": "#b92902",
+                        "inverse-on-surface": "#565554",
+                        "surface": "#0e0e0e",
+                        "on-surface-variant": "#adaaaa",
+                        "surface-dim": "#0e0e0e",
+                        "on-secondary-fixed-variant": "#006a36",
+                        "on-error-container": "#ffd2c8",
+                        "error-dim": "#d53d18",
+                        "primary-container": "#00fc40"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk", "sans-serif"],
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for web view to simulate mobile scrollview slightly better */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body h-screen w-full overflow-hidden flex flex-col items-center justify-center">
+<!-- Mobile Device Container for Preview (simulating a phone screen) -->
+<main class="w-full h-full max-w-md mx-auto flex flex-col relative overflow-hidden shadow-2xl sm:rounded-[2rem] sm:h-[850px] sm:border-8 sm:border-surface-container-lowest bg-surface">
+<!-- Header / Nav (Minimal for Registration) -->
+<header class="flex justify-between items-center px-6 py-6 absolute top-0 w-full z-10">
+<button aria-label="Go back" class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="font-headline font-bold text-xl text-primary tracking-tighter uppercase">U-Ride</div>
+<div class="w-10 h-10"></div> <!-- Spacer for balance -->
+</header>
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto pt-24 pb-8 px-6 flex flex-col">
+<!-- Hero Title -->
+<div class="mt-8 mb-10">
+<h1 class="font-display text-4xl font-bold tracking-tight text-on-surface mb-2">Únete a la vía.</h1>
+<p class="font-body text-base text-on-surface-variant">Regístrate con tu correo institucional para comenzar a moverte seguro.</p>
+</div>
+<!-- Registration Form -->
+<form class="flex flex-col gap-6 flex-1">
+<!-- Full Name Input -->
+<div class="flex flex-col gap-2">
+<label class="font-label text-sm text-on-surface-variant" for="fullName">Nombre Completo</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors">person</span>
+<input class="w-full text-on-surface border-none rounded-xl py-4 pl-12 pr-4 font-body focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all bg-surface-container" id="fullName" placeholder="Ej. Juan Pérez" required="" type="text"/>
+</div>
+</div>
+<!-- Institutional Email Input -->
+<div class="flex flex-col gap-2">
+<label class="font-label text-sm text-on-surface-variant" for="email">Correo Institucional</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors">school</span>
+<input class="w-full text-on-surface border-none rounded-xl py-4 pl-12 pr-4 font-body focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all bg-surface-container" id="email" pattern=".+@uta\.edu\.ec$" placeholder="usuario@uta.edu.ec" required="" title="Debe ser un correo @uta.edu.ec" type="email"/>
+</div>
+<p class="text-xs text-outline-variant mt-1">Solo se permiten correos terminados en @uta.edu.ec</p>
+</div>
+<!-- Career/Major Picker -->
+<div class="flex flex-col gap-2">
+<label class="font-label text-sm text-on-surface-variant" for="career">Carrera</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors z-10">menu_book</span>
+<select class="w-full text-on-surface border-none rounded-xl py-4 pl-12 pr-10 font-body appearance-none focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all bg-surface-container" id="career" required="">
+<option class="text-outline" disabled="" selected="" value="">Selecciona tu carrera</option>
+<option value="sistemas">Ingeniería en Sistemas</option>
+<option value="civil">Ingeniería Civil</option>
+<option value="medicina">Medicina</option>
+<option value="derecho">Derecho</option>
+<option value="arquitectura">Arquitectura</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Password Input -->
+<div class="flex flex-col gap-2">
+<label class="font-label text-sm text-on-surface-variant" for="password">Contraseña</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors">lock</span>
+<input class="w-full text-on-surface border-none rounded-xl py-4 pl-12 pr-12 font-body focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all bg-surface-container" id="password" placeholder="••••••••" required="" type="password"/>
+<button aria-label="Toggle password visibility" class="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined">visibility_off</span>
+</button>
+</div>
+</div><!-- Repeat Password Input -->
+<div class="flex flex-col gap-2">
+<label class="font-label text-sm text-on-surface-variant" for="repeatPassword">Repetir Contraseña</label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors">lock_reset</span>
+<input class="w-full bg-surface-container text-on-surface border-none rounded-xl py-4 pl-12 pr-12 font-body focus:ring-1 focus:ring-primary/40 focus:bg-surface-bright transition-all" id="repeatPassword" placeholder="••••••••" required="" type="password"/>
+<button aria-label="Toggle password visibility" class="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Terms Checkbox -->
+<div class="flex items-start gap-3 mt-2">
+<div class="relative flex items-center pt-1">
+<input class="peer h-5 w-5 appearance-none rounded border border-outline-variant checked:bg-primary checked:border-primary focus:ring-1 focus:ring-primary/40 transition-all cursor-pointer bg-surface-container" id="terms" required="" type="checkbox"/>
+<span class="material-symbols-outlined absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-on-primary-fixed text-[16px] pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity">check</span>
+</div>
+<label class="font-label text-sm text-on-surface-variant cursor-pointer" for="terms">
+                        Acepto los <a class="text-primary hover:underline" href="#">Términos de Servicio</a> y la <a class="text-primary hover:underline" href="#">Política de Privacidad</a> de U-Ride.
+                    </label>
+</div>
+<div class="flex-1"></div> <!-- Spacer to push button down if screen is tall enough -->
+<!-- Submit Button -->
+<div class="mt-8 mb-4">
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-lg rounded-xl py-4 flex items-center justify-center gap-2 hover:shadow-[0_0_12px_rgba(156,255,147,0.4)] transition-all active:scale-[0.98]" type="submit">
+                        Crear Cuenta
+                        <span class="material-symbols-outlined" data-weight="fill">arrow_forward</span>
+</button>
+</div>
+</form>
+<!-- Login Link -->
+<div class="text-center pb-6">
+<p class="font-body text-sm text-on-surface-variant">
+                    ¿Ya tienes una cuenta? <a class="text-primary font-medium hover:underline transition-all" href="#">Inicia sesión</a>
+</p>
+</div>
+</div>
+</main>
+</body></html>

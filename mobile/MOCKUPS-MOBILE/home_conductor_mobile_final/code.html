@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>U-Ride - Panel del Conductor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "inverse-primary": "#006f16",
+                      "on-surface": "#ffffff",
+                      "secondary-fixed-dim": "#7aeb9d",
+                      "tertiary-dim": "#00dbec",
+                      "surface-container-highest": "#262626",
+                      "primary": "#9cff93",
+                      "on-tertiary": "#005b63",
+                      "on-tertiary-fixed-variant": "#005c64",
+                      "surface-container": "#1a1919",
+                      "background": "#0e0e0e",
+                      "on-background": "#ffffff",
+                      "on-tertiary-fixed": "#003d42",
+                      "on-tertiary-container": "#005159",
+                      "surface-container-high": "#201f1f",
+                      "tertiary-fixed": "#0eeafd",
+                      "on-secondary": "#005f30",
+                      "tertiary": "#8af2ff",
+                      "on-secondary-container": "#e3ffe5",
+                      "on-secondary-fixed": "#004a24",
+                      "secondary-dim": "#7aeb9d",
+                      "error": "#ff7351",
+                      "surface-container-lowest": "#000000",
+                      "surface-bright": "#2c2c2c",
+                      "outline-variant": "#494847",
+                      "primary-dim": "#00ec3b",
+                      "surface-tint": "#9cff93",
+                      "surface-container-low": "#131313",
+                      "on-primary-fixed-variant": "#006513",
+                      "primary-fixed-dim": "#00ec3b",
+                      "secondary-fixed": "#89faaa",
+                      "on-error": "#450900",
+                      "on-primary-fixed": "#00440a",
+                      "secondary": "#89faaa",
+                      "on-primary-container": "#005a10",
+                      "surface-variant": "#262626",
+                      "tertiary-fixed-dim": "#00dbec",
+                      "inverse-surface": "#fcf8f8",
+                      "secondary-container": "#006d38",
+                      "outline": "#777575",
+                      "tertiary-container": "#0eeafd",
+                      "on-primary": "#006413",
+                      "primary-fixed": "#00fc40",
+                      "error-container": "#b92902",
+                      "inverse-on-surface": "#565554",
+                      "surface": "#0e0e0e",
+                      "on-surface-variant": "#adaaaa",
+                      "surface-dim": "#0e0e0e",
+                      "on-secondary-fixed-variant": "#006a36",
+                      "on-error-container": "#ffd2c8",
+                      "error-dim": "#d53d18",
+                      "primary-container": "#00fc40"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {},
+              "fontFamily": {
+                      "headline": [
+                              "Space Grotesk"
+                      ],
+                      "display": [
+                              "Space Grotesk"
+                      ],
+                      "body": [
+                              "Inter"
+                      ],
+                      "label": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {}
+      },
+          },
+        }
+      </script>
+<style>
+        .gradient-primary {
+            background: linear-gradient(135deg, #9cff93 0%, #00fc40 100%);
+        }
+        .glow-hover:hover {
+            box-shadow: 0 0 4px #006413;
+        }
+        .glass-panel {
+            background-color: rgba(19, 19, 19, 0.7);
+            backdrop-filter: blur(20px);
+        }
+      </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body min-h-screen pb-24 md:pb-0">
+<!-- Top Navigation (Web Only) -->
+<nav class="hidden md:flex bg-[#0e0e0e]/80 backdrop-blur-md font-['Space_Grotesk'] tracking-tight fixed top-0 w-full z-50 bg-[#1a1919] shadow-[0_0_32px_rgba(0,255,65,0.08)] flex justify-between items-center px-8 py-4 max-w-full mx-auto">
+<div class="text-2xl font-bold tracking-tighter text-white uppercase">U-Ride</div>
+<div class="flex items-center gap-6">
+<a class="text-zinc-400 hover:text-white transition-colors hover:bg-[#262626] transition-all duration-300 px-3 py-2 rounded-md" href="#">Buscar Viaje</a>
+<a class="text-[#00FF41] border-b-2 border-[#00FF41] pb-1 hover:bg-[#262626] transition-all duration-300 px-3 py-2 rounded-md" href="#">Publicar Viaje</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-zinc-400 hover:text-white transition-colors hover:bg-[#262626] transition-all duration-300 p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-zinc-400 hover:text-white transition-colors hover:bg-[#262626] transition-all duration-300 p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="md:pt-24 md:pl-72 p-4 md:p-8 max-w-7xl mx-auto space-y-12">
+<!-- Mobile Header (Visible only on small screens) -->
+<header class="md:hidden flex justify-between items-center mb-8">
+<div>
+<h1 class="font-headline text-2xl font-bold text-on-surface">U-Ride</h1>
+<p class="font-body text-sm text-on-surface-variant">Movilidad Universitaria</p>
+</div>
+<button class="p-2 bg-surface-container rounded-full text-primary">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</header>
+<!-- Primary Action Section (Asymmetric Layout) -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+<div class="md:col-span-8 space-y-6">
+<h2 class="font-headline text-3xl font-medium tracking-tight">Panel del Conductor</h2>
+<button class="w-full md:w-auto gradient-primary text-on-primary font-bold py-4 px-8 rounded-xl flex items-center justify-center gap-3 glow-hover transition-all">
+<span class="material-symbols-outlined font-bold">add_box</span>
+<span class="text-lg">Publicar Viaje</span>
+</button>
+</div>
+<div class="md:col-span-4 bg-surface-container-low p-6 rounded-xl relative overflow-hidden">
+<div class="absolute -top-10 -right-10 text-surface-container-highest opacity-50">
+<span class="material-symbols-outlined" style="font-size: 150px; font-variation-settings: 'FILL' 1;">local_taxi</span>
+</div>
+<div class="relative z-10">
+<p class="font-label text-sm text-on-surface-variant uppercase tracking-wider mb-2">Estado</p>
+<p class="font-headline text-xl text-primary flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">check_circle</span>
+                        Activo y listo
+                    </p>
+</div>
+</div>
+</section>
+<!-- Active Rides Section (Bento Grid Style) -->
+<section class="space-y-6">
+<div class="flex justify-between items-end border-b border-surface-container pb-2">
+<h3 class="font-headline text-xl font-semibold text-on-surface">Mis Viajes Activos</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Ride Card 1 -->
+<article class="bg-surface-container rounded-xl p-5 hover:bg-surface-container-high transition-colors relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-surface p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined">directions_car</span>
+</div>
+<span class="bg-primary/10 text-primary font-label text-xs px-2 py-1 rounded-full font-medium">En curso</span>
+</div>
+<div class="space-y-2 mb-6">
+<p class="font-headline text-lg font-medium">Engineering Building -&gt; Dorms</p>
+<p class="font-body text-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                            Sale en 15 min
+                        </p>
+</div>
+<div class="flex justify-between items-center pt-4 border-t border-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant">group</span>
+<span class="font-body text-sm text-on-surface">3/4 Pasajeros</span>
+</div>
+<button class="text-primary hover:text-primary-container font-medium text-sm transition-colors">Gestionar</button>
+</div>
+</article>
+<!-- Ride Card 2 -->
+<article class="bg-surface-container rounded-xl p-5 hover:bg-surface-container-high transition-colors relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-surface p-2 rounded-lg text-on-surface-variant">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<span class="bg-surface-variant text-on-surface-variant font-label text-xs px-2 py-1 rounded-full font-medium">Programado</span>
+</div>
+<div class="space-y-2 mb-6">
+<p class="font-headline text-lg font-medium">Library -&gt; Downtown Campus</p>
+<p class="font-body text-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+                            Mañana, 8:00 AM
+                        </p>
+</div>
+<div class="flex justify-between items-center pt-4 border-t border-surface-container-low">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant">group</span>
+<span class="font-body text-sm text-on-surface">1/4 Pasajeros</span>
+</div>
+<button class="text-primary hover:text-primary-container font-medium text-sm transition-colors">Gestionar</button>
+</div>
+</article>
+<!-- Empty State/Placeholder Card -->
+<article class="bg-surface border border-outline-variant/15 border-dashed rounded-xl p-5 flex flex-col items-center justify-center text-center space-y-4 min-h-[200px]">
+<div class="bg-surface-container-low p-3 rounded-full text-on-surface-variant">
+<span class="material-symbols-outlined text-3xl">add_road</span>
+</div>
+<div>
+<p class="font-headline font-medium text-on-surface mb-1">Publicar otro viaje</p>
+<p class="font-body text-sm text-on-surface-variant">Optimiza tu ruta.</p>
+</div>
+</article>
+</div>
+</section>
+</main>
+<!-- Side Navigation (Web Only) -->
+<aside class="hidden md:flex bg-[#131313] font-['Space_Grotesk'] font-medium h-full w-72 fixed left-0 top-0 bg-[#0e0e0e] flex flex-col h-full p-6 gap-2 border-r border-surface-container-low z-40 pt-24">
+<div class="text-xl font-black text-white mb-8 px-4">
+            U-Ride
+            <div class="text-sm text-zinc-500 font-normal mt-1">Movilidad Universitaria</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-[#1a1919] hover:text-[#00FF41] active:translate-x-1 transition-transform rounded-lg" href="#">
+<span class="material-symbols-outlined">search</span>
+                Buscar Viaje
+            </a>
+<a class="bg-[#00FF41]/10 text-[#00FF41] rounded-lg px-4 py-3 flex items-center gap-3 active:translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_box</span>
+                Publicar Viaje
+            </a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-[#1a1919] hover:text-[#00FF41] active:translate-x-1 transition-transform rounded-lg" href="#">
+<span class="material-symbols-outlined">notifications</span>
+                Notificaciones
+            </a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-[#1a1919] hover:text-[#00FF41] active:translate-x-1 transition-transform rounded-lg" href="#">
+<span class="material-symbols-outlined">person</span>
+                Perfil
+            </a>
+</nav>
+<div class="mt-auto space-y-2 pt-6 border-t border-surface-container-low">
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-[#1a1919] hover:text-[#00FF41] transition-transform rounded-lg text-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">help</span>
+                Centro de Ayuda
+            </a>
+<a class="text-zinc-500 px-4 py-3 flex items-center gap-3 hover:bg-[#1a1919] hover:text-[#00FF41] transition-transform rounded-lg text-sm" href="#">
+<span class="material-symbols-outlined text-[18px]">shield</span>
+                Seguridad
+            </a>
+<button class="w-full text-left text-error hover:bg-error/10 px-4 py-3 flex items-center gap-3 transition-colors rounded-lg text-sm mt-4">
+<span class="material-symbols-outlined text-[18px]">logout</span>
+                Cerrar Sesión
+            </button>
+</div>
+</aside>
+<!-- Bottom Navigation (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full bg-[#0E0E0E]/90 backdrop-blur-lg border-t border-white/5 z-50 px-2 sm:px-6 py-2 pb-safe">
+<div class="flex justify-between items-center max-w-md mx-auto">
+<a class="flex flex-col items-center gap-1 p-2 w-16 text-zinc-500 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">search</span>
+<span class="text-[10px] font-medium tracking-wide">Buscar</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 w-16 text-[#00FF41]" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">add_box</span>
+<span class="text-[10px] font-medium tracking-wide">Publicar</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 w-16 text-zinc-500 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+<span class="text-[10px] font-medium tracking-wide">Notif.</span>
+</a>
+<a class="flex flex-col items-center gap-1 p-2 w-16 text-zinc-500 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">account_circle</span>
+<span class="text-[10px] font-medium tracking-wide">Perfil</span>
+</a>
+</div>
+</nav>
+</body></html>

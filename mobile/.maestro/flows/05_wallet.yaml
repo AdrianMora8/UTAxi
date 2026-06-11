@@ -1,0 +1,69 @@
+appId: host.exp.exponent
+name: "05 — U-Wallet (saldo y recarga)"
+tags:
+  - wallet
+  - perfil
+
+---
+
+# ── Login como pasajero E2E ──────────────────────────────────────
+- launchApp:
+    clearState: true
+- assertVisible:
+    text: "U-Ride"
+    timeout: 8000
+
+- runFlow:
+    file: ../subflows/login.yaml
+    env:
+      EMAIL: "e2e.passenger@uta.edu.ec"
+      PASSWORD: "E2ETest123!"
+
+# ── Navegar a Perfil → U-Wallet ───────────────────────────────────
+- tapOn:
+    text: "Perfil"
+- assertVisible:
+    text: "U-RIDE"
+    timeout: 5000
+
+- tapOn:
+    text: "U-Wallet"
+- assertVisible:
+    text: "U-Wallet"
+    timeout: 5000
+- assertVisible: "Saldo disponible"
+
+# ── Abrir modal de recarga ────────────────────────────────────────
+- tapOn:
+    text: "Recargar"
+- assertVisible:
+    text: "Recargar U-Wallet"
+    timeout: 3000
+- assertVisible: "Ingresa el monto a añadir (máx. $500)"
+
+# Ingresar monto
+- tapOn:
+    text: "0.00"   # placeholder del TextInput de monto
+- clearText
+- inputText: "10.00"
+
+# Confirmar recarga (botón "Recargar" dentro del modal)
+- tapOn:
+    text: "Recargar"
+
+# Verificar que el modal se cierra y el saldo actualizado aparece
+- assertNotVisible:
+    text: "Recargar U-Wallet"
+    timeout: 5000
+- assertVisible: "Saldo disponible"
+
+# ── Volver y logout ───────────────────────────────────────────────
+- swipe:
+    direction: RIGHT
+    duration: 400
+- assertVisible:
+    text: "U-RIDE"
+    timeout: 5000
+
+- runFlow:
+    file: ../subflows/logout.yaml

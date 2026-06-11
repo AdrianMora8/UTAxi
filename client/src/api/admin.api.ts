@@ -11,11 +11,89 @@ export interface AdminUser {
   totalTrips: number
   career: string | null
   createdAt: string
+  _count?: { warningsReceived: number }
+  autoSuspended?: boolean
+  suspendedUntil?: string | null
 }
 
 export interface AdminReport extends Report {
   reporter: { id: string; fullName: string }
   reported: { id: string; fullName: string }
+}
+
+export interface AdminUserDetail extends AdminUser {
+  suspendedUntil: string | null
+  phone: string | null
+  neighborhood: string | null
+  emailVerified: boolean
+  vehicle: { brand: string; model: string; year: number; plateNumber: string; color: string } | null
+  tripsAsDriver: { id: string; originZone: string; destinationZone: string; departureTime: string; status: string }[]
+  ratingsReceived: { score: number; comment: string | null; raterRole: string; createdAt: string }[]
+  reportsReceived: { id: string; reason: string; description: string; status: string; createdAt: string; reporter: { fullName: string } }[]
+  warningsReceived: { id: string; reason: string | null; createdAt: string; admin: { fullName: string } }[]
+  _count: { reportsFiled: number; reportsReceived: number; tripsAsDriver: number; tripRequests: number; warningsReceived: number }
+}
+
+export interface AdminTrip {
+  id: string
+  originZone: string
+  destinationZone: string
+  departureTime: string
+  totalSeats: number
+  availableSeats: number
+  pricePerSeat: number
+  status: string
+  createdAt: string
+  driver: { id: string; fullName: string; email: string; status: string }
+  _count: { requests: number }
+}
+
+export type TripEventType =
+  | 'TRIP_PUBLISHED'
+  | 'TRIP_STARTED'
+  | 'TRIP_COMPLETED'
+  | 'TRIP_CANCELLED'
+  | 'TRIP_SCHEDULE_CHANGED'
+  | 'REQUEST_SENT'
+  | 'REQUEST_ACCEPTED'
+  | 'REQUEST_REJECTED'
+  | 'REQUEST_CANCELLED'
+  | 'PASSENGER_NO_SHOW'
+
+export interface TripEvent {
+  id: string
+  tripId: string
+  type: TripEventType
+  actorId: string | null
+  metadata: Record<string, unknown> | null
+  createdAt: string
+  actor: { id: string; fullName: string; email: string } | null
+  trip: { id: string; originZone: string; destinationZone: string }
+}
+
+export interface AdminVehicle {
+  id: string
+  userId: string
+  brand: string
+  model: string
+  year: number
+  plateNumber: string
+  color: string
+  photoUrl: string | null
+  status: 'PENDING' | 'APPROVED' | 'REJECTED'
+  rejectionNotes: string | null
+  rejectionCount: number
+  blockedUntil: string | null
+  createdAt: string
+  user: { id: string; fullName: string; email: string; status: string }
+}
+
+export interface AdminStats {
+  users: { total: number; active: number; suspended: number }
+  trips: { total: number; completed: number; cancelled: number; active: number }
+  reports: { open: number; total: number }
+  revenue: number
+  avgReputation: number
 }
 
 export const adminApi = {
@@ -34,6 +112,36 @@ export const adminApi = {
       { params },
     ),
 
-  updateUserStatus: (id: string, status: 'ACTIVE' | 'WARNED' | 'SUSPENDED') =>
-    apiClient.patch<{ user: AdminUser }>(`/admin/users/${id}/status`, { status }),
+  updateUserStatus: (id: string, status: 'ACTIVE' | 'WARNED' | 'SUSPENDED', suspendedUntil?: string) =>
+    apiClient.patch<{ user: AdminUser }>(`/admin/users/${id}/status`, { status, suspendedUntil }),
+
+  getStats: () =>
+    apiClient.get<AdminStats>('/admin/stats'),
+
+  getEvents: (params?: { tripId?: string; type?: TripEventType; page?: number; limit?: number }) =>
+    apiClient.get<{ events: TripEvent[]; total: number; page: number; limit: number }>(
+      '/admin/events',
+      { params },
+    ),
+
+  getUserDetail: (id: string) =>
+    apiClient.get<{ user: AdminUserDetail }>(`/admin/users/${id}`),
+
+  getTrips: (params?: { status?: string; page?: number; limit?: number }) =>
+    apiClient.get<{ trips: AdminTrip[]; total: number; page: number; limit: number }>(
+      '/admin/trips',
+      { params },
+    ),
+
+  cancelTrip: (id: string) =>
+    apiClient.delete<{ cancelled: boolean; refundedPassengers: number }>(`/admin/trips/${id}`),
+
+  getVehicles: (params?: { status?: string; page?: number; limit?: number }) =>
+    apiClient.get<{ vehicles: AdminVehicle[]; total: number }>('/admin/vehicles', { params }),
+
+  approveVehicle: (id: string) =>
+    apiClient.patch<{ vehicle: AdminVehicle }>(`/admin/vehicles/${id}/approve`),
+
+  rejectVehicle: (id: string, notes: string) =>
+    apiClient.patch<{ vehicle: AdminVehicle }>(`/admin/vehicles/${id}/reject`, { notes }),
 }

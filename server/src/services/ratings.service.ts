@@ -14,8 +14,8 @@ export class RatingsService {
     if (tripRequest.trip.status !== TripStatus.COMPLETED) {
       throw new AppError(400, 'Solo se puede calificar cuando el viaje está COMPLETED');
     }
-    if (tripRequest.status !== RequestStatus.ACCEPTED) {
-      throw new AppError(400, 'Solo pasajeros aceptados pueden calificar este viaje');
+    if (tripRequest.status !== RequestStatus.ACCEPTED && tripRequest.status !== RequestStatus.COMPLETED) {
+      throw new AppError(400, 'Solo pasajeros del viaje pueden calificar');
     }
 
     const isDriver = tripRequest.trip.driverId === raterId;
@@ -46,10 +46,7 @@ export class RatingsService {
 
     await this.prisma.user.update({
       where: { id: ratedId },
-      data: {
-        reputationScore: agg._avg.score ?? 5.0,
-        totalTrips: agg._count.score,
-      },
+      data: { reputationScore: agg._avg.score ?? 5.0 },
     });
 
     return rating;

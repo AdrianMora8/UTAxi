@@ -44,7 +44,7 @@ export default function Register() {
       navigate(`/verify-email?email=${encodeURIComponent(data.email)}`)
     } catch (err: unknown) {
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ??
         'Error al registrarse'
       setServerError(msg)
     }

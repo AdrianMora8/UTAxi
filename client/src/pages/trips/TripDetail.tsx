@@ -5,6 +5,7 @@ import { tripsApi } from '@/api/trips.api'
 import { requestsApi } from '@/api/requests.api'
 import { useAuthStore } from '@/store/authStore'
 
+
 const RouteMap = lazy(() => import('@/components/map/RouteMap'))
 
 export default function TripDetail() {
@@ -15,6 +16,9 @@ export default function TripDetail() {
   const [message, setMessage] = useState('')
   const [requestError, setRequestError] = useState('')
   const [requestDone, setRequestDone] = useState(false)
+  const [confirmCancel, setConfirmCancel] = useState(false)
+  const [showSafetyModal, setShowSafetyModal] = useState(false)
+  const [sendingRequest, setSendingRequest] = useState(false)
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['trip', id],
@@ -28,9 +32,17 @@ export default function TripDetail() {
     queryFn: () => requestsApi.getMyRequests().then((r) => r.data.requests),
     enabled: !!id && !!user,
   })
-  const alreadyRequested = myRequests?.some(
-    (r) => r.tripId === id && (r.status === 'PENDING' || r.status === 'ACCEPTED')
-  ) ?? false
+  const myTripRequest = myRequests?.find((r) => r.tripId === id) ?? null
+  const alreadyRequested = !!myTripRequest && myTripRequest.status !== 'REJECTED'
+
+  const cancelMut = useMutation({
+    mutationFn: (tripId: string) => tripsApi.cancelTrip(tripId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['my-trips'] })
+      navigate('/my-trips')
+    },
+  })
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -54,6 +66,7 @@ export default function TripDetail() {
   const timeStr = depTime.toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit', hour12: true })
   const isDriver = trip.driverId === user?.id
   const isInProgress = trip.status === 'IN_PROGRESS'
+  const isScheduled = trip.status === 'SCHEDULED'
 
   const driverInitials = trip.driver.fullName
     .split(' ')
@@ -62,6 +75,7 @@ export default function TripDetail() {
     .join('')
 
   return (
+    <>
     <div className="min-h-screen bg-surface text-on-surface font-body">
       <main className="pt-6 pb-12 px-8 max-w-7xl mx-auto">
         {/* Breadcrumb */}
@@ -258,15 +272,59 @@ export default function TripDetail() {
                     </span>
                   </button>
                 ) : isDriver ? (
-                  <button
-                    onClick={() => navigate(`/trips/${trip.id}/requests`)}
-                    className="w-full bg-gradient-primary hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95 group"
-                  >
-                    <span className="flex items-center justify-center gap-3">
-                      <span className="material-symbols-outlined">group</span>
-                      Gestionar Solicitudes
-                    </span>
-                  </button>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => navigate(`/trips/${trip.id}/requests`)}
+                      className="w-full bg-gradient-primary hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95 group"
+                    >
+                      <span className="flex items-center justify-center gap-3">
+                        <span className="material-symbols-outlined">group</span>
+                        Gestionar Solicitudes
+                      </span>
+                    </button>
+                    {isScheduled && (
+                      <button
+                        onClick={() => navigate(`/trips/${trip.id}/edit`)}
+                        className="w-full flex items-center justify-center gap-2 border border-white/10 text-on-surface-variant hover:text-white font-bold py-3 rounded-xl text-sm transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-sm">edit</span>
+                        Editar viaje
+                      </button>
+                    )}
+                    {isScheduled && !confirmCancel && (
+                      <button
+                        onClick={() => setConfirmCancel(true)}
+                        className="w-full flex items-center justify-center gap-2 text-error/70 hover:text-error font-bold py-3 rounded-xl text-sm transition-colors border border-error/10 hover:border-error/30"
+                      >
+                        <span className="material-symbols-outlined text-sm">cancel</span>
+                        Cancelar viaje
+                      </button>
+                    )}
+                    {isScheduled && confirmCancel && (
+                      <div className="bg-error/5 border border-error/20 rounded-xl p-4 space-y-3">
+                        <p className="text-error text-xs leading-relaxed flex items-start gap-2">
+                          <span className="material-symbols-outlined text-sm mt-0.5">warning</span>
+                          Esta acción notificará a todos los pasajeros y reembolsará automáticamente sus pagos.
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => cancelMut.mutate(trip.id)}
+                            disabled={cancelMut.isPending}
+                            className="flex-1 flex items-center justify-center gap-1 bg-error/10 border border-error/30 text-error font-bold py-3 rounded-xl text-sm transition-colors hover:bg-error/20 disabled:opacity-50"
+                          >
+                            <span className="material-symbols-outlined text-sm">check</span>
+                            {cancelMut.isPending ? 'Cancelando...' : 'Confirmar'}
+                          </button>
+                          <button
+                            onClick={() => setConfirmCancel(false)}
+                            className="px-4 py-3 rounded-xl text-on-surface-variant hover:text-white text-sm font-bold border border-white/10 transition-colors"
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ) : trip.availableSeats === 0 ? (
                   <div className="w-full bg-error/10 text-error font-headline font-bold py-5 rounded-xl text-center text-lg uppercase tracking-wider border border-error/20">
                     Sin asientos disponibles
@@ -275,6 +333,42 @@ export default function TripDetail() {
                   <div className="w-full bg-primary/10 border border-primary/20 text-primary font-headline font-bold py-5 rounded-xl text-center text-lg uppercase tracking-wider">
                     ¡Solicitud enviada!
                   </div>
+                ) : alreadyRequested ? (
+                  myTripRequest?.status === 'CANCELLED' ? (
+                    <div className="space-y-3">
+                      <div className="w-full flex items-center justify-center gap-2 font-headline font-bold py-5 rounded-xl text-lg uppercase tracking-wider border bg-zinc-700/20 border-zinc-600/30 text-zinc-400">
+                        <span className="material-symbols-outlined">cancel</span>
+                        Solicitud Cancelada
+                      </div>
+                      <p className="text-center text-xs text-on-surface-variant">
+                        Ya no puedes volver a solicitar este viaje.
+                      </p>
+                    </div>
+                  ) : (
+                    (() => {
+                      const isAccepted = myTripRequest?.status === 'ACCEPTED'
+                      return (
+                        <div className="space-y-3">
+                          <div className={`w-full flex items-center justify-center gap-2 font-headline font-bold py-5 rounded-xl text-lg uppercase tracking-wider border ${
+                            isAccepted
+                              ? 'bg-primary/10 border-primary/20 text-primary'
+                              : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+                          }`}>
+                            <span className="material-symbols-outlined material-symbols-filled">
+                              {isAccepted ? 'check_circle' : 'schedule'}
+                            </span>
+                            {isAccepted ? 'Reserva Confirmada' : 'Solicitud Pendiente'}
+                          </div>
+                          <button
+                            onClick={() => navigate('/requests')}
+                            className="w-full flex items-center justify-center gap-2 border border-white/10 text-on-surface-variant hover:text-white font-bold py-3 rounded-xl text-sm transition-colors"
+                          >
+                            Ver mis solicitudes →
+                          </button>
+                        </div>
+                      )
+                    })()
+                  )
                 ) : (
                   <div className="space-y-3">
                     <textarea
@@ -289,15 +383,7 @@ export default function TripDetail() {
                       <p className="text-xs text-error">{requestError}</p>
                     )}
                     <button
-                      onClick={() => {
-                        setRequestError('')
-                        requestsApi.createRequest(trip.id, message || undefined)
-                          .then(() => { setRequestDone(true); qc.invalidateQueries({ queryKey: ['trip', id] }) })
-                          .catch((err: unknown) => {
-                            const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Error al enviar la solicitud'
-                            setRequestError(msg)
-                          })
-                      }}
+                      onClick={() => { setRequestError(''); setShowSafetyModal(true) }}
                       className="w-full bg-gradient-primary hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] text-on-primary font-headline font-black py-5 rounded-xl text-lg uppercase tracking-wider transition-all active:scale-95 group overflow-hidden"
                     >
                       <span className="flex items-center justify-center gap-3">
@@ -402,5 +488,81 @@ export default function TripDetail() {
         </div>
       </footer>
     </div>
+
+    {/* ── Safety Rules Modal (RF9) ── */}
+
+    {showSafetyModal && trip && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/70 backdrop-blur-sm"
+        onClick={(e) => { if (e.target === e.currentTarget) setShowSafetyModal(false) }}
+      >
+        <div className="w-full max-w-md bg-surface-container-low rounded-2xl shadow-2xl overflow-hidden">
+          <div className="p-6 border-b border-white/5 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-primary">shield</span>
+            </div>
+            <div>
+              <h2 className="font-headline text-lg font-bold text-white">Reglas de Convivencia U-Ride</h2>
+              <p className="text-xs text-on-surface-variant">Debes aceptar antes de unirte al viaje</p>
+            </div>
+          </div>
+
+          <div className="p-6 space-y-3">
+            {[
+              { icon: 'schedule',       text: 'Puntualidad: llega al punto de encuentro antes de la hora de salida.' },
+              { icon: 'handshake',      text: 'Respeto: mantén un comportamiento cordial con el conductor y pasajeros.' },
+              { icon: 'lock',           text: 'Privacidad: no compartas datos personales (número, ubicación exacta) fuera de la app.' },
+              { icon: 'cancel',         text: 'Cancelaciones: avisa con anticipación para no perjudicar al conductor.' },
+              { icon: 'smartphone',     text: 'Comunicación: usa la plataforma; no pidas ni ofrezcas medios externos de contacto.' },
+              { icon: 'diversity_3',    text: 'Comunidad: somos estudiantes de la misma institución. Cuida el ambiente de confianza.' },
+            ].map((rule, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-surface-container">
+                <span className="material-symbols-outlined text-primary text-base flex-shrink-0 mt-0.5">{rule.icon}</span>
+                <p className="text-sm text-on-surface leading-snug">{rule.text}</p>
+              </div>
+            ))}
+
+            {requestError && (
+              <p className="text-xs text-error flex items-center gap-1 mt-2">
+                <span className="material-symbols-outlined text-sm">error</span>
+                {requestError}
+              </p>
+            )}
+          </div>
+
+          <div className="px-6 pb-6 flex gap-3">
+            <button
+              onClick={() => setShowSafetyModal(false)}
+              className="flex-1 py-3 rounded-xl border border-white/10 text-on-surface-variant font-bold text-sm hover:text-white transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              disabled={sendingRequest}
+              onClick={async () => {
+                setSendingRequest(true)
+                try {
+                  await tripsApi.safetyAck(trip.id)
+                  await requestsApi.createRequest(trip.id, message || undefined)
+                  setRequestDone(true)
+                  setShowSafetyModal(false)
+                  qc.invalidateQueries({ queryKey: ['trip', id] })
+                } catch (err: unknown) {
+                  const msg = (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ?? 'Error al enviar la solicitud'
+                  setRequestError(msg)
+                  setShowSafetyModal(false)
+                } finally {
+                  setSendingRequest(false)
+                }
+              }}
+              className="flex-1 py-3 rounded-xl bg-gradient-primary text-on-primary font-headline font-bold text-sm uppercase tracking-wider hover:shadow-[0_0_20px_rgba(156,255,147,0.3)] transition-all active:scale-95 disabled:opacity-50"
+            >
+              {sendingRequest ? 'Enviando...' : 'Acepto y Solicito'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }

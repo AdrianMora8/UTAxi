@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>U-Ride - Payment</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error-container": "#b92902",
+                        "surface-container-lowest": "#000000",
+                        "surface-tint": "#9cff93",
+                        "primary-fixed": "#00fc40",
+                        "on-primary-fixed-variant": "#006513",
+                        "on-surface-variant": "#adaaaa",
+                        "on-background": "#ffffff",
+                        "primary-dim": "#00ec3b",
+                        "error": "#ff7351",
+                        "on-error-container": "#ffd2c8",
+                        "inverse-primary": "#006f16",
+                        "secondary-fixed-dim": "#7aeb9d",
+                        "inverse-surface": "#fcf8f8",
+                        "on-primary-fixed": "#00440a",
+                        "on-secondary-fixed-variant": "#006a36",
+                        "outline": "#777575",
+                        "on-secondary-fixed": "#004a24",
+                        "primary-container": "#00fc40",
+                        "surface-container-low": "#131313",
+                        "surface": "#0e0e0e",
+                        "surface-dim": "#0e0e0e",
+                        "tertiary-dim": "#00dbec",
+                        "background": "#0e0e0e",
+                        "on-tertiary-fixed-variant": "#005c64",
+                        "on-secondary": "#005f30",
+                        "secondary-dim": "#7aeb9d",
+                        "surface-bright": "#2c2c2c",
+                        "inverse-on-surface": "#565554",
+                        "tertiary-fixed": "#0eeafd",
+                        "primary-fixed-dim": "#00ec3b",
+                        "on-surface": "#ffffff",
+                        "on-primary-container": "#005a10",
+                        "on-error": "#450900",
+                        "error-dim": "#d53d18",
+                        "surface-variant": "#262626",
+                        "surface-container-highest": "#262626",
+                        "surface-container-high": "#201f1f",
+                        "outline-variant": "#494847",
+                        "secondary-container": "#006d38",
+                        "on-secondary-container": "#e3ffe5",
+                        "on-tertiary-container": "#005159",
+                        "tertiary-fixed-dim": "#00dbec",
+                        "on-tertiary-fixed": "#003d42",
+                        "primary": "#9cff93",
+                        "secondary-fixed": "#89faaa",
+                        "secondary": "#89faaa",
+                        "tertiary-container": "#0eeafd",
+                        "tertiary": "#8af2ff",
+                        "on-tertiary": "#005b63",
+                        "surface-container": "#1a1919",
+                        "on-primary": "#006413"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {},
+                    "fontFamily": {
+                        "headline": [
+                            "Space Grotesk"
+                        ],
+                        "display": [
+                            "Space Grotesk"
+                        ],
+                        "body": [
+                            "Inter"
+                        ],
+                        "label": [
+                            "Inter"
+                        ]
+                    },
+                    "fontSize": {}
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body antialiased min-h-screen flex flex-col md:hidden pb-6">
+<!-- Top Navigation (Mobile Specific for this task) -->
+<header class="flex justify-between items-center px-6 py-5 bg-[#0e0e0e]/80 backdrop-blur-md fixed top-0 w-full z-50">
+<button aria-label="Go back" class="text-zinc-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold tracking-tighter text-white uppercase font-['Space_Grotesk']">Payment</h1>
+<div class="w-8"></div> <!-- Spacer for centering -->
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-24 px-6 flex flex-col gap-8">
+<!-- Trip Summary -->
+<section class="flex flex-col gap-4">
+<h2 class="font-headline text-display-lg text-on-surface font-bold">Trip Summary</h2>
+<div class="bg-surface-container rounded-xl p-5 flex flex-col gap-4 relative overflow-hidden">
+<!-- Abstract map background -->
+<div class="absolute inset-0 opacity-20 pointer-events-none" data-alt="A dark, high-contrast digital map interface showing a complex network of city streets. The map relies on a sophisticated palette of deep blacks and pristine whites, punctuated by intense accents of vibrant green lines representing routes. The mood is highly technical, kinetic, and modern, fitting an urban navigation app." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCmyHjgloxb1sq0nJtfwq3Y1TRCuD8knWVwgYj2lpsv_zK8Q1OZNDyqgSV5xjIoNRpAaffD6dj3V6gQj5jpXMn7vNU6zFJk41ZMtmYRu8fHgeQukfMMLxSmp4gyae0_RUvoXTKlmi3YKWzX9dZeKev0Ryg6TY9hF_Iy4KkGlqhJxkLyVnE26kRNEV97tSyiL5Dv-lE9e746deLYbekqMnF2lt0GcKCKofItZZie-IjhoIm2SOr0fpF7m_uJQ2CKgrmQs93LTObKbD0'); background-size: cover; background-position: center; mix-blend-mode: luminosity;"></div>
+<div class="flex items-center gap-4 relative z-10">
+<div class="w-12 h-12 bg-surface-container-highest rounded-full flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<div>
+<p class="font-label text-sm text-on-surface-variant uppercase tracking-wider">Destination</p>
+<p class="font-headline font-medium text-lg text-on-surface">Library West</p>
+</div>
+</div>
+<div class="h-px bg-surface-container-low w-full my-1"></div>
+<div class="flex justify-between items-end relative z-10">
+<div>
+<p class="font-label text-sm text-on-surface-variant uppercase tracking-wider">Total Due</p>
+<p class="font-headline font-bold text-3xl text-primary">$4.50</p>
+</div>
+<div class="text-right">
+<p class="font-label text-sm text-on-surface-variant uppercase tracking-wider">ETA</p>
+<p class="font-headline font-medium text-lg text-on-surface">8 Mins</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Payment Form -->
+<section class="flex flex-col gap-6">
+<h3 class="font-headline text-2xl text-on-surface font-bold">Payment Method</h3>
+<form class="flex flex-col gap-4">
+<!-- Card Number -->
+<div class="flex flex-col gap-2">
+<label class="font-label text-sm text-on-surface-variant" for="cardNumber">Card Number</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">credit_card</span>
+<input class="w-full bg-surface-container-highest text-on-surface placeholder:text-on-surface-variant/50 border-none rounded-lg py-4 pl-12 pr-4 focus:bg-surface-bright focus:ring-1 focus:ring-primary/40 focus:outline-none transition-colors" id="cardNumber" placeholder="0000 0000 0000 0000" type="text"/>
+</div>
+</div>
+<!-- Name on Card -->
+<div class="flex flex-col gap-2">
+<label class="font-label text-sm text-on-surface-variant" for="cardName">Name on Card</label>
+<input class="w-full bg-surface-container-highest text-on-surface placeholder:text-on-surface-variant/50 border-none rounded-lg py-4 px-4 focus:bg-surface-bright focus:ring-1 focus:ring-primary/40 focus:outline-none transition-colors" id="cardName" placeholder="Alex Student" type="text"/>
+</div>
+<!-- Expiry & CVV Row -->
+<div class="flex gap-4">
+<div class="flex flex-col gap-2 flex-1">
+<label class="font-label text-sm text-on-surface-variant" for="expiry">Expiry Date</label>
+<input class="w-full bg-surface-container-highest text-on-surface placeholder:text-on-surface-variant/50 border-none rounded-lg py-4 px-4 focus:bg-surface-bright focus:ring-1 focus:ring-primary/40 focus:outline-none transition-colors" id="expiry" placeholder="MM/YY" type="text"/>
+</div>
+<div class="flex flex-col gap-2 flex-1">
+<label class="font-label text-sm text-on-surface-variant" for="cvv">CVV</label>
+<div class="relative">
+<input class="w-full bg-surface-container-highest text-on-surface placeholder:text-on-surface-variant/50 border-none rounded-lg py-4 px-4 pr-10 focus:bg-surface-bright focus:ring-1 focus:ring-primary/40 focus:outline-none transition-colors" id="cvv" placeholder="•••" type="password"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm cursor-help">info</span>
+</div>
+</div>
+</div>
+</form>
+</section>
+</main>
+<!-- Floating Action Button (Confirm Payment) -->
+<div class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-surface to-transparent pt-12 pointer-events-none">
+<button class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold text-lg py-4 rounded-xl flex justify-center items-center gap-2 shadow-[0_0_32px_rgba(156,255,147,0.08)] hover:shadow-[0_0_8px_rgba(156,255,147,0.4)] pointer-events-auto transition-all">
+<span class="material-symbols-outlined" data-weight="fill">lock</span>
+            Pay $4.50
+        </button>
+</div>
+</body></html>

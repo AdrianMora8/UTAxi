@@ -6,6 +6,7 @@ import {
   respondToRequest,
   cancelRequest,
   getMyRequests,
+  markArrival,
 } from '../controllers/requests.controller';
 
 export const requestsRouter = Router();
@@ -21,4 +22,5 @@ requestsRouter.get('/trip/:tripId', getRequestsByTrip);
 
 // Por solicitud individual
 requestsRouter.patch('/:id/respond', respondToRequest);
+requestsRouter.patch('/:id/arrival', markArrival);
 requestsRouter.delete('/:id', cancelRequest);

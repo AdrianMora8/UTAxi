@@ -1,8 +1,12 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState, useCallback } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { requestsApi } from '@/api/requests.api'
+import { requestsApi, type TripRequest } from '@/api/requests.api'
 import { tripsApi } from '@/api/trips.api'
+import { reportsApi, type ReportReason } from '@/api/reports.api'
+import { paymentsApi, type PassengerPaymentStatus } from '@/api/payments.api'
+import RatingModal from '@/components/ratings/RatingModal'
+import { useNotifications } from '@/hooks/useNotifications'
 
 const RouteMap = lazy(() => import('@/components/map/RouteMap'))
 
@@ -10,6 +14,28 @@ export default function ManageRequests() {
   const { id: tripId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const [ratingTarget, setRatingTarget] = useState<{ requestId: string; driverName: string } | null>(null)
+  const [reportTarget, setReportTarget] = useState<{ passengerId: string; passengerName: string } | null>(null)
+  const [reportReason, setReportReason] = useState<ReportReason>('INAPPROPRIATE_BEHAVIOR')
+  const [reportDesc, setReportDesc] = useState('')
+  const [toast, setToast] = useState<string | null>(null)
+  const [boardingOpen, setBoardingOpen] = useState(false)
+  const [absentIds, setAbsentIds] = useState<Set<string>>(new Set())
+  const [paymentsOpen, setPaymentsOpen] = useState(false)
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 4000)
+  }, [])
+
+  useNotifications({
+    onRequestNew: useCallback(({ tripId: incomingTripId, passengerName }: { tripId: string; passengerName: string }) => {
+      if (incomingTripId !== tripId) return
+      qc.invalidateQueries({ queryKey: ['trip-requests', tripId] })
+      qc.invalidateQueries({ queryKey: ['trip', tripId] })
+      showToast(`Nueva solicitud de ${passengerName}`)
+    }, [tripId, qc, showToast]),
+  })
 
   const { data: tripData } = useQuery({
     queryKey: ['trip', tripId],
@@ -34,16 +60,64 @@ export default function ManageRequests() {
   })
 
   const startTripMut = useMutation({
-    mutationFn: () => tripsApi.updateTripStatus(tripId!, 'IN_PROGRESS'),
+    mutationFn: (boardedRequestIds: string[]) => tripsApi.startTrip(tripId!, boardedRequestIds),
     onSuccess: () => {
+      setBoardingOpen(false)
       navigate(`/trips/${tripId}/active`)
     },
+    onError: (err: { response?: { data?: { message?: string; error?: string } } }) => {
+      showToast(err?.response?.data?.error ?? err?.response?.data?.message ?? 'Error al iniciar el viaje')
+    },
+  })
+
+  const completeTripMut = useMutation({
+    mutationFn: () => tripsApi.updateTripStatus(tripId!, 'COMPLETED'),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['trip', tripId] })
+      qc.invalidateQueries({ queryKey: ['trip-requests', tripId] })
+    },
+  })
+
+  const arrivalMut = useMutation({
+    mutationFn: ({ id, arrived }: { id: string; arrived: boolean }) =>
+      requestsApi.markArrival(id, arrived),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['trip-requests', tripId] }),
+  })
+
+  const { data: paymentStatusData, refetch: refetchPayments } = useQuery({
+    queryKey: ['trip-payment-status', tripId],
+    queryFn: () => paymentsApi.getTripPaymentStatus(tripId!).then(r => r.data.passengers),
+    enabled: !!tripId && paymentsOpen,
+  })
+
+  const confirmCashMut = useMutation({
+    mutationFn: (requestId: string) => paymentsApi.confirmCashPayment(requestId),
+    onSuccess: () => refetchPayments(),
+    onError: () => showToast('Error al confirmar el pago en efectivo'),
+  })
+
+  const reportMut = useMutation({
+    mutationFn: ({ passengerId, reason, description }: { passengerId: string; reason: ReportReason; description: string }) => {
+      const fd = new FormData()
+      fd.append('reportedId', passengerId)
+      fd.append('reason', reason)
+      fd.append('description', description)
+      return reportsApi.createReport(fd)
+    },
+    onSuccess: () => {
+      setReportTarget(null)
+      setReportDesc('')
+      setReportReason('INAPPROPRIATE_BEHAVIOR')
+      showToast('Reporte enviado correctamente')
+    },
+    onError: () => showToast('Error al enviar el reporte'),
   })
 
   const trip = tripData
   const requests = reqData ?? []
-  const pending = requests.filter((r) => r.status === 'PENDING')
+  const pending  = requests.filter((r) => r.status === 'PENDING')
   const accepted = requests.filter((r) => r.status === 'ACCEPTED')
+  const history  = requests.filter((r) => r.status === 'REJECTED' || r.status === 'CANCELLED')
 
   const depTime = trip
     ? new Date(trip.departureTime).toLocaleString('es-EC', {
@@ -124,21 +198,26 @@ export default function ManageRequests() {
             <section className="bg-surface-container-low rounded-xl p-6 border-l-4 border-tertiary">
               <h2 className="text-xl font-headline font-bold mb-4 text-tertiary">Control de Viaje</h2>
               <p className="text-sm text-on-surface-variant mb-6">
-                Cuando todos tus pasajeros estén a bordo o sea la hora de partida, inicia el viaje para comenzar a transmitir tu ubicación por GPS.
+                Cuando todos tus pasajeros estén a bordo, inicia el viaje. Podrás marcar quién no se presentó.
               </p>
               <button
-                onClick={() => startTripMut.mutate()}
-                disabled={startTripMut.isPending}
-                className="w-full bg-gradient-to-r from-tertiary/20 to-primary/20 hover:from-tertiary/30 hover:to-primary/30 border border-tertiary/30 text-tertiary font-headline font-bold py-4 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+                onClick={() => { setAbsentIds(new Set()); setBoardingOpen(true) }}
+                disabled={accepted.length === 0}
+                className="w-full bg-gradient-to-r from-tertiary/20 to-primary/20 hover:from-tertiary/30 hover:to-primary/30 border border-tertiary/30 text-tertiary font-headline font-bold py-4 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined">play_arrow</span>
-                {startTripMut.isPending ? 'Iniciando...' : 'Empezar Viaje'}
+                Empezar Viaje
               </button>
+              {accepted.length === 0 && (
+                <p className="text-xs text-on-surface-variant/60 text-center mt-2">
+                  Necesitas al menos un pasajero confirmado
+                </p>
+              )}
             </section>
           )}
 
           {trip?.status === 'IN_PROGRESS' && (
-            <section className="bg-surface-container-low rounded-xl p-6 border-l-4 border-primary">
+            <section className="bg-surface-container-low rounded-xl p-6 border-l-4 border-primary space-y-3">
               <h2 className="text-xl font-headline font-bold mb-4 text-primary">Viaje en Curso</h2>
               <button
                 onClick={() => navigate(`/trips/${tripId}/active`)}
@@ -147,6 +226,21 @@ export default function ManageRequests() {
                 <span className="material-symbols-outlined">map</span>
                 Ir al Mapa GPS
               </button>
+              <button
+                onClick={() => setPaymentsOpen(true)}
+                disabled={completeTripMut.isPending}
+                className="w-full bg-surface-container hover:bg-surface-container-high border border-primary/30 text-primary font-headline font-bold py-4 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined">check_circle</span>
+                {completeTripMut.isPending ? 'Completando...' : 'Completar Viaje'}
+              </button>
+            </section>
+          )}
+
+          {trip?.status === 'COMPLETED' && (
+            <section className="bg-surface-container-low rounded-xl p-6 border-l-4 border-on-surface-variant">
+              <h2 className="text-xl font-headline font-bold mb-2 text-on-surface-variant">Viaje Completado</h2>
+              <p className="text-sm text-on-surface-variant/70">Este viaje ha finalizado exitosamente.</p>
             </section>
           )}
 
@@ -154,7 +248,14 @@ export default function ManageRequests() {
           <div className="rounded-xl overflow-hidden h-48 relative">
             {tripData ? (
               <Suspense fallback={<div className="h-full w-full bg-surface-container flex items-center justify-center"><span className="material-symbols-outlined text-on-surface-variant/20 text-[80px]">map</span></div>}>
-                <RouteMap originZone={tripData.originZone} destinationZone={tripData.destinationZone} />
+                <RouteMap
+                  originZone={tripData.originZone}
+                  originLat={tripData.originLat}
+                  originLng={tripData.originLng}
+                  destinationZone={tripData.destinationZone}
+                  destLat={tripData.destLat}
+                  destLng={tripData.destLng}
+                />
               </Suspense>
             ) : (
               <div className="h-full w-full bg-surface-container flex items-center justify-center">
@@ -292,10 +393,16 @@ export default function ManageRequests() {
                 {accepted.map((req) => {
                   const p = req.passenger!
                   const initials = p.fullName.split(' ').slice(0, 2).map((n) => n[0]).join('')
+                  const arrived = !!req.arrivedAt
+                  const hasRating = !!req.rating
                   return (
                     <div
                       key={req.id}
-                      className="flex items-center justify-between p-4 rounded-xl bg-surface-container/50 border border-white/5"
+                      className={`flex items-center justify-between p-4 rounded-xl border transition-all ${
+                        arrived
+                          ? 'bg-primary/5 border-primary/20'
+                          : 'bg-surface-container/50 border-white/5'
+                      }`}
                     >
                       <div className="flex items-center gap-4">
                         <div className="relative">
@@ -305,10 +412,7 @@ export default function ManageRequests() {
                             </span>
                           </div>
                           <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary rounded-full border-2 border-surface-container flex items-center justify-center">
-                            <span
-                              className="material-symbols-outlined text-on-primary material-symbols-filled"
-                              style={{ fontSize: 12 }}
-                            >
+                            <span className="material-symbols-outlined text-on-primary material-symbols-filled" style={{ fontSize: 12 }}>
                               check
                             </span>
                           </div>
@@ -317,17 +421,46 @@ export default function ManageRequests() {
                           <h4 className="font-headline font-bold">{p.fullName}</h4>
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-primary font-bold">Aceptado</span>
-                            <span className="text-xs text-on-surface-variant">
-                              • {p.reputationScore.toFixed(1)} ★
-                            </span>
+                            <span className="text-xs text-on-surface-variant">• {p.reputationScore.toFixed(1)} ★</span>
                           </div>
                         </div>
                       </div>
-                      {/* Chat is decorative (Phase 7+) */}
                       <div className="flex gap-2">
-                        <div className="w-10 h-10 rounded-lg bg-surface-container-highest flex items-center justify-center text-on-surface-variant/40 cursor-not-allowed" title="Chat — próximamente">
-                          <span className="material-symbols-outlined">chat_bubble</span>
-                        </div>
+                        <button
+                          onClick={() => arrivalMut.mutate({ id: req.id, arrived: !arrived })}
+                          disabled={arrivalMut.isPending}
+                          className={`flex items-center gap-1.5 py-2 px-4 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                            arrived
+                              ? 'bg-primary text-on-primary'
+                              : 'border border-primary/30 text-primary hover:bg-primary/10'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-sm material-symbols-filled">
+                            {arrived ? 'check_circle' : 'radio_button_unchecked'}
+                          </span>
+                          {arrived ? 'Llegó' : 'Marcar llegada'}
+                        </button>
+                        {!hasRating ? (
+                          <button
+                            onClick={() => setRatingTarget({ requestId: req.id, driverName: p.fullName })}
+                            className="flex items-center gap-1 py-2 px-3 rounded-lg text-xs font-bold border border-primary/20 text-primary hover:bg-primary/10 transition-colors"
+                          >
+                            <span className="material-symbols-outlined text-sm material-symbols-filled">star</span>
+                            Calificar
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-1 py-2 px-3 rounded-lg text-xs font-bold text-primary border border-primary/10 bg-primary/5">
+                            <span className="material-symbols-outlined text-sm material-symbols-filled">star</span>
+                            {req.rating!.score}/5
+                          </div>
+                        )}
+                        <button
+                          onClick={() => setReportTarget({ passengerId: p.id, passengerName: p.fullName })}
+                          className="flex items-center gap-1 py-2 px-3 rounded-lg text-xs font-bold border border-error/20 text-error hover:bg-error/10 transition-colors"
+                          title="Reportar pasajero"
+                        >
+                          <span className="material-symbols-outlined text-sm">flag</span>
+                        </button>
                       </div>
                     </div>
                   )
@@ -340,23 +473,328 @@ export default function ManageRequests() {
               <div className="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
                 <div className="absolute inset-0 bg-tertiary rounded-full animate-pulse opacity-20" />
                 <div className="w-12 h-12 bg-tertiary rounded-full flex items-center justify-center">
-                  <span className="material-symbols-outlined text-on-tertiary material-symbols-filled">
-                    security
-                  </span>
+                  <span className="material-symbols-outlined text-on-tertiary material-symbols-filled">security</span>
                 </div>
               </div>
               <div>
-                <p className="text-tertiary font-headline font-bold uppercase tracking-widest text-xs mb-1">
-                  Monitoreo U-Ride
-                </p>
-                <p className="text-on-surface-variant text-sm">
-                  Tu viaje está bajo supervisión activa del equipo de transporte institucional.
-                </p>
+                <p className="text-tertiary font-headline font-bold uppercase tracking-widest text-xs mb-1">Monitoreo U-Ride</p>
+                <p className="text-on-surface-variant text-sm">Tu viaje está bajo supervisión activa del equipo de transporte institucional.</p>
               </div>
             </div>
           </section>
+
+          {/* Historial (rechazados / cancelados) */}
+          {history.length > 0 && (
+            <section className="bg-surface-container-low rounded-2xl p-8">
+              <h2 className="text-xl font-headline font-bold mb-6 text-on-surface-variant">
+                Historial de Solicitudes
+              </h2>
+              <div className="space-y-3">
+                {history.map((req) => {
+                  const p = req.passenger!
+                  const initials = p.fullName.split(' ').slice(0, 2).map((n) => n[0]).join('')
+                  const isRejected = req.status === 'REJECTED'
+                  const rejCount = req.rejectionCount ?? 0
+                  return (
+                    <div key={req.id} className="flex items-center justify-between p-4 rounded-xl bg-surface-container/30 border border-white/5 opacity-70">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center">
+                          <span className="font-headline font-bold text-xs text-on-surface-variant">{initials}</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-on-surface">{p.fullName}</p>
+                          {p.career && <p className="text-xs text-on-surface-variant">{p.career}</p>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {isRejected && (
+                          <span className="text-xs text-on-surface-variant">
+                            {rejCount}/3 rechazos{rejCount >= 3 ? ' · Bloqueado' : ''}
+                          </span>
+                        )}
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase ${
+                          isRejected
+                            ? 'bg-error/10 text-error border border-error/20'
+                            : 'bg-zinc-700/30 text-zinc-500 border border-zinc-700/30'
+                        }`}>
+                          {isRejected ? 'Rechazado' : 'Cancelado'}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
         </div>
       </main>
+
+      {/* Boarding modal */}
+      {boardingOpen && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-surface-container-low w-full max-w-md rounded-t-2xl md:rounded-2xl p-6 shadow-2xl border border-white/5">
+            <div className="flex items-center gap-3 mb-1">
+              <span className="material-symbols-outlined text-tertiary text-xl">people</span>
+              <h3 className="font-headline font-bold text-white text-lg">Lista de Asistencia</h3>
+            </div>
+            <p className="text-on-surface-variant text-sm mb-5">
+              Marca a los pasajeros que NO están presentes.
+            </p>
+
+            {/* Counter */}
+            <div className="flex items-baseline gap-1 mb-5">
+              <span className="text-4xl font-headline font-bold text-white">
+                {accepted.length - absentIds.size}
+              </span>
+              <span className="text-on-surface-variant">/ {accepted.length} pasajeros presentes</span>
+            </div>
+
+            <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
+              {accepted.map((req) => {
+                const p = req.passenger!
+                const initials = p.fullName.split(' ').slice(0, 2).map((n: string) => n[0]).join('')
+                const isAbsent = absentIds.has(req.id)
+                return (
+                  <button
+                    key={req.id}
+                    type="button"
+                    onClick={() => setAbsentIds((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(req.id)) next.delete(req.id)
+                      else next.add(req.id)
+                      return next
+                    })}
+                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
+                      isAbsent
+                        ? 'bg-error/10 border-error/30 opacity-60'
+                        : 'bg-surface-container border-white/5 hover:border-primary/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-surface-container-highest flex items-center justify-center flex-shrink-0">
+                        <span className="font-headline font-bold text-xs text-on-surface-variant">{initials}</span>
+                      </div>
+                      <span className={`text-sm font-bold ${isAbsent ? 'line-through text-on-surface-variant' : 'text-white'}`}>
+                        {p.fullName}
+                      </span>
+                    </div>
+                    <span className={`material-symbols-outlined text-lg ${isAbsent ? 'text-error' : 'text-primary'}`}>
+                      {isAbsent ? 'person_off' : 'person_check'}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setBoardingOpen(false)}
+                className="flex-1 py-3 rounded-xl text-on-surface-variant border border-white/10 hover:text-white transition-colors text-sm font-bold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  const boardedIds = accepted
+                    .filter((r) => !absentIds.has(r.id))
+                    .map((r) => r.id)
+                  if (boardedIds.length === 0) {
+                    showToast('Debes tener al menos un pasajero presente')
+                    return
+                  }
+                  startTripMut.mutate(boardedIds)
+                }}
+                disabled={startTripMut.isPending || accepted.length - absentIds.size === 0}
+                className="flex-1 bg-gradient-to-r from-tertiary/20 to-primary/20 hover:from-tertiary/30 hover:to-primary/30 border border-tertiary/30 text-tertiary font-headline font-bold py-3 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 disabled:opacity-40 flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">play_arrow</span>
+                {startTripMut.isPending ? 'Iniciando...' : 'Iniciar Viaje'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payments modal */}
+      {paymentsOpen && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-surface-container-low w-full max-w-md rounded-t-2xl md:rounded-2xl p-6 shadow-2xl border border-white/5">
+            <div className="flex items-center gap-3 mb-1">
+              <span className="material-symbols-outlined text-primary text-xl">payments</span>
+              <h3 className="font-headline font-bold text-white text-lg">Estado de Pagos</h3>
+            </div>
+            <p className="text-on-surface-variant text-sm mb-5">
+              Confirma todos los pagos antes de completar el viaje.
+            </p>
+
+            {!paymentStatusData ? (
+              <div className="flex justify-center py-6">
+                <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : paymentStatusData.length === 0 ? (
+              <p className="text-on-surface-variant text-sm text-center py-4">No hay pasajeros en este viaje.</p>
+            ) : (
+              <div className="space-y-3 mb-5 max-h-60 overflow-y-auto">
+                {paymentStatusData.map((p: PassengerPaymentStatus) => {
+                  const isConfirmed = p.paymentStatus === 'CONFIRMED'
+                  const isCashPending = p.paymentMethod === 'CASH' && p.paymentStatus === 'PENDING'
+                  const methodLabel = p.paymentMethod === 'CASH' ? 'Efectivo' : p.paymentMethod === 'WALLET' ? 'U-Wallet' : 'Tarjeta'
+                  return (
+                    <div key={p.requestId} className="flex items-center justify-between p-3 rounded-xl bg-surface-container border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-lg bg-surface-container-highest flex items-center justify-center flex-shrink-0">
+                          <span className="font-headline font-bold text-xs text-on-surface-variant">
+                            {p.passengerName[0]?.toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-white">{p.passengerName}</p>
+                          {isConfirmed ? (
+                            <span className="text-xs text-primary font-bold">Pagado · {methodLabel}</span>
+                          ) : isCashPending ? (
+                            <span className="text-xs text-amber-400 font-bold">Efectivo pendiente</span>
+                          ) : (
+                            <span className="text-xs text-error font-bold">Sin pago</span>
+                          )}
+                        </div>
+                      </div>
+                      {isCashPending && (
+                        <button
+                          onClick={() => confirmCashMut.mutate(p.requestId)}
+                          disabled={confirmCashMut.isPending}
+                          className="bg-gradient-primary text-on-primary font-bold text-xs uppercase tracking-wider px-3 py-2 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+                        >
+                          Confirmar
+                        </button>
+                      )}
+                      {isConfirmed && (
+                        <span className="material-symbols-outlined text-primary material-symbols-filled text-xl">check_circle</span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {paymentStatusData && paymentStatusData.some((p: PassengerPaymentStatus) => p.paymentStatus !== 'CONFIRMED') && (
+              <div className="flex items-start gap-2 bg-amber-900/20 border border-amber-500/30 rounded-xl p-3 mb-4">
+                <span className="material-symbols-outlined text-amber-400 text-sm">warning</span>
+                <p className="text-amber-300 text-xs">Aún hay pagos pendientes. Confirma todos antes de completar.</p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setPaymentsOpen(false)}
+                className="flex-1 py-3 rounded-xl text-on-surface-variant border border-white/10 hover:text-white transition-colors text-sm font-bold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  setPaymentsOpen(false)
+                  completeTripMut.mutate()
+                }}
+                disabled={
+                  completeTripMut.isPending ||
+                  !paymentStatusData ||
+                  paymentStatusData.some((p: PassengerPaymentStatus) => p.paymentStatus !== 'CONFIRMED')
+                }
+                className="flex-1 bg-gradient-primary text-on-primary font-headline font-bold py-3 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+                {completeTripMut.isPending ? 'Completando...' : 'Completar Viaje'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-surface-container-highest border border-primary/30 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+          <span className="material-symbols-outlined text-primary text-lg">notifications_active</span>
+          <span className="text-sm font-bold">{toast}</span>
+        </div>
+      )}
+
+      {ratingTarget && (
+        <RatingModal
+          tripRequestId={ratingTarget.requestId}
+          driverName={ratingTarget.driverName}
+          onClose={() => setRatingTarget(null)}
+        />
+      )}
+
+      {reportTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-surface-container-low w-full max-w-md rounded-2xl p-6 shadow-2xl border border-white/5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-headline font-bold text-white text-lg flex items-center gap-2">
+                <span className="material-symbols-outlined text-error">flag</span>
+                Reportar pasajero
+              </h3>
+              <button onClick={() => setReportTarget(null)} className="text-on-surface-variant hover:text-white">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <p className="text-sm text-on-surface-variant mb-5">
+              Reporte sobre <strong className="text-white">{reportTarget.passengerName}</strong>
+            </p>
+
+            <div className="space-y-2 mb-4">
+              {([
+                ['INAPPROPRIATE_BEHAVIOR', 'Comportamiento inapropiado'],
+                ['NO_SHOW', 'No se presentó'],
+                ['HARASSMENT', 'Acoso'],
+                ['FRAUD', 'Fraude'],
+                ['OTHER', 'Otro'],
+              ] as [ReportReason, string][]).map(([value, label]) => (
+                <button
+                  key={value}
+                  onClick={() => setReportReason(value)}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all border ${
+                    reportReason === value
+                      ? 'bg-error/15 border-error/40 text-error'
+                      : 'bg-surface-container border-white/5 text-on-surface-variant hover:border-white/20'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              value={reportDesc}
+              onChange={(e) => setReportDesc(e.target.value)}
+              placeholder="Describe lo que ocurrió (mínimo 10 caracteres)..."
+              rows={3}
+              className="w-full bg-surface-container border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-on-surface-variant/50 resize-none focus:outline-none focus:border-primary/40 mb-4"
+            />
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setReportTarget(null)}
+                className="flex-1 py-3 rounded-xl text-on-surface-variant border border-white/10 hover:text-white transition-colors text-sm font-bold"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (reportDesc.trim().length < 10) {
+                    showToast('La descripción debe tener al menos 10 caracteres')
+                    return
+                  }
+                  reportMut.mutate({ passengerId: reportTarget.passengerId, reason: reportReason, description: reportDesc.trim() })
+                }}
+                disabled={reportMut.isPending}
+                className="flex-1 bg-error/20 hover:bg-error/30 border border-error/40 text-error font-headline font-bold py-3 rounded-xl text-sm uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
+              >
+                {reportMut.isPending ? 'Enviando...' : 'Enviar Reporte'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <footer className="w-full py-12 px-8 bg-[#0e0e0e] border-t border-white/5">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">

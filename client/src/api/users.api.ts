@@ -7,6 +7,11 @@ export interface Vehicle {
   year: number
   plateNumber: string
   color: string
+  photoUrl?: string | null
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  rejectionNotes?: string | null
+  rejectionCount?: number
+  blockedUntil?: string | null
 }
 
 export interface UserProfile {
@@ -52,4 +57,15 @@ export const usersApi = {
 
   updateVehicle: (data: Partial<VehiclePayload>) =>
     apiClient.patch<{ vehicle: Vehicle }>('/users/me/vehicle', data),
+
+  uploadVehiclePhoto: (file: File) => {
+    const form = new FormData()
+    form.append('photo', file)
+    return apiClient.post<{ vehicle: Vehicle }>('/users/me/vehicle/photo', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
+  deleteVehicle: () =>
+    apiClient.delete('/users/me/vehicle'),
 }

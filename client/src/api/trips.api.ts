@@ -19,7 +19,11 @@ export interface Trip {
   id: string
   driverId: string
   originZone: string
+  originLat?: number | null
+  originLng?: number | null
   destinationZone: string
+  destLat?: number | null
+  destLng?: number | null
   departureTime: string
   totalSeats: number
   availableSeats: number
@@ -48,7 +52,11 @@ export interface GetTripsResponse {
 
 export interface CreateTripPayload {
   originZone: string
+  originLat?: number
+  originLng?: number
   destinationZone: string
+  destLat?: number
+  destLng?: number
   departureTime: string
   totalSeats: number
   pricePerSeat: number
@@ -66,6 +74,21 @@ export const tripsApi = {
   createTrip: (data: CreateTripPayload) =>
     apiClient.post<{ trip: Trip }>('/trips', data),
 
+  getMyTrips: (driverId: string, status?: string) =>
+    apiClient.get<GetTripsResponse>('/trips', { params: { driverId, status, limit: 50 } }),
+
   updateTripStatus: (id: string, status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') =>
     apiClient.patch<{ trip: Trip }>(`/trips/${id}/status`, { status }),
+
+  cancelTrip: (id: string) =>
+    apiClient.delete<{ trip: Trip }>(`/trips/${id}`),
+
+  startTrip: (id: string, boardedRequestIds: string[]) =>
+    apiClient.post<{ trip: Trip }>(`/trips/${id}/start`, { boardedRequestIds }),
+
+  updateTrip: (id: string, data: Partial<CreateTripPayload>) =>
+    apiClient.patch<{ trip: Trip }>(`/trips/${id}`, data),
+
+  safetyAck: (id: string) =>
+    apiClient.post<{ acknowledged: boolean }>(`/trips/${id}/safety-ack`),
 }

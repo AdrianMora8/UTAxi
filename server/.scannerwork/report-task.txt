@@ -1,0 +1,6 @@
+projectKey=utaxi-server
+serverUrl=http://localhost:9000
+serverVersion=26.5.0.122743
+dashboardUrl=http://localhost:9000/dashboard?id=utaxi-server
+ceTaskId=5d5e08ef-0605-486f-97cd-2f0c11539b16
+ceTaskUrl=http://localhost:9000/api/ce/task?id=5d5e08ef-0605-486f-97cd-2f0c11539b16

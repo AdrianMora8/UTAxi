@@ -1,0 +1,866 @@
+<testsuites id="" name="" tests="204" failures="0" skipped="204" errors="0" time="0.19875000000000007">
+<testsuite name="auth.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="chromium" tests="12" failures="0" skipped="12" time="0" errors="0">
+<testcase name="Forgot Password / Reset Password Flow - E2E › should show forgot-password form with email input" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Forgot Password / Reset Password Flow - E2E › should navigate to forgot-password via login page link" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Forgot Password / Reset Password Flow - E2E › should show reset-password form with email, code and password fields" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Forgot Password / Reset Password Flow - E2E › should show error when reset code is invalid" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should register a new user and redirect to verify-email" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should show verify-email form with code input" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should show error on invalid OTP code" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should login with valid credentials" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should reject login with incorrect password" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should show inline validation error for invalid email" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should navigate to register page from login link" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should redirect unauthenticated user from protected route" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="create-trip.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="chromium" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Create Trip - E2E › should redirect to login when not authenticated" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show the create trip form heading" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show campus picker with UTA campus options" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show destination field with search input" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show date, time, seats and price fields" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show campus validation error when submitting without campus" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show destination validation error when campus selected but no destination" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show date validation error when date is empty" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › Cancelar button navigates back to /trips" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › selecting a campus highlights it visually" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="home.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="chromium" tests="3" failures="0" skipped="3" time="0" errors="0">
+<testcase name="Home / - E2E › unauthenticated: / redirects to /login" classname="home.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Home / - E2E › authenticated: / redirects to /trips" classname="home.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Home / - E2E › unknown route redirects to /login when unauthenticated" classname="home.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="my-trips.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="chromium" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="My Trips - E2E › should redirect to login when not authenticated" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › should show Mis Viajes heading and Panel del Conductor" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › should show Activos and Completados tab buttons" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › should show Publicar Viaje link in header" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › Activos tab: shows trips or empty state &quot;Sin viajes activos&quot;" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › Completados tab: shows &quot;Sin viajes completados&quot; or completed trips" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › empty state Activos shows Publicar Viaje link" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › clicking Gestionar in a trip row navigates to requests page" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="payment.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="chromium" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Payment - E2E › should redirect to login when not authenticated" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › shows &quot;Solicitud no encontrada&quot; for invalid request ID" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › &quot;Volver a mis solicitudes&quot; link navigates to /requests" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › payment page shows Confirmar Pago heading and card form" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › payment page shows Confirmar Pago button and Cancelar Transacción link" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › payment page shows demo disclaimer" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › Cancelar Transacción navigates back to /requests" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › confirming payment shows ¡Pago Confirmado! and redirects" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="profile.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="chromium" tests="9" failures="0" skipped="9" time="0" errors="0">
+<testcase name="Profile - E2E › should redirect to login when not authenticated" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show user name as page heading" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show Información Personal section" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show profile form fields" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show Guardar Cambios button" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show vehicle section" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should save profile changes and show success state" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show edit button for profile info" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should navigate to /profile from navbar" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="requests.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="chromium" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="My Requests - E2E › should redirect to login when not authenticated" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › should show Mis Solicitudes heading and Panel de Pasajero" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › should show Activas and Historial tab buttons" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › should show U-Wallet sidebar with Recargar Saldo button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › Activas tab: shows requests or empty state with Buscar Viaje link" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › empty Activas state shows Buscar Viaje link to /trips" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › Historial tab: shows completed requests or empty state" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › pending request shows Cancelar Solicitud button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › accepted unpaid request shows Pagar Ahora button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › completed request shows Calificar button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="trips.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="chromium" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Trips Flow - E2E › should show trips list with heading" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should show sort buttons on trips list" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should navigate to trip detail on card click" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should show Solicitar Unirse button on a trip not owned by user" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should filter trips by origin zone" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should filter trips by destination zone" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should show empty state when no trips match filter" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should clear filters and show all trips again" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="firefox" tests="12" failures="0" skipped="12" time="0" errors="0">
+<testcase name="Forgot Password / Reset Password Flow - E2E › should show forgot-password form with email input" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Forgot Password / Reset Password Flow - E2E › should navigate to forgot-password via login page link" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Forgot Password / Reset Password Flow - E2E › should show reset-password form with email, code and password fields" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Forgot Password / Reset Password Flow - E2E › should show error when reset code is invalid" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should register a new user and redirect to verify-email" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should show verify-email form with code input" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should show error on invalid OTP code" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should login with valid credentials" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should reject login with incorrect password" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should show inline validation error for invalid email" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should navigate to register page from login link" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should redirect unauthenticated user from protected route" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="create-trip.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="firefox" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Create Trip - E2E › should redirect to login when not authenticated" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show the create trip form heading" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show campus picker with UTA campus options" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show destination field with search input" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show date, time, seats and price fields" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show campus validation error when submitting without campus" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show destination validation error when campus selected but no destination" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show date validation error when date is empty" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › Cancelar button navigates back to /trips" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › selecting a campus highlights it visually" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="home.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="firefox" tests="3" failures="0" skipped="3" time="0" errors="0">
+<testcase name="Home / - E2E › unauthenticated: / redirects to /login" classname="home.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Home / - E2E › authenticated: / redirects to /trips" classname="home.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Home / - E2E › unknown route redirects to /login when unauthenticated" classname="home.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="my-trips.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="firefox" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="My Trips - E2E › should redirect to login when not authenticated" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › should show Mis Viajes heading and Panel del Conductor" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › should show Activos and Completados tab buttons" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › should show Publicar Viaje link in header" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › Activos tab: shows trips or empty state &quot;Sin viajes activos&quot;" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › Completados tab: shows &quot;Sin viajes completados&quot; or completed trips" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › empty state Activos shows Publicar Viaje link" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › clicking Gestionar in a trip row navigates to requests page" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="payment.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="firefox" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Payment - E2E › should redirect to login when not authenticated" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › shows &quot;Solicitud no encontrada&quot; for invalid request ID" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › &quot;Volver a mis solicitudes&quot; link navigates to /requests" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › payment page shows Confirmar Pago heading and card form" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › payment page shows Confirmar Pago button and Cancelar Transacción link" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › payment page shows demo disclaimer" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › Cancelar Transacción navigates back to /requests" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › confirming payment shows ¡Pago Confirmado! and redirects" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="profile.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="firefox" tests="9" failures="0" skipped="9" time="0" errors="0">
+<testcase name="Profile - E2E › should redirect to login when not authenticated" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show user name as page heading" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show Información Personal section" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show profile form fields" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show Guardar Cambios button" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show vehicle section" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should save profile changes and show success state" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show edit button for profile info" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should navigate to /profile from navbar" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="requests.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="firefox" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="My Requests - E2E › should redirect to login when not authenticated" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › should show Mis Solicitudes heading and Panel de Pasajero" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › should show Activas and Historial tab buttons" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › should show U-Wallet sidebar with Recargar Saldo button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › Activas tab: shows requests or empty state with Buscar Viaje link" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › empty Activas state shows Buscar Viaje link to /trips" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › Historial tab: shows completed requests or empty state" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › pending request shows Cancelar Solicitud button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › accepted unpaid request shows Pagar Ahora button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › completed request shows Calificar button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="trips.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="firefox" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Trips Flow - E2E › should show trips list with heading" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should show sort buttons on trips list" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should navigate to trip detail on card click" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should show Solicitar Unirse button on a trip not owned by user" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should filter trips by origin zone" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should filter trips by destination zone" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should show empty state when no trips match filter" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should clear filters and show all trips again" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="webkit" tests="12" failures="0" skipped="12" time="0" errors="0">
+<testcase name="Forgot Password / Reset Password Flow - E2E › should show forgot-password form with email input" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Forgot Password / Reset Password Flow - E2E › should navigate to forgot-password via login page link" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Forgot Password / Reset Password Flow - E2E › should show reset-password form with email, code and password fields" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Forgot Password / Reset Password Flow - E2E › should show error when reset code is invalid" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should register a new user and redirect to verify-email" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should show verify-email form with code input" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should show error on invalid OTP code" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should login with valid credentials" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should reject login with incorrect password" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should show inline validation error for invalid email" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should navigate to register page from login link" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication Flow - E2E › should redirect unauthenticated user from protected route" classname="auth.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="create-trip.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="webkit" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Create Trip - E2E › should redirect to login when not authenticated" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show the create trip form heading" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show campus picker with UTA campus options" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show destination field with search input" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show date, time, seats and price fields" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show campus validation error when submitting without campus" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show destination validation error when campus selected but no destination" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › should show date validation error when date is empty" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › Cancelar button navigates back to /trips" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Create Trip - E2E › authenticated › selecting a campus highlights it visually" classname="create-trip.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="home.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="webkit" tests="3" failures="0" skipped="3" time="0" errors="0">
+<testcase name="Home / - E2E › unauthenticated: / redirects to /login" classname="home.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Home / - E2E › authenticated: / redirects to /trips" classname="home.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Home / - E2E › unknown route redirects to /login when unauthenticated" classname="home.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="my-trips.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="webkit" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="My Trips - E2E › should redirect to login when not authenticated" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › should show Mis Viajes heading and Panel del Conductor" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › should show Activos and Completados tab buttons" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › should show Publicar Viaje link in header" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › Activos tab: shows trips or empty state &quot;Sin viajes activos&quot;" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › Completados tab: shows &quot;Sin viajes completados&quot; or completed trips" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › empty state Activos shows Publicar Viaje link" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Trips - E2E › authenticated › clicking Gestionar in a trip row navigates to requests page" classname="my-trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="payment.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="webkit" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Payment - E2E › should redirect to login when not authenticated" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › shows &quot;Solicitud no encontrada&quot; for invalid request ID" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › &quot;Volver a mis solicitudes&quot; link navigates to /requests" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › payment page shows Confirmar Pago heading and card form" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › payment page shows Confirmar Pago button and Cancelar Transacción link" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › payment page shows demo disclaimer" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › Cancelar Transacción navigates back to /requests" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Payment - E2E › authenticated › confirming payment shows ¡Pago Confirmado! and redirects" classname="payment.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="profile.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="webkit" tests="9" failures="0" skipped="9" time="0" errors="0">
+<testcase name="Profile - E2E › should redirect to login when not authenticated" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show user name as page heading" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show Información Personal section" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show profile form fields" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show Guardar Cambios button" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show vehicle section" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should save profile changes and show success state" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should show edit button for profile info" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Profile - E2E › authenticated › should navigate to /profile from navbar" classname="profile.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="requests.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="webkit" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="My Requests - E2E › should redirect to login when not authenticated" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › should show Mis Solicitudes heading and Panel de Pasajero" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › should show Activas and Historial tab buttons" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › should show U-Wallet sidebar with Recargar Saldo button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › Activas tab: shows requests or empty state with Buscar Viaje link" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › empty Activas state shows Buscar Viaje link to /trips" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › Historial tab: shows completed requests or empty state" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › pending request shows Cancelar Solicitud button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › accepted unpaid request shows Pagar Ahora button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="My Requests - E2E › authenticated › completed request shows Calificar button" classname="requests.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="trips.spec.ts" timestamp="2026-05-22T02:52:22.786Z" hostname="webkit" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Trips Flow - E2E › should show trips list with heading" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should show sort buttons on trips list" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should navigate to trip detail on card click" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should show Solicitar Unirse button on a trip not owned by user" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should filter trips by origin zone" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should filter trips by destination zone" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should show empty state when no trips match filter" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Trips Flow - E2E › should clear filters and show all trips again" classname="trips.spec.ts">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import { ReportStatus, UserStatus } from '@prisma/client';
+import { ReportStatus, UserStatus, TripEventType } from '@prisma/client';
 import { prisma } from '../config/database';
 import { AdminService } from '../services/admin.service';
 
@@ -47,8 +47,77 @@ export async function getUsers(req: Request, res: Response) {
   res.json(result);
 }
 
+const suspendSchema = z.object({
+  status: z.nativeEnum(UserStatus),
+  suspendedUntil: z.string().datetime().optional(),
+});
+
 export async function updateUserStatus(req: Request, res: Response) {
-  const { status } = updateUserStatusSchema.parse(req.body);
-  const user = await svc.updateUserStatus(String(req.params.id), status);
+  const { status, suspendedUntil } = suspendSchema.parse(req.body);
+  const user = await svc.updateUserStatus(
+    String(req.params.id),
+    req.user!.id,
+    status,
+    suspendedUntil ? new Date(suspendedUntil) : undefined,
+  );
   res.json({ user });
+}
+
+export async function getUserDetail(req: Request, res: Response) {
+  const user = await svc.getUserDetail(String(req.params.id));
+  res.json({ user });
+}
+
+export async function getAdminTrips(req: Request, res: Response) {
+  const { status, page, limit } = req.query;
+  const result = await svc.getTrips({
+    status: status as string,
+    page: page ? Number(page) : 1,
+    limit: limit ? Number(limit) : 15,
+  });
+  res.json(result);
+}
+
+export async function cancelAdminTrip(req: Request, res: Response) {
+  const result = await svc.cancelTrip(String(req.params.id), req.user!.id);
+  res.json(result);
+}
+
+export async function getVehicles(req: Request, res: Response) {
+  const { status, page, limit } = req.query;
+  const result = await svc.getVehicles({
+    status: status as string,
+    page: page ? Number(page) : 1,
+    limit: limit ? Number(limit) : 20,
+  });
+  res.json(result);
+}
+
+export async function approveVehicle(req: Request, res: Response) {
+  const vehicle = await svc.approveVehicle(String(req.params.id));
+  res.json({ vehicle });
+}
+
+const rejectVehicleSchema = z.object({ notes: z.string().min(1).max(500) });
+
+export async function rejectVehicle(req: Request, res: Response) {
+  const { notes } = rejectVehicleSchema.parse(req.body);
+  const vehicle = await svc.rejectVehicle(String(req.params.id), notes);
+  res.json({ vehicle });
+}
+
+export async function getStats(_req: Request, res: Response) {
+  const stats = await svc.getStats();
+  res.json(stats);
+}
+
+export async function getEvents(req: Request, res: Response) {
+  const { tripId, type, page, limit } = req.query;
+  const result = await svc.getEvents({
+    tripId: tripId as string,
+    type: type as TripEventType,
+    page: page ? Number(page) : 1,
+    limit: limit ? Number(limit) : 20,
+  });
+  res.json(result);
 }

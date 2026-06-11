@@ -6,6 +6,8 @@ import ProtectedRoute from '@/components/layout/ProtectedRoute'
 const Login = lazy(() => import('@/pages/auth/Login'))
 const Register = lazy(() => import('@/pages/auth/Register'))
 const VerifyEmail = lazy(() => import('@/pages/auth/VerifyEmail'))
+const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword'))
+const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword'))
 const Home = lazy(() => import('@/pages/Home'))
 const TripList = lazy(() => import('@/pages/trips/TripList'))
 const TripDetail = lazy(() => import('@/pages/trips/TripDetail'))
@@ -13,8 +15,11 @@ const Profile = lazy(() => import('@/pages/profile/Profile'))
 const CreateTrip = lazy(() => import('@/pages/trips/CreateTrip'))
 const ManageRequests = lazy(() => import('@/pages/trips/ManageRequests'))
 const MyRequests = lazy(() => import('@/pages/requests/MyRequests'))
+const MyTrips = lazy(() => import('@/pages/trips/MyTrips'))
 const Payment = lazy(() => import('@/pages/payments/Payment'))
+const Wallet = lazy(() => import('@/pages/payments/Wallet'))
 const ActiveTrip = lazy(() => import('@/pages/trips/ActiveTrip'))
+const EditTrip = lazy(() => import('@/pages/trips/EditTrip'))
 const Report = lazy(() => import('@/pages/reports/Report'))
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
 
@@ -49,6 +54,22 @@ export const router = createBrowserRouter([
     element: (
       <Suspense fallback={<Loading />}>
         <VerifyEmail />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/forgot-password',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ForgotPassword />
+      </Suspense>
+    ),
+  },
+  {
+    path: '/reset-password',
+    element: (
+      <Suspense fallback={<Loading />}>
+        <ResetPassword />
       </Suspense>
     ),
   },
@@ -117,6 +138,14 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: '/my-trips',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <MyTrips />
+              </Suspense>
+            ),
+          },
+          {
             path: '/pay/:requestId',
             element: (
               <Suspense fallback={<Loading />}>
@@ -125,10 +154,26 @@ export const router = createBrowserRouter([
             ),
           },
           {
+            path: '/wallet',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <Wallet />
+              </Suspense>
+            ),
+          },
+          {
             path: '/trips/:id/active',
             element: (
               <Suspense fallback={<Loading />}>
                 <ActiveTrip />
+              </Suspense>
+            ),
+          },
+          {
+            path: '/trips/:id/edit',
+            element: (
+              <Suspense fallback={<Loading />}>
+                <EditTrip />
               </Suspense>
             ),
           },

@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { randomInt } from 'node:crypto';
 
 const SALT_ROUNDS = 10;
 
@@ -11,5 +12,5 @@ export async function comparePassword(plain: string, hashed: string): Promise<bo
 }
 
 export function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 1000000).toString();
 }

@@ -1,17 +1,18 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+import { Link, useNavigate } from 'react-router-dom'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { tripsApi } from '@/api/trips.api'
+import { usersApi } from '@/api/users.api'
+import CampusPicker from '@/components/CampusPicker'
+import { type Campus } from '@/constants/campuses'
+import DestinationPickerField, { type DestinationValue } from '@/components/map/DestinationPickerField'
 
 const RouteMap = lazy(() => import('@/components/map/RouteMap'))
 
 const schema = z.object({
-  originZone: z.string().min(2, 'Mínimo 2 caracteres').max(100),
-  destinationZone: z.string().min(2, 'Mínimo 2 caracteres').max(100),
   date: z.string().min(1, 'Selecciona una fecha'),
   time: z.string().min(1, 'Selecciona una hora'),
   totalSeats: z.coerce.number().int().min(1, 'Mínimo 1').max(8, 'Máximo 8'),
@@ -27,6 +28,37 @@ export default function CreateTrip() {
   const navigate = useNavigate()
   const [serverError, setServerError] = useState('')
 
+  const { data: profileData, isLoading: profileLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => usersApi.getMe().then((r) => r.data),
+    staleTime: 60_000,
+  })
+  const hasVehicle = !!profileData?.user?.vehicle
+
+  if (!profileLoading && !hasVehicle) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
+        <div className="w-24 h-24 rounded-full bg-surface-container-low flex items-center justify-center mb-8 border border-white/5">
+          <span className="material-symbols-outlined text-4xl text-zinc-600">directions_car</span>
+        </div>
+        <h2 className="text-3xl font-headline font-bold text-white mb-3">Necesitas registrar un vehículo</h2>
+        <p className="text-on-surface-variant max-w-sm mb-8">
+          Para publicar viajes primero debes registrar tu vehículo en tu perfil.
+        </p>
+        <Link
+          to="/profile"
+          className="bg-gradient-primary text-on-primary px-8 py-3 rounded-xl font-headline font-bold uppercase tracking-tighter hover:shadow-[0_0_20px_rgba(156,255,147,0.4)] transition-all"
+        >
+          Ir a mi Perfil
+        </Link>
+      </div>
+    )
+  }
+  const [selectedCampus, setSelectedCampus] = useState<Campus | null>(null)
+  const [campusError, setCampusError] = useState('')
+  const [destination, setDestination] = useState<DestinationValue | null>(null)
+  const [destError, setDestError] = useState('')
+
   const {
     register,
     handleSubmit,
@@ -39,15 +71,17 @@ export default function CreateTrip() {
   })
 
   const seats = watch('totalSeats') ?? 3
-  const origin = watch('originZone') ?? ''
-  const destination = watch('destinationZone') ?? ''
 
   const createMut = useMutation({
     mutationFn: (data: FormData) => {
       const departureTime = new Date(`${data.date}T${data.time}:00`).toISOString()
       return tripsApi.createTrip({
-        originZone: data.originZone,
-        destinationZone: data.destinationZone,
+        originZone: selectedCampus!.label,
+        originLat: selectedCampus!.lat,
+        originLng: selectedCampus!.lng,
+        destinationZone: destination!.address,
+        destLat: destination!.lat,
+        destLng: destination!.lng,
         departureTime,
         totalSeats: data.totalSeats,
         pricePerSeat: data.pricePerSeat,
@@ -59,7 +93,7 @@ export default function CreateTrip() {
     },
     onError: (err: unknown) => {
       const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ??
+        (err as { response?: { data?: { message?: string; error?: string } } })?.response?.data?.error ?? (err as any)?.response?.data?.message ??
         'Error al publicar el viaje'
       setServerError(msg)
     },
@@ -80,48 +114,40 @@ export default function CreateTrip() {
             </p>
           </header>
 
-          <form onSubmit={handleSubmit((d) => createMut.mutate(d))} className="space-y-8">
+          <form
+            onSubmit={handleSubmit((d) => {
+              let ok = true
+              if (!selectedCampus) { setCampusError('Selecciona el campus de origen'); ok = false }
+              else setCampusError('')
+              if (!destination) { setDestError('Elige el destino en el mapa'); ok = false }
+              else setDestError('')
+              if (ok) createMut.mutate(d)
+            })}
+            className="space-y-8"
+          >
 
             {/* Route group */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
+            <div className="space-y-6">
+              <div className="space-y-3">
                 <label className="text-xs font-bold uppercase tracking-widest text-primary-container block">
-                  Punto de Partida
+                  Campus de Origen
                 </label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary text-lg">
-                    location_on
-                  </span>
-                  <input
-                    {...register('originZone')}
-                    type="text"
-                    className="w-full pl-12 pr-4 py-4 bg-surface-container-highest rounded-xl border-none focus:ring-1 focus:ring-primary/40 transition-all text-on-surface placeholder:text-zinc-600 outline-none"
-                    placeholder="Ej: Ficoa, Ambato"
-                  />
-                </div>
-                {errors.originZone && (
-                  <p className="text-xs text-error">{errors.originZone.message}</p>
-                )}
+                <CampusPicker
+                  value={selectedCampus}
+                  onChange={(c) => { setSelectedCampus(c); setCampusError('') }}
+                  error={campusError}
+                />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <label className="text-xs font-bold uppercase tracking-widest text-primary-container block">
                   Punto de Llegada
                 </label>
-                <div className="relative">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-tertiary text-lg">
-                    flag
-                  </span>
-                  <input
-                    {...register('destinationZone')}
-                    type="text"
-                    className="w-full pl-12 pr-4 py-4 bg-surface-container-highest rounded-xl border-none focus:ring-1 focus:ring-primary/40 transition-all text-on-surface placeholder:text-zinc-600 outline-none"
-                    placeholder="Ej: Campus Huachi o Dirección"
-                  />
-                </div>
-                {errors.destinationZone && (
-                  <p className="text-xs text-error">{errors.destinationZone.message}</p>
-                )}
+                <DestinationPickerField
+                  value={destination}
+                  onChange={(val) => { setDestination(val); setDestError('') }}
+                  error={destError}
+                />
               </div>
             </div>
 
@@ -257,12 +283,13 @@ export default function CreateTrip() {
             {/* Route preview card */}
             <div className="relative h-[360px] rounded-3xl overflow-hidden shadow-2xl bg-surface-container-high">
               <Suspense fallback={<div className="h-full w-full flex items-center justify-center"><span className="material-symbols-outlined text-on-surface-variant/10 text-[160px]">map</span></div>}>
-                <RouteMap 
-                  originZone={origin} 
-                  destinationZone={destination} 
-                  interactive 
-                  onOriginSelect={(address) => setValue('originZone', address, { shouldValidate: true })}
-                  onDestinationSelect={(address) => setValue('destinationZone', address, { shouldValidate: true })}
+                <RouteMap
+                  originZone={selectedCampus?.label ?? ''}
+                  originLat={selectedCampus?.lat}
+                  originLng={selectedCampus?.lng}
+                  destinationZone={destination?.address ?? ''}
+                  destLat={destination?.lat}
+                  destLng={destination?.lng}
                 />
               </Suspense>
               {/* Glass overlay */}
@@ -281,10 +308,10 @@ export default function CreateTrip() {
                   </div>
                   <div className="flex flex-col gap-4 text-sm font-medium">
                     <span className="text-on-surface-variant">
-                      {origin || 'Punto de Encuentro'}
+                      {selectedCampus?.label || 'Campus de Origen'}
                     </span>
                     <span className="text-on-surface-variant">
-                      {destination || 'Destino Campus'}
+                      {destination?.address || 'Destino'}
                     </span>
                   </div>
                 </div>

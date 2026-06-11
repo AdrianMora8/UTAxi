@@ -1,0 +1,30 @@
+{
+  "cli": {
+    "version": ">= 19.1.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51Tazqw31Iht1pIJs09L8mG6QRoDjPSc45d1hiUPxXBmRTsY5FdxnrzLl6o8rwKIi1Em5xC7dUAZhPdzfOHosTPRE00k20tzMZR"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51Tazqw31Iht1pIJs09L8mG6QRoDjPSc45d1hiUPxXBmRTsY5FdxnrzLl6o8rwKIi1Em5xC7dUAZhPdzfOHosTPRE00k20tzMZR"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY": "pk_test_51Tazqw31Iht1pIJs09L8mG6QRoDjPSc45d1hiUPxXBmRTsY5FdxnrzLl6o8rwKIi1Em5xC7dUAZhPdzfOHosTPRE00k20tzMZR"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

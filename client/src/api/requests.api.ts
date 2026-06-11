@@ -6,6 +6,8 @@ export interface TripRequest {
   passengerId: string
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED' | 'COMPLETED'
   message?: string | null
+  rejectionCount: number
+  arrivedAt?: string | null
   createdAt: string
   passenger?: {
     id: string
@@ -36,6 +38,7 @@ export interface TripRequest {
   payment?: {
     id: string
     status: 'PENDING' | 'CONFIRMED' | 'FAILED' | 'REFUNDED'
+    amount: number
     confirmedAt: string | null
   } | null
 }
@@ -50,8 +53,11 @@ export const requestsApi = {
   respondToRequest: (id: string, action: 'ACCEPT' | 'REJECT') =>
     apiClient.patch<{ request: TripRequest }>(`/requests/${id}/respond`, { action }),
 
+  markArrival: (id: string, arrived: boolean) =>
+    apiClient.patch<{ request: TripRequest }>(`/requests/${id}/arrival`, { arrived }),
+
   cancelRequest: (id: string) =>
-    apiClient.delete(`/requests/${id}`),
+    apiClient.delete<{ refunded: boolean; amount?: number; message: string }>(`/requests/${id}`),
 
   getMyRequests: () =>
     apiClient.get<{ requests: TripRequest[] }>('/requests/my'),

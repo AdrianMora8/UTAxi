@@ -1,0 +1,17 @@
+# Subflow reutilizable: iniciar sesión
+# Parámetros esperados: ${EMAIL}, ${PASSWORD}
+# Pre-condición: la pantalla de Login debe estar visible (texto "U-Ride")
+
+- tapOn:
+    text: "estudiante@uta.edu.ec"  # placeholder del campo email
+- clearText
+- inputText: ${EMAIL}
+- tapOn:
+    text: "••••••••"  # placeholder del campo password
+- clearText
+- inputText: ${PASSWORD}
+- tapOn:
+    text: "Iniciar Sesión  →"
+- assertVisible:
+    text: "Buscar Viaje"
+    timeout: 8000

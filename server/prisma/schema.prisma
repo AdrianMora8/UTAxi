@@ -20,6 +20,12 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum VehicleStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum TripStatus {
   SCHEDULED
   IN_PROGRESS
@@ -32,6 +38,7 @@ enum RequestStatus {
   ACCEPTED
   REJECTED
   CANCELLED
+  COMPLETED
 }
 
 enum PaymentStatus {
@@ -40,6 +47,25 @@ enum PaymentStatus {
   CONFIRMED
   FAILED
   REFUNDED
+}
+
+enum PaymentMethod {
+  CARD
+  WALLET
+  CASH
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum TransactionConcept {
+  TOPUP
+  PAYMENT
+  REFUND
+  CANCELLATION_FEE
+  TRIP_EARNING
 }
 
 enum ReportStatus {
@@ -57,53 +83,80 @@ enum ReportReason {
   OTHER
 }
 
+enum TripEventType {
+  TRIP_PUBLISHED
+  TRIP_STARTED
+  TRIP_COMPLETED
+  TRIP_CANCELLED
+  TRIP_SCHEDULE_CHANGED
+  REQUEST_SENT
+  REQUEST_ACCEPTED
+  REQUEST_REJECTED
+  REQUEST_CANCELLED
+  PASSENGER_NO_SHOW
+}
+
 // ─── Models ───────────────────────────────────────────────────────────────────
 
 model User {
-  id                String     @id @default(cuid())
-  email             String     @unique
-  passwordHash      String
-  fullName          String
-  career            String?
-  phone             String?
-  photoUrl          String?
-  neighborhood      String?
-  role              Role       @default(STUDENT)
-  status            UserStatus @default(ACTIVE)
-  emailVerified     Boolean    @default(false)
-  emailVerifyToken  String?
-  emailVerifyExpiry DateTime?
-  refreshToken      String?
-  reputationScore   Float      @default(5.0)
-  totalTrips        Int        @default(0)
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  id                   String     @id @default(cuid())
+  email                String     @unique
+  passwordHash         String
+  fullName             String
+  career               String?
+  phone                String?
+  photoUrl             String?
+  neighborhood         String?
+  role                 Role       @default(STUDENT)
+  status               UserStatus @default(ACTIVE)
+  suspendedUntil       DateTime?
+  emailVerified        Boolean    @default(false)
+  emailVerifyToken     String?
+  emailVerifyExpiry    DateTime?
+  passwordResetToken   String?
+  passwordResetExpiry  DateTime?
+  refreshToken         String?
+  reputationScore      Float      @default(5.0)
+  totalTrips           Int        @default(0)
+  walletBalance        Decimal    @default(0) @db.Decimal(10, 2)
+  pendingBalance       Decimal    @default(0) @db.Decimal(10, 2)
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
 
-  tripsAsDriver  Trip[]         @relation("DriverTrips")
-  vehicle        Vehicle?
-  tripRequests   TripRequest[]  @relation("PassengerRequests")
-  ratingsGiven   Rating[]       @relation("RaterUser")
-  ratingsReceived Rating[]      @relation("RatedUser")
-  reportsFiled   Report[]       @relation("ReporterUser")
-  reportsReceived Report[]      @relation("ReportedUser")
-  reportReviews  ReportReview[]
-  payments       Payment[]
+  tripsAsDriver       Trip[]               @relation("DriverTrips")
+  vehicle             Vehicle?
+  tripRequests        TripRequest[]        @relation("PassengerRequests")
+  ratingsGiven        Rating[]             @relation("RaterUser")
+  ratingsReceived     Rating[]             @relation("RatedUser")
+  reportsFiled        Report[]             @relation("ReporterUser")
+  reportsReceived     Report[]             @relation("ReportedUser")
+  reportReviews       ReportReview[]
+  payments            Payment[]
+  walletTransactions  WalletTransaction[]
+  tripEvents          TripEvent[]          @relation("TripEventActor")
+  warningsReceived    UserWarning[]        @relation("WarnedUser")
+  warningsIssued      UserWarning[]        @relation("AdminIssuer")
 
   @@index([email])
   @@map("users")
 }
 
 model Vehicle {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  brand       String
-  model       String
-  year        Int
-  plateNumber String
-  color       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String        @id @default(cuid())
+  userId         String        @unique
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  brand          String
+  model          String
+  year           Int
+  plateNumber    String
+  color          String
+  photoUrl       String?
+  status         VehicleStatus @default(PENDING)
+  rejectionNotes String?
+  rejectionCount Int           @default(0)
+  blockedUntil   DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   @@map("vehicles")
 }
@@ -113,19 +166,25 @@ model Trip {
   driverId        String
   driver          User       @relation("DriverTrips", fields: [driverId], references: [id])
   originZone      String
+  originLat       Float?
+  originLng       Float?
   destinationZone String
+  destLat         Float?
+  destLng         Float?
   departureTime   DateTime
   totalSeats      Int
   availableSeats  Int
   pricePerSeat    Decimal    @db.Decimal(8, 2)
-  notes           String?
-  rules           String?
-  status          TripStatus @default(SCHEDULED)
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  notes                  String?
+  rules                  String?
+  status                 TripStatus @default(SCHEDULED)
+  departureTimeChangedAt DateTime?
+  createdAt              DateTime   @default(now())
+  updatedAt              DateTime   @updatedAt
 
   requests TripRequest[]
   payments Payment[]
+  events   TripEvent[]
 
   @@index([destinationZone, departureTime, availableSeats, status])
   @@index([driverId])
@@ -133,18 +192,21 @@ model Trip {
 }
 
 model TripRequest {
-  id          String        @id @default(cuid())
-  tripId      String
-  trip        Trip          @relation(fields: [tripId], references: [id])
-  passengerId String
-  passenger   User          @relation("PassengerRequests", fields: [passengerId], references: [id])
-  status      RequestStatus @default(PENDING)
-  message     String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             String        @id @default(cuid())
+  tripId         String
+  trip           Trip          @relation(fields: [tripId], references: [id])
+  passengerId    String
+  passenger      User          @relation("PassengerRequests", fields: [passengerId], references: [id])
+  status         RequestStatus @default(PENDING)
+  message                String?
+  rejectionCount         Int           @default(0)
+  arrivedAt              DateTime?
+  scheduleChangeDeadline DateTime?
+  createdAt              DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   payment Payment?
-  rating  Rating?
+  ratings Rating[]
 
   @@unique([tripId, passengerId])
   @@index([tripId, status])
@@ -160,9 +222,10 @@ model Payment {
   trip            Trip          @relation(fields: [tripId], references: [id])
   payerId         String
   payer           User          @relation(fields: [payerId], references: [id])
-  amount          Decimal       @db.Decimal(8, 2)
-  stripePaymentId String?       @unique
-  status          PaymentStatus @default(PENDING)
+  amount          Decimal        @db.Decimal(8, 2)
+  method          PaymentMethod  @default(CARD)
+  stripePaymentId String?        @unique
+  status          PaymentStatus  @default(PENDING)
   confirmedAt     DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -173,7 +236,7 @@ model Payment {
 
 model Rating {
   id            String      @id @default(cuid())
-  tripRequestId String      @unique
+  tripRequestId String
   tripRequest   TripRequest @relation(fields: [tripRequestId], references: [id])
   raterId       String
   rater         User        @relation("RaterUser", fields: [raterId], references: [id])
@@ -184,6 +247,7 @@ model Rating {
   raterRole     String
   createdAt     DateTime    @default(now())
 
+  @@unique([tripRequestId, raterId])
   @@index([ratedId])
   @@map("ratings")
 }
@@ -220,6 +284,21 @@ model ReportReview {
   @@map("report_reviews")
 }
 
+model WalletTransaction {
+  id               String             @id @default(cuid())
+  userId           String
+  user             User               @relation(fields: [userId], references: [id])
+  amount           Decimal            @db.Decimal(10, 2)
+  type             TransactionType
+  concept          TransactionConcept
+  description      String?
+  relatedRequestId String?
+  createdAt        DateTime           @default(now())
+
+  @@index([userId, createdAt])
+  @@map("wallet_transactions")
+}
+
 model SafetyAcknowledgment {
   id             String   @id @default(cuid())
   userId         String
@@ -228,4 +307,32 @@ model SafetyAcknowledgment {
 
   @@unique([userId, tripId])
   @@map("safety_acknowledgments")
+}
+
+model UserWarning {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("WarnedUser", fields: [userId], references: [id])
+  adminId   String
+  admin     User     @relation("AdminIssuer", fields: [adminId], references: [id])
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("user_warnings")
+}
+
+model TripEvent {
+  id        String        @id @default(cuid())
+  tripId    String
+  trip      Trip          @relation(fields: [tripId], references: [id])
+  actorId   String?
+  actor     User?         @relation("TripEventActor", fields: [actorId], references: [id])
+  type      TripEventType
+  metadata  Json?
+  createdAt DateTime      @default(now())
+
+  @@index([tripId])
+  @@index([createdAt])
+  @@map("trip_events")
 }

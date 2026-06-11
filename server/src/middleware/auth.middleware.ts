@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../utils/jwt';
 import { AppError } from './errorHandler';
 import { prisma } from '../config/database';
+import { UserRole } from '@prisma/client';
 
 export async function requireAuth(req: Request, _res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization;
@@ -12,7 +13,7 @@ export async function requireAuth(req: Request, _res: Response, next: NextFuncti
   const token = header.split(' ')[1];
   try {
     const payload = verifyAccessToken(token);
-    req.user = { id: payload.userId, email: payload.email, role: payload.role as any };
+    req.user = { id: payload.userId, email: payload.email, role: payload.role as UserRole };
 
     // Auto-reactivate if temporary suspension has expired
     const user = await prisma.user.findUnique({

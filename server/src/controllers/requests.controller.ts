@@ -20,13 +20,14 @@ export async function createRequest(req: Request, res: Response) {
 
   // Notificar al conductor en tiempo real
   const trip = await prisma.trip.findUnique({ where: { id: String(req.params.tripId) } });
-  if (trip) {
-    emitToUser(trip.driverId, 'request:new', {
-      requestId: request.id,
-      tripId: trip.id,
-      passengerName: (request as any).passenger?.fullName ?? 'Pasajero',
-    });
-  }
+    if (trip) {
+      const reqData = request as unknown as { passenger?: { fullName?: string } };
+      emitToUser(trip.driverId, 'request:new', {
+        requestId: request.id,
+        tripId: trip.id,
+        passengerName: reqData.passenger?.fullName ?? 'Pasajero',
+      });
+    }
 
   res.status(201).json({ request });
 }
@@ -40,16 +41,24 @@ export async function respondToRequest(req: Request, res: Response) {
   const { action } = respondSchema.parse(req.body);
   const request = await svc.respond(String(req.params.id), req.user!.id, action);
 
-  const tripId = (request as any).tripId ?? (request as any).trip?.id;
+  const reqData = request as unknown as {
+    tripId?: string;
+    trip?: { id: string };
+    rejectionCount?: number;
+    passengerId?: string;
+  };
+  const tripId = reqData.tripId ?? reqData.trip?.id;
   const payload = {
     requestId: request.id,
     tripId,
     status: request.status,
-    rejectionCount: (request as any).rejectionCount ?? 0,
+    rejectionCount: reqData.rejectionCount ?? 0,
   };
 
   // Notificar al pasajero directamente via su sala personal
-  emitToUser((request as any).passengerId, 'request:update', payload);
+  if (reqData.passengerId) {
+    emitToUser(reqData.passengerId, 'request:update', payload);
+  }
   // Notificar también a la sala del viaje (por si el pasajero está en TripDetail)
   emitToTrip(tripId, 'request:update', payload);
 

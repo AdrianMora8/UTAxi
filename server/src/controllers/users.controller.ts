@@ -53,7 +53,8 @@ export async function updateVehicle(req: Request, res: Response) {
 export async function uploadVehiclePhoto(req: Request, res: Response) {
   if (!req.file) throw new Error('No se recibió ninguna imagen');
 
-  const photoUrl = (req.file as any).secure_url ?? (req.file as any).path;
+  const file = req.file as Express.Multer.File & { secure_url?: string };
+  const photoUrl = file.secure_url ?? file.path;
   const vehicle = await svc.updateVehiclePhoto(req.user!.id, photoUrl);
   res.json({ vehicle });
 }

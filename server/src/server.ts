@@ -10,6 +10,7 @@ const PORT = Number.parseInt(env.PORT, 10);
 
 initSocket(httpServer);
 
+/* eslint-disable no-console */
 httpServer.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
   console.log(`🌍 Entorno: ${env.NODE_ENV}`);
@@ -17,14 +18,16 @@ httpServer.listen(PORT, () => {
   console.log(`🔌 Socket.io listo`);
 });
 
-process.on('SIGTERM', async () => {
+process.on('SIGTERM', () => {
   console.log('SIGTERM recibido — cerrando servidor...');
-  await prisma.$disconnect();
-  httpServer.close(() => process.exit(0));
+  prisma.$disconnect()
+    .catch(console.error)
+    .finally(() => httpServer.close(() => process.exit(0)));
 });
 
-process.on('SIGINT', async () => {
+process.on('SIGINT', () => {
   console.log('\nSIGINT recibido — cerrando servidor...');
-  await prisma.$disconnect();
-  httpServer.close(() => process.exit(0));
+  prisma.$disconnect()
+    .catch(console.error)
+    .finally(() => httpServer.close(() => process.exit(0)));
 });

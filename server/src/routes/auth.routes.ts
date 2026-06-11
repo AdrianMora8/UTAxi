@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { register, verifyEmail, resendCode, login, refresh, logout, forgotPassword, resetPassword } from '../controllers/auth.controller';
-import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -37,7 +36,7 @@ const resetPasswordSchema = z.object({
 // ─── Helper de validación ────────────────────────────────────────────────────
 
 function validate<T>(schema: z.ZodSchema<T>) {
-  return (req: any, _res: any, next: any) => {
+  return (req: import('express').Request, _res: import('express').Response, next: import('express').NextFunction) => {
     schema.parse(req.body);
     next();
   };

@@ -20,4 +20,4 @@ async function verifyAllUsers() {
   }
 }
 
-verifyAllUsers();
+verifyAllUsers().catch(console.error);

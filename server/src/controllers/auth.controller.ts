@@ -177,7 +177,8 @@ export async function login(req: Request, res: Response): Promise<void> {
 
 export async function refresh(req: Request, res: Response): Promise<void> {
   try {
-    const token = req.cookies?.refreshToken;
+    const cookies = req.cookies as Record<string, string | undefined> | undefined;
+    const token = cookies?.refreshToken;
     if (!token) {
       res.status(401).json({ error: 'Refresh token no encontrado en las cookies' });
       return;
@@ -202,7 +203,8 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 }
 
 export async function logout(req: Request, res: Response): Promise<void> {
-  const token = req.cookies?.refreshToken;
+  const cookies = req.cookies as Record<string, string | undefined> | undefined;
+  const token = cookies?.refreshToken;
 
   if (token) {
     try {

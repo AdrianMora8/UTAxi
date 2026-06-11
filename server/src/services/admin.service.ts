@@ -1,4 +1,4 @@
-import { PrismaClient, ReportStatus, UserStatus, TripEventType } from '@prisma/client';
+import { PrismaClient, ReportStatus, UserStatus, TripEventType, Prisma } from '@prisma/client';
 import { AppError } from '../middleware/errorHandler';
 
 export class AdminService {
@@ -79,7 +79,7 @@ export class AdminService {
     // WARNED → REVIEWED (acción intermedia), DISMISSED/SUSPENDED → RESOLVED
     const newStatus = action === 'WARNED' ? ReportStatus.REVIEWED : ReportStatus.RESOLVED;
 
-    const ops: any[] = [
+    const ops: Prisma.PrismaPromise<unknown>[] = [
       this.prisma.report.update({
         where: { id: reportId },
         data: { status: newStatus },
@@ -90,7 +90,7 @@ export class AdminService {
     ];
 
     if (action === 'SUSPENDED') {
-      const data: any = { status: UserStatus.SUSPENDED };
+      const data: Prisma.UserUpdateInput = { status: UserStatus.SUSPENDED };
       if (suspendedUntil) data.suspendedUntil = suspendedUntil;
       ops.push(this.prisma.user.update({
         where: { id: report.reportedId },
@@ -121,7 +121,7 @@ export class AdminService {
     const skip = (page - 1) * limit;
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    const where: any = {};
+    const where: Prisma.UserWhereInput = {};
     if (filters.status) where.status = filters.status;
     if (filters.search) {
       where.OR = [
@@ -168,7 +168,7 @@ export class AdminService {
       return { ...updated, ...warningResult };
     }
 
-    const data: any = { status };
+    const data: Prisma.UserUpdateInput = { status };
     if (status === 'SUSPENDED' && suspendedUntil) {
       data.suspendedUntil = suspendedUntil;
     } else if (status !== 'SUSPENDED') {
@@ -226,7 +226,7 @@ export class AdminService {
     const page = filters.page ?? 1;
     const limit = Math.min(filters.limit ?? 20, 50);
     const skip = (page - 1) * limit;
-    const where: any = {};
+    const where: Prisma.VehicleWhereInput = {};
     if (filters.status) where.status = filters.status;
 
     const [vehicles, total] = await this.prisma.$transaction([
@@ -280,7 +280,7 @@ export class AdminService {
     const page = filters.page ?? 1;
     const limit = Math.min(filters.limit ?? 15, 50);
     const skip = (page - 1) * limit;
-    const where: any = {};
+    const where: Prisma.TripWhereInput = {};
     if (filters.status) where.status = filters.status;
 
     const [trips, total] = await this.prisma.$transaction([
@@ -314,20 +314,23 @@ export class AdminService {
     if (trip.status === 'CANCELLED') throw new AppError(400, 'El viaje ya está cancelado');
     if (trip.status === 'COMPLETED') throw new AppError(400, 'No se puede cancelar un viaje completado');
 
-    const ops: any[] = [
+    const ops: Prisma.PrismaPromise<unknown>[] = [
       this.prisma.trip.update({ where: { id: tripId }, data: { status: 'CANCELLED' } }),
       this.prisma.tripRequest.updateMany({
         where: { tripId, status: { in: ['ACCEPTED', 'PENDING'] } },
         data: { status: 'CANCELLED' },
       }),
       this.prisma.tripEvent.create({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         data: { tripId, type: 'TRIP_CANCELLED', actorId: adminId, metadata: { reason: 'admin_action' } as any },
       }),
     ];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const paidRequests = trip.requests.filter((r: any) => r.payment?.status === 'CONFIRMED');
     for (const r of paidRequests) {
-      const amount = r.payment!.amount;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const amount = (r as any).payment!.amount;
       ops.push(
         this.prisma.payment.update({ where: { id: r.payment!.id }, data: { status: 'REFUNDED' } }),
         this.prisma.user.update({ where: { id: r.passenger.id }, data: { walletBalance: { increment: amount } } }),

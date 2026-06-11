@@ -38,7 +38,7 @@ const vehiclePhotoStorage = new CloudinaryStorage({
     folder: 'utaxi/vehicles',
     allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
     transformation: [{ width: 1200, height: 900, crop: 'limit', quality: 'auto' }],
-  } as any,
+  } as Record<string, unknown>,
 });
 
 export const uploadVehiclePhoto = multer({

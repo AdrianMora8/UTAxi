@@ -39,14 +39,15 @@ export function errorHandler(
     return;
   }
 
+  const prismaError = err as unknown as { code?: string };
   // Error de Prisma: registro duplicado (unique constraint)
-  if ((err as any).code === 'P2002') {
+  if (prismaError.code === 'P2002') {
     res.status(409).json({ error: 'Ya existe un registro con esos datos' });
     return;
   }
 
   // Error de Prisma: registro no encontrado
-  if ((err as any).code === 'P2025') {
+  if (prismaError.code === 'P2025') {
     res.status(404).json({ error: 'Recurso no encontrado' });
     return;
   }
